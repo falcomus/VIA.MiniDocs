@@ -1,0 +1,19 @@
+.tableWrap { overflow-x: auto; }
+.table { width: 100%; border-collapse: collapse; text-align: left; }
+.table th { padding: 13px 17px; color: #64748b; font-size: 0.74rem; font-weight: 700; background: #f7f9fb; }
+.table td { padding: 16px 17px; border-top: 1px solid #e8edf2; }
+.table tbody tr:hover { background: #fafcfe; }
+.table th:first-child { width: 70%; }
+.titleRow { display: flex; align-items: center; gap: 13px; }
+.documentIcon {
+  display: inline-flex; align-items: center; justify-content: center;
+  flex: 0 0 37px; width: 37px; height: 43px; border-radius: 7px;
+  background: #e6eef7; color: #3873a1; font-size: 1.3rem;
+}
+.title { display: block; font-size: 0.9rem; font-weight: 650; color: #26374a; }
+.kind, .secondary { color: #718096; font-size: 0.79rem; }
+.kind { display: block; margin-top: 4px; }
+.empty { text-align: center; padding: 80px 30px; color: #60748a; }
+.empty strong { display: block; color: #334155; }
+.empty p { margin: 10px 0 0; font-size: 0.9rem; }
+@media (max-width: 580px) { .table td, .table th { padding: 12px 9px; } }

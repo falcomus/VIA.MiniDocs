@@ -1,0 +1,38 @@
+# Dependencies und Ausgaben
+**/node_modules/
+**/dist/
+**/coverage/
+**/.vite/
+
+# Lokale Entwicklungsumgebung
+.vs/
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# Geheimnisse und Umgebungswerte
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+
+# Projektbezogene lokale und generierte Dateien
+**/bin/
+**/obj/
+**/TestResults/
+**/test-results/
+**/playwright-report/
+.local-reference/
+*.patch
+*.diff
+*.bak
+*.backup
+*.tmp
+*~
+# Lokale Referenzkopie und separater Pilotleitfaden
+/docs/MiniDoc - Anfrage und Antwort - 17nov26.docx
+/docs/VIA_UserFlow_Pilot_Test_Guide_2026-11-18.docx

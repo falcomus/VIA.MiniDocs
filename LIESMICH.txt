@@ -1,0 +1,10 @@
+MiniDocs – KU-Referenzmaterial (nur lokal verwenden)
+
+Bitte dieses ZIP direkt nach C:\VIA_DEVELOPMENT\PROJECTS\VIA.MiniDocs\ entpacken.
+Es entsteht der Unterordner .local-reference mit:
+- MiniDoc_Prototyp.html
+- MiniDoc - Anfrage und Antwort - 17nov26.docx
+
+WICHTIG: .local-reference/ muss in .gitignore stehen.
+Dateien nur lesen, keine Veröffentlichung ohne gesonderte Freigabe.
+Die 1:1 UI-Umsetzung basiert auf dem HTML-Prototyp und dem Anforderungsdokument.
