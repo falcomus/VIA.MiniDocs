@@ -29,3 +29,5 @@
 .bulkHint { display: flex; align-items: center; gap: 8px; margin: 0 20px 8px; padding: 6px 8px 6px 12px; border-radius: var(--r); font-size: 13px; min-height: 42px; color: var(--muted); border: 1px dashed var(--line); }.bulkHint span { margin-left: auto; font-size: 11px; }
 .content { flex: 1; overflow: auto; padding: 4px 20px 40px; position: relative; }
 @media (max-width: 1000px) { .topbar { flex-wrap: wrap; }.search { order: 3; flex-basis: 100%; max-width: none; }.actions { margin-left: auto; } }
+.add { cursor: pointer; }.add:hover { background: var(--line2); color: var(--text); }
+.crumb { display: inline-flex; align-items: center; gap: 4px; }.crumb button { border: 0; border-radius: 4px; padding: 2px 4px; background: transparent; color: var(--muted); cursor: pointer; }.crumb button:hover { background: var(--line2); color: var(--text); }.crumb svg { width: 14px; height: 14px; color: #a2abb8; }

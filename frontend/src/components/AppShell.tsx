@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import type { Topic, TopicId } from '../features/topics/topic.types';
 import { Icon } from './Icon';
 import styles from './AppShell.module.css';
 
@@ -17,12 +18,12 @@ function Header() {
   </header>;
 }
 
-export function Sidebar({ children, documentCount, pageCount }: { readonly children: ReactNode; readonly documentCount: number; readonly pageCount: number }) {
-  return <><div className={styles.sidebarHeading}><span>Themen</span><button className={styles.add} aria-label="Neues Thema auf oberster Ebene" disabled><Icon name="plus" /></button></div><div className={styles.tree}>{children}</div><div className={styles.sidebarFoot}><b>{documentCount}</b> Dokumente · <b>{pageCount}</b> Seiten<br /><span>Prototyp – Daten nur im Browser, Reload setzt zurück</span></div></>;
+export function Sidebar({ children, documentCount, pageCount, onAdd, onMoveRoot }: { readonly children: ReactNode; readonly documentCount: number; readonly pageCount: number; readonly onAdd: () => void; readonly onMoveRoot: (id: TopicId) => void }) {
+  return <><div className={styles.sidebarHeading} onDragOver={(event) => { if (Array.from(event.dataTransfer.types).includes('application/x-minidoc-topic')) event.preventDefault(); }} onDrop={(event) => { const id = event.dataTransfer.getData('application/x-minidoc-topic'); if (id) { event.preventDefault(); onMoveRoot(id); } }}><span>Themen</span><button type="button" className={styles.add} aria-label="Neues Thema auf oberster Ebene" onClick={onAdd}><Icon name="plus" /></button></div><div className={styles.tree}>{children}</div><div className={styles.sidebarFoot}><b>{documentCount}</b> Dokumente · <b>{pageCount}</b> Seiten<br /><span>Prototyp – Daten nur im Browser, Reload setzt zurück</span></div></>;
 }
 
-export function Toolbar({ title }: { readonly title: string }) {
-  return <div className={styles.toolbar}><div className={styles.crumbs}><h1>{title}</h1></div><div className={styles.tools}>
+export function Toolbar({ title, ancestors, onNavigate }: { readonly title: string; readonly ancestors: readonly Topic[]; readonly onNavigate: (id: TopicId) => void }) {
+  return <div className={styles.toolbar}><div className={styles.crumbs}>{ancestors.map((topic) => <span className={styles.crumb} key={topic.id}><button type="button" onClick={() => onNavigate(topic.id)}>{topic.name}</button><Icon name="chevron" /></span>)}<h1>{title}</h1></div><div className={styles.tools}>
     <select className={styles.select} aria-label="Sortierung" disabled><option>Sortierung folgt</option></select>
     <div className={`${styles.segment} ${styles.square}`} aria-label="Ansicht"><button className={styles.active} aria-label="Listenansicht" disabled><Icon name="list" /></button><button aria-label="Kachelansicht" disabled><Icon name="grid" /></button></div>
     <label className={styles.zoom}>Zoom <input type="range" min="110" max="380" value="190" aria-label="Zoom" disabled readOnly /></label>
