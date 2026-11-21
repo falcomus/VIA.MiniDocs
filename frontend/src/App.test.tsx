@@ -21,3 +21,17 @@ describe('App', () => {
     expect(screen.queryByText('Besprechungsnotizen – Eingang')).not.toBeInTheDocument();
   });
 });
+
+it('kennzeichnet vorbereitete Bedienelemente als deaktiviert', () => {
+  render(<App />);
+  expect(screen.getByRole('searchbox', { name: 'Dokumente suchen' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'Hochladen' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'Kachelansicht' })).toBeDisabled();
+  expect(screen.getByRole('combobox', { name: 'Sortierung' })).toBeDisabled();
+});
+
+it('zeigt die Statistik aus den vorhandenen Demodaten', () => {
+  render(<App />);
+  expect(screen.getByText(/Dokumente ·/)).toBeInTheDocument();
+  expect(screen.getByText(/Daten nur im Browser/)).toBeInTheDocument();
+});

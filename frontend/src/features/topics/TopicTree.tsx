@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Topic, TopicId } from './topic.types';
+import { Icon } from '../../components/Icon';
 import styles from './TopicTree.module.css';
 
 interface TopicTreeProps {
@@ -38,7 +39,7 @@ function TopicBranch({
             aria-expanded={expanded}
             aria-label={`${topic.name}: Unterthemen ${expanded ? 'einklappen' : 'aufklappen'}`}
           >
-            <span aria-hidden="true">{expanded ? '▾' : '▸'}</span>
+            <Icon name="chevron" className={expanded ? styles.expanded : ''} />
           </button>
         ) : (
           <span className={styles.disclosureSpacer} aria-hidden="true" />
@@ -49,7 +50,7 @@ function TopicBranch({
           onClick={() => onSelect(topic.id)}
           aria-current={selected ? 'page' : undefined}
         >
-          <span className={styles.folder} aria-hidden="true">▣</span>
+          <Icon name={topic.systemKey ? 'inbox' : 'folder'} className={topic.systemKey ? styles.system : styles.folder} />
           <span className={styles.topicLabel}>{topic.name}</span>
         </button>
       </div>
@@ -93,7 +94,6 @@ export function TopicTree({ topics, selectedTopicId, onSelect }: TopicTreeProps)
 
   return (
     <nav aria-label="Themen">
-      <h2 className={styles.heading}>Themen</h2>
       {roots.length === 0 ? (
         <p className={styles.empty}>Noch keine Themen vorhanden.</p>
       ) : (
