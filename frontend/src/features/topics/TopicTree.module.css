@@ -172,3 +172,12 @@
     transition: none;
   }
 }
+
+.completeIcon {
+  width: 17px;
+  height: 17px;
+  color: #17643d;
+}
+.completeLabel {
+  color: #17643d;
+}

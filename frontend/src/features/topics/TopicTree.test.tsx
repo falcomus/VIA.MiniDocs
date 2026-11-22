@@ -27,7 +27,7 @@ describe('TopicTree', () => {
     render(<TopicTree topics={demoTopics} selectedTopicId="unassigned" onSelect={vi.fn()} />);
 
     expect(screen.getByRole('navigation', { name: 'Themen' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Nicht zugeordnet' })).toHaveAttribute(
+    expect(screen.getByRole('button', { name: 'Alle zugeordnet' })).toHaveAttribute(
       'aria-current',
       'page',
     );
@@ -50,7 +50,7 @@ describe('TopicTree', () => {
 
     await user.click(screen.getByRole('button', { name: 'Kunde Alpha: Unterthemen einklappen' }));
     expect(screen.queryByRole('button', { name: 'Lenkungskreis' })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Nicht zugeordnet' })).toHaveAttribute(
+    expect(screen.getByRole('button', { name: 'Alle zugeordnet' })).toHaveAttribute(
       'aria-current',
       'page',
     );
@@ -112,7 +112,7 @@ it('markiert ein gültiges Ziel ohne getData während dragover und behält es be
   expect(target).not.toHaveClass(styles.drop);
 });
 
-it.each(['Nicht zugeordnet', 'Kunde Alpha', 'Lenkungskreis'])(
+it.each(['Alle zugeordnet', 'Kunde Alpha', 'Lenkungskreis'])(
   'markiert das ungültige Ziel %s nicht',
   (name) => {
     const { target, dataTransfer } = renderDragTree();
@@ -181,7 +181,7 @@ it('weist einen Drop ohne lokalen Dragstart zurück', () => {
   expect(dataTransfer.getData).not.toHaveBeenCalled();
 });
 
-it.each(['Nicht zugeordnet', 'Kunde Alpha', 'Lenkungskreis'])(
+it.each(['Alle zugeordnet', 'Kunde Alpha', 'Lenkungskreis'])(
   'weist einen Drop auf %s ohne Move-Callback zurück',
   (name) => {
     const { target, dataTransfer, onMove, onReject } = renderDragTree();
@@ -220,4 +220,33 @@ it('entfernt beim Unmount dieselben globalen Drag-Listener', () => {
     expect(removeDocument).toHaveBeenCalledWith(type, listener);
   for (const [type, listener] of blurListeners)
     expect(removeWindow).toHaveBeenCalledWith(type, listener);
+});
+it('leitet den Systemstatus aus direkter Zuordnung ab und bewahrt ID, Icon und Auswahl', () => {
+  const topics = [...demoTopics, { id: 'child', parentId: 'unassigned', name: 'Unterthema' }];
+  const onSelect = vi.fn();
+  const { rerender } = render(
+    <TopicTree
+      topics={topics}
+      selectedTopicId="unassigned"
+      onSelect={onSelect}
+      documentTopicIds={['child']}
+    />,
+  );
+  const complete = screen.getByRole('button', { name: 'Alle zugeordnet' });
+  expect(complete).toHaveAttribute('data-topic-id', 'unassigned');
+  expect(complete.querySelector('svg')).toHaveClass(styles.completeIcon);
+  fireEvent.click(complete);
+  expect(onSelect).toHaveBeenCalledWith('unassigned');
+  rerender(
+    <TopicTree
+      topics={topics}
+      selectedTopicId="unassigned"
+      onSelect={onSelect}
+      documentTopicIds={['child', 'unassigned']}
+    />,
+  );
+  const inbox = screen.getByRole('button', { name: 'Nicht zugeordnet' });
+  expect(inbox).toHaveAttribute('data-topic-id', 'unassigned');
+  expect(inbox.querySelector('svg')).toHaveClass(styles.system);
+  expect(inbox).toHaveAttribute('aria-description', '2 Dokumente einschließlich Unterthemen');
 });

@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { AppShell, Content, Sidebar, Toolbar } from './components/AppShell';
 import { demoTopics } from './features/topics/demoTopics';
+import { topicDisplayName } from './features/topics/topicDisplayName';
 import { TopicTree } from './features/topics/TopicTree';
 import { useTopicDrag } from './features/topics/useTopicDrag';
 import { TopicDialog } from './features/topics/TopicDialog';
@@ -37,6 +38,7 @@ export function App() {
   const returnFocus = useRef<HTMLElement | null>(null);
   const fallbackFocus = useRef<TopicId>('unassigned');
   const restoreFocus = useRef(false);
+  const documentTopicIds = documents.map((document) => document.topicId);
   const path = topicPath(topics, selectedTopicId);
   const dialogTopic =
     dialog && 'id' in dialog ? topics.find((topic) => topic.id === dialog.id) : undefined;
@@ -155,7 +157,7 @@ export function App() {
             topics={topics}
             selectedTopicId={selectedTopicId}
             onSelect={navigate}
-            documentTopicIds={documents.map((document) => document.topicId)}
+            documentTopicIds={documentTopicIds}
             onNew={(id) => openDialog({ kind: 'new', parentId: id })}
             onRename={(id) => openDialog({ kind: 'rename', id })}
             onDelete={(id) => openDialog({ kind: 'delete', id })}
@@ -174,8 +176,10 @@ export function App() {
         onZoomChange={workspace.setZoom}
         view={view}
         onViewChange={setView}
-        title={path.at(-1)?.name ?? 'Unbekanntes Thema'}
-        ancestors={path.slice(0, -1)}
+        title={path.at(-1) ? topicDisplayName(path.at(-1)!, documentTopicIds) : 'Unbekanntes Thema'}
+        ancestors={path
+          .slice(0, -1)
+          .map((topic) => ({ ...topic, name: topicDisplayName(topic, documentTopicIds) }))}
         onNavigate={navigate}
       />
       <SelectionBar

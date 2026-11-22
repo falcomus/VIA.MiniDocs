@@ -104,7 +104,7 @@ it('verschiebt per Tastaturdialog, gibt Fokus zurück und macht die Mehrfachvers
   expect(screen.getByRole('combobox', { name: 'Zielthema' })).toHaveFocus();
   await user.selectOptions(screen.getByRole('combobox', { name: 'Zielthema' }), 'beta');
   await user.click(screen.getByRole('button', { name: 'Verschieben' }));
-  expect(screen.getByRole('button', { name: 'Nicht zugeordnet' })).toHaveFocus();
+  expect(screen.getByRole('button', { name: 'Alle zugeordnet' })).toHaveFocus();
   expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
   await user.click(screen.getByRole('button', { name: 'Rückgängig' }));
   expect(checkbox()).toBeInTheDocument();
@@ -322,7 +322,7 @@ it('verschiebt mehrere Dokumente gezielt in ein verschachteltes Baumthema und st
   const target = tree.getByRole('button', { name: 'Lenkungskreis' }).parentElement!;
   fireEvent.dragOver(target, { dataTransfer });
   fireEvent.drop(target, { dataTransfer });
-  expect(count('Nicht zugeordnet')).toBe('0 Dokumente einschließlich Unterthemen');
+  expect(count('Alle zugeordnet')).toBe('0 Dokumente einschließlich Unterthemen');
   expect(count('Kunden')).toBe('5 Dokumente einschließlich Unterthemen');
   expect(count('Kunde Alpha')).toBe('4 Dokumente einschließlich Unterthemen');
   expect(count('Lenkungskreis')).toBe('3 Dokumente einschließlich Unterthemen');
@@ -464,5 +464,93 @@ it('navigiert bei einem unveränderten oder ungültigen Drop nicht und erhält d
     'aria-current',
     'page',
   );
+  expect(checkbox()).toBeInTheDocument();
+});
+it('zeigt nach Verschieben des letzten Dokuments den positiven Systemstatus und stellt ihn per Undo zurück', async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  const tree = within(screen.getByRole('navigation', { name: 'Themen' }));
+  expect(tree.getByRole('button', { name: 'Nicht zugeordnet' })).toHaveAttribute(
+    'aria-description',
+    '2 Dokumente einschließlich Unterthemen',
+  );
+  await user.click(checkbox());
+  await user.click(screen.getByRole('button', { name: 'Verschieben nach …' }));
+  await user.selectOptions(screen.getByRole('combobox', { name: 'Zielthema' }), 'beta');
+  await user.click(screen.getByRole('button', { name: 'Verschieben' }));
+  expect(tree.getByRole('button', { name: 'Nicht zugeordnet' })).toHaveAttribute(
+    'aria-description',
+    '1 Dokument einschließlich Unterthemen',
+  );
+  await user.click(checkbox('Offene Punkte – Entwurf'));
+  await user.click(screen.getByRole('button', { name: 'Verschieben nach …' }));
+  await user.selectOptions(screen.getByRole('combobox', { name: 'Zielthema' }), 'beta');
+  await user.click(screen.getByRole('button', { name: 'Verschieben' }));
+  const complete = tree.getByRole('button', { name: 'Alle zugeordnet' });
+  expect(complete).toHaveAttribute('data-topic-id', 'unassigned');
+  expect(complete).toHaveAttribute('aria-current', 'page');
+  expect(complete).toHaveTextContent(/^Alle zugeordnet$/);
+  expect(within(complete).getByText('Alle zugeordnet')).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: 'Alle zugeordnet' })).toBeInTheDocument();
+  complete.focus();
+  await user.keyboard('{Shift>}{F10}{/Shift}');
+  expect(screen.queryByRole('menuitem', { name: 'Löschen' })).not.toBeInTheDocument();
+  await user.keyboard('{Escape}');
+  expect(complete).toHaveFocus();
+  await user.click(screen.getByRole('button', { name: 'Rückgängig' }));
+  expect(tree.getByRole('button', { name: 'Nicht zugeordnet' })).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
+  expect(screen.getByRole('heading', { name: 'Nicht zugeordnet' })).toBeInTheDocument();
+  expect(checkbox('Offene Punkte – Entwurf')).toBeInTheDocument();
+});
+it('nimmt Dokument-Drop auf Alle zugeordnet an und kehrt beim Undo zum positiven Zustand zurück', () => {
+  render(<App />);
+  const tree = within(screen.getByRole('navigation', { name: 'Themen' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Alle auswählen' }));
+  const first = transfer();
+  fireEvent.dragStart(row(), { dataTransfer: first });
+  fireEvent.drop(treeTarget(), { dataTransfer: first });
+  const complete = tree.getByRole('button', { name: 'Alle zugeordnet' });
+  expect(complete).toHaveAttribute('data-topic-id', 'unassigned');
+  const second = transfer();
+  fireEvent.dragStart(row(), { dataTransfer: second });
+  fireEvent.dragOver(complete.parentElement!, { dataTransfer: second });
+  fireEvent.drop(complete.parentElement!, { dataTransfer: second });
+  expect(tree.getByRole('button', { name: 'Nicht zugeordnet' })).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
+  expect(screen.getByRole('heading', { name: 'Nicht zugeordnet' })).toBeInTheDocument();
+  expect(checkbox()).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'Rückgängig' }));
+  expect(tree.getByRole('button', { name: 'Alle zugeordnet' })).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
+  expect(screen.getByRole('heading', { name: 'Alle zugeordnet' })).toBeInTheDocument();
+});
+it('kehrt nach Themenlöschung mit Dokumenten automatisch zu Nicht zugeordnet zurück', async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  const tree = within(screen.getByRole('navigation', { name: 'Themen' }));
+  await user.click(screen.getByRole('button', { name: 'Alle auswählen' }));
+  const dataTransfer = transfer();
+  fireEvent.dragStart(row(), { dataTransfer });
+  fireEvent.drop(treeTarget(), { dataTransfer });
+  expect(tree.getByRole('button', { name: 'Alle zugeordnet' })).toBeInTheDocument();
+  await user.pointer({
+    target: tree.getByRole('button', { name: 'Kunde Beta' }),
+    keys: '[MouseRight]',
+  });
+  await user.click(screen.getByRole('menuitem', { name: 'Löschen' }));
+  await user.click(screen.getByRole('button', { name: 'Löschen' }));
+  expect(tree.getByRole('button', { name: 'Nicht zugeordnet' })).toHaveAttribute(
+    'aria-description',
+    '3 Dokumente einschließlich Unterthemen',
+  );
+  await user.click(tree.getByRole('button', { name: 'Nicht zugeordnet' }));
+  expect(screen.getByRole('heading', { name: 'Nicht zugeordnet' })).toBeInTheDocument();
   expect(checkbox()).toBeInTheDocument();
 });

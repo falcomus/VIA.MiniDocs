@@ -5,6 +5,7 @@ import type { DocumentDrag } from '../documents/useDocumentDrag';
 import type { TopicDrag } from './useTopicDrag';
 import { Icon } from '../../components/Icon';
 import styles from './TopicTree.module.css';
+import { topicDisplayName } from './topicDisplayName';
 
 interface TopicTreeProps {
   readonly topics: readonly Topic[];
@@ -121,6 +122,8 @@ export function TopicTree({
   }
   function branch(topic: Topic): React.ReactNode {
     const kids = children(topic.id);
+    const complete = topic.systemKey === 'UNASSIGNED' && !documentTopicIds.includes(topic.id);
+    const displayName = topicDisplayName(topic, documentTopicIds);
     const expanded = isExpanded(topic.id);
     const countIds = descendantIds(topics, topic.id);
     const count = documentTopicIds.filter((id) => countIds.has(id)).length;
@@ -200,10 +203,14 @@ export function TopicTree({
             }}
           >
             <Icon
-              name={topic.systemKey ? 'inbox' : 'folder'}
-              className={topic.systemKey ? styles.system : styles.folder}
+              name={complete ? 'check' : topic.systemKey ? 'inbox' : 'folder'}
+              className={
+                complete ? styles.completeIcon : topic.systemKey ? styles.system : styles.folder
+              }
             />
-            <span className={styles.topicLabel}>{topic.name}</span>
+            <span className={`${styles.topicLabel} ${complete ? styles.completeLabel : ''}`}>
+              {displayName}
+            </span>
             {count > 0 && (
               <span
                 className={`${styles.count} ${topic.systemKey ? styles.hot : ''}`}
@@ -253,7 +260,7 @@ export function TopicTree({
                 : (index - 1 + items.length) % items.length;
             items[next]?.focus();
           }}
-          aria-label={`Kontextmenü ${menuTopic.name}`}
+          aria-label={`Kontextmenü ${topicDisplayName(menuTopic, documentTopicIds)}`}
           style={{ left: menu.x, top: menu.y }}
         >
           {!menuTopic.systemKey && (
