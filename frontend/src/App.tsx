@@ -13,7 +13,7 @@ import type { DocumentView } from './features/documents/document.types';
 import styles from './App.module.css';
 
 export function App() {
-  const [view, setView] = useState<DocumentView>('list');
+  const [view, setView] = useState<DocumentView>('grid');
   const [topics, setTopics] = useState<readonly Topic[]>(demoTopics);
   const [documents, setDocuments] = useState(demoDocuments);
   const [selectedTopicId, setSelectedTopicId] = useState<TopicId>('unassigned');

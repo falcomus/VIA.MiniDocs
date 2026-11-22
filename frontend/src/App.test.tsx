@@ -6,6 +6,7 @@ import { App } from './App';
 describe('App', () => {
   it('zeigt die nicht zugeordneten Demodokumente an', () => {
     render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'Listenansicht' }));
 
     expect(screen.getByRole('heading', { level: 1, name: 'Nicht zugeordnet' })).toBeInTheDocument();
     expect(screen.getAllByRole('row')).toHaveLength(3); // Kopf + zwei Dokumente
@@ -14,6 +15,7 @@ describe('App', () => {
   it('zeigt Dokumente des gewählten Themas an', async () => {
     const user = userEvent.setup();
     render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'Listenansicht' }));
 
     await user.click(screen.getByRole('button', { name: 'Lenkungskreis' }));
     expect(screen.getByRole('heading', { level: 1, name: 'Lenkungskreis' })).toBeInTheDocument();
@@ -41,6 +43,7 @@ it('zeigt die Statistik aus den vorhandenen Demodaten', () => {
 it('legt ein Unterthema an und zeigt die leere Dokumentliste', async () => {
   const user = userEvent.setup();
   render(<App />);
+  fireEvent.click(screen.getByRole('button', { name: 'Listenansicht' }));
   await user.pointer({
     target: screen.getByRole('button', { name: 'Kunde Beta' }),
     keys: '[MouseRight]',
@@ -78,6 +81,7 @@ it('benennt ein Thema um und verhindert leere Namen', async () => {
 it('löscht Teilbäume und ordnet ihre Dokumente dem Systemknoten zu', async () => {
   const user = userEvent.setup();
   render(<App />);
+  fireEvent.click(screen.getByRole('button', { name: 'Listenansicht' }));
   await user.click(screen.getByRole('button', { name: 'Lenkungskreis' }));
   await user.pointer({
     target: within(screen.getByRole('navigation', { name: 'Themen' })).getByRole('button', {
@@ -278,3 +282,20 @@ it.each(['mismatch', 'missing', 'no-start', 'escape'])(
     expect(fireEvent.dragOver(root, { dataTransfer })).toBe(true);
   },
 );
+
+it('startet mit aktiver Kachelansicht und den nicht zugeordneten Dokumenten', () => {
+  render(<App />);
+  expect(screen.getByRole('button', { name: 'Kachelansicht' })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+  expect(screen.getByRole('button', { name: 'Listenansicht' })).toHaveAttribute(
+    'aria-pressed',
+    'false',
+  );
+  const grid = within(screen.getByRole('list', { name: 'Kachelansicht' }));
+  expect(grid.getAllByRole('listitem')).toHaveLength(2);
+  expect(grid.getByTitle('Besprechungsnotizen – Eingang')).toBeInTheDocument();
+  expect(grid.getByTitle('Offene Punkte – Entwurf')).toBeInTheDocument();
+  expect(screen.queryByRole('table')).not.toBeInTheDocument();
+});

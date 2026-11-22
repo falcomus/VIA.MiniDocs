@@ -4,11 +4,10 @@ Referenz: lokale KU-HTML-Datei, CSS Zeilen 107–155 und Darstellung in `renderC
 
 Übernommen: Ordner vor Dokumenten, nur direkte Unterthemen, rekursive Dokumentzähler; Tabellenstruktur mit Auswahlplatz, Vorschau, Titel/Dateiname, Datum, Seiten, Tags, Transkript und Aktionen. Header 8/10 px, Zellen 7/10 px; Miniatur 30 × 42 px; Rahmen und Hoverfarben aus dem Original. Kacheln mit 190 px Mindestbreite, 16 px Abstand, A4-Vorschaufläche 210/297, Radius 10 px, Metadatenpadding 8/10/10 px, Titel 13 px/600 und Unterzeile 12 px. Ordnerverlauf und Ordner-/Tag-/Tab-/Download-Icons entsprechen den Referenzpfaden. Bestehende zentrale Tokens und globale Fokusregel bleiben erhalten.
 
-Ansicht ist ein einzelner App-State; beide Darstellungen erhalten dieselben abgeleiteten Daten. Ordnernavigation aktualisiert dieselbe Themenauswahl wie der Baum. Datumsformat ist TT.MM.JJJJ, fehlende und ungültige Kalenderdaten zeigen „ohne Datum“. Transkriptstatus unterscheidet fehlt/vorhanden/bearbeitet, fehlender Status bedeutet fehlt. Optionale Metadaten und rein synthetische Demo-Vorschau sind im Frontendmodell getrennt von künftigen Dateien.
+Die Anwendung startet wie das Original mit aktiver Kachelansicht; die bisherige Startansicht-Abweichung ist behoben. Ein automatisierter Test prüft die aktive Schaltfläche und die initialen Dokumentkacheln. Ansicht ist ein einzelner App-State; beide Darstellungen erhalten dieselben abgeleiteten Daten. Ordnernavigation aktualisiert dieselbe Themenauswahl wie der Baum. Datumsformat ist TT.MM.JJJJ, fehlende und ungültige Kalenderdaten zeigen „ohne Datum“. Transkriptstatus unterscheidet fehlt/vorhanden/bearbeitet, fehlender Status bedeutet fehlt. Optionale Metadaten und rein synthetische Demo-Vorschau sind im Frontendmodell getrennt von künftigen Dateien.
 
 ## Bewusste Abweichungen und Grenzen
 
-- Bestehende Listen-Startansicht bleibt statt der Kachel-Startansicht des Originals.
 - Kleiner bisheriger Demo-Datensatz, einfache synthetische SVG-Notizen statt des vollständigen Original-Scan-Generators; keine echten PDF-Vorschauen.
 - Ordner als native Buttons mit einfachem Klick bzw. Enter/Leertaste statt ausschließlich Doppelklick. Dokumente öffnen noch keinen Viewer.
 - Auswahl, Tags zuweisen, Tab und Download deaktiviert; Aktionen dauerhaft sichtbar statt nur bei Hover, damit der vorbereitete Zustand erkennbar bleibt. Keine Auswahl-/Sortier-/Zoomfunktion aus M4 implementiert.
