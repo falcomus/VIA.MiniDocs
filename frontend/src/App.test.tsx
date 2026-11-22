@@ -183,9 +183,9 @@ it('weist einen synthetischen ungültigen Drop ab und erhält die Hierarchie', (
   render(<App />);
   const alpha = screen.getByRole('button', { name: 'Kunde Alpha' });
   const target = screen.getByRole('button', { name: 'Lenkungskreis' });
-  fireEvent.drop(target.parentElement!, {
-    dataTransfer: { types: ['application/x-minidoc-topic'], getData: () => 'alpha' },
-  });
+  const dataTransfer = { setData: () => {}, getData: () => 'alpha' };
+  fireEvent.dragStart(alpha.parentElement!, { dataTransfer });
+  fireEvent.drop(target.parentElement!, { dataTransfer });
   expect(screen.getByRole('status')).toHaveTextContent('nicht dorthin verschoben');
   expect(alpha.closest('ul')?.closest('li')).toHaveTextContent('Kunden');
   expect(screen.getByRole('button', { name: 'Lenkungskreis' })).toBeInTheDocument();
@@ -219,3 +219,54 @@ it('übernimmt eine gültige Themenverschiebung nach synthetischem Dragstart und
   expect(moved.closest('ul')?.closest('li')).toHaveTextContent('Kunde Beta');
   expect(screen.getByRole('status')).toHaveTextContent('Thema verschoben.');
 });
+
+it('verschiebt über den Sidebar-Kopf auf die oberste Ebene und beendet die Sitzung', () => {
+  render(<App />);
+  const source = screen.getByRole('button', { name: 'Kunde Alpha' }).parentElement!;
+  const root = screen.getByRole('button', {
+    name: 'Neues Thema auf oberster Ebene',
+  }).parentElement!;
+  const dataTransfer = { setData: () => {}, getData: () => 'alpha' };
+  fireEvent.dragStart(source, { dataTransfer });
+  expect(fireEvent.dragOver(root, { dataTransfer })).toBe(false);
+  fireEvent.drop(root, { dataTransfer });
+  const moved = screen.getByRole('button', { name: 'Kunde Alpha' });
+  expect(moved.closest('ul')?.parentElement).toBe(
+    screen.getByRole('navigation', { name: 'Themen' }),
+  );
+  expect(screen.getByRole('status')).toHaveTextContent('Thema verschoben.');
+  // Reusing the old payload must not move the topic back under another row.
+  fireEvent.drop(screen.getByRole('button', { name: 'Kunde Beta' }).parentElement!, {
+    dataTransfer,
+  });
+  expect(moved.closest('ul')?.parentElement).toBe(
+    screen.getByRole('navigation', { name: 'Themen' }),
+  );
+  expect(screen.getByRole('status')).toHaveTextContent('nicht dorthin verschoben');
+});
+
+it.each(['mismatch', 'missing', 'no-start', 'escape'])(
+  'weist am Sidebar-Kopf einen Drop bei %s ohne Hierarchieänderung zurück',
+  (reason) => {
+    render(<App />);
+    const alpha = screen.getByRole('button', { name: 'Kunde Alpha' });
+    const beta = screen.getByRole('button', { name: 'Kunde Beta' });
+    const root = screen.getByRole('button', {
+      name: 'Neues Thema auf oberster Ebene',
+    }).parentElement!;
+    const dataTransfer = {
+      setData: () => {},
+      getData: () => (reason === 'mismatch' ? 'beta' : reason === 'missing' ? '' : 'alpha'),
+    };
+    if (reason !== 'no-start') fireEvent.dragStart(alpha.parentElement!, { dataTransfer });
+    if (reason === 'escape') fireEvent.keyDown(document, { key: 'Escape' });
+    expect(fireEvent.dragOver(root, { dataTransfer })).toBe(
+      reason === 'no-start' || reason === 'escape',
+    );
+    fireEvent.drop(root, { dataTransfer });
+    expect(alpha.closest('ul')?.closest('li')).toHaveTextContent('Kunden');
+    expect(beta.closest('ul')?.closest('li')).toHaveTextContent('Kunden');
+    expect(screen.getByRole('status')).toHaveTextContent('nicht dorthin verschoben');
+    expect(fireEvent.dragOver(root, { dataTransfer })).toBe(true);
+  },
+);

@@ -2,6 +2,7 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import { AppShell, Content, Sidebar, Toolbar } from './components/AppShell';
 import { demoTopics } from './features/topics/demoTopics';
 import { TopicTree } from './features/topics/TopicTree';
+import { useTopicDrag } from './features/topics/useTopicDrag';
 import { TopicDialog } from './features/topics/TopicDialog';
 import type { TopicDialogState } from './features/topics/TopicDialog';
 import { canMoveTopic, descendantIds, topicPath } from './features/topics/topicUtils';
@@ -17,6 +18,7 @@ export function App() {
   const [dialog, setDialog] = useState<TopicDialogState | null>(null);
   const [notice, setNotice] = useState('');
   const [dialogError, setDialogError] = useState('');
+  const drag = useTopicDrag(topics, moveTopic, rejectMove);
   const returnFocus = useRef<HTMLElement | null>(null);
   const fallbackFocus = useRef<TopicId>('unassigned');
   const restoreFocus = useRef(false);
@@ -60,9 +62,12 @@ export function App() {
     )?.focus();
   }, [dialog]);
 
+  function rejectMove() {
+    setNotice('Ein Thema kann nicht dorthin verschoben werden.');
+  }
   function moveTopic(id: TopicId, parentId: TopicId | null): boolean {
     if (!canMoveTopic(topics, id, parentId)) {
-      setNotice('Ein Thema kann nicht dorthin verschoben werden.');
+      rejectMove();
       return false;
     }
     setTopics((previous) =>
@@ -124,9 +129,7 @@ export function App() {
           documentCount={documents.length}
           pageCount={documents.reduce((sum, document) => sum + document.pages, 0)}
           onAdd={() => openDialog({ kind: 'new', parentId: null })}
-          onMoveRoot={(id) => {
-            moveTopic(id, null);
-          }}
+          drag={drag}
         >
           <TopicTree
             topics={topics}
@@ -137,7 +140,7 @@ export function App() {
             onRename={(id) => openDialog({ kind: 'rename', id })}
             onDelete={(id) => openDialog({ kind: 'delete', id })}
             onMoveDialog={(id) => openDialog({ kind: 'move', id })}
-            onMove={moveTopic}
+            drag={drag}
           />
         </Sidebar>
       }

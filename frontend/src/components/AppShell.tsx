@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import type { Topic, TopicId } from '../features/topics/topic.types';
+import type { TopicDrag } from '../features/topics/useTopicDrag';
 import { Icon } from './Icon';
 import styles from './AppShell.module.css';
 
@@ -83,28 +84,28 @@ export function Sidebar({
   documentCount,
   pageCount,
   onAdd,
-  onMoveRoot,
+  drag,
 }: {
   readonly children: ReactNode;
   readonly documentCount: number;
   readonly pageCount: number;
   readonly onAdd: () => void;
-  readonly onMoveRoot: (id: TopicId) => void;
+  readonly drag: TopicDrag;
 }) {
   return (
     <>
       <div
         className={styles.sidebarHeading}
         onDragOver={(event) => {
-          if (Array.from(event.dataTransfer.types).includes('application/x-minidoc-topic'))
+          if (drag.over(null)) {
             event.preventDefault();
+            event.dataTransfer.dropEffect = 'move';
+          }
         }}
         onDrop={(event) => {
-          const id = event.dataTransfer.getData('application/x-minidoc-topic');
-          if (id) {
-            event.preventDefault();
-            onMoveRoot(id);
-          }
+          event.preventDefault();
+          event.stopPropagation();
+          drag.drop(null, event.dataTransfer);
         }}
       >
         <span>Themen</span>

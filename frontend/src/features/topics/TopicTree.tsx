@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Topic, TopicId } from './topic.types';
-import { canMoveTopic, descendantIds } from './topicUtils';
+import { descendantIds } from './topicUtils';
+import type { TopicDrag } from './useTopicDrag';
 import { Icon } from '../../components/Icon';
 import styles from './TopicTree.module.css';
 
@@ -13,7 +14,7 @@ interface TopicTreeProps {
   readonly onRename?: (id: TopicId) => void;
   readonly onDelete?: (id: TopicId) => void;
   readonly onMoveDialog?: (id: TopicId) => void;
-  readonly onMove?: (id: TopicId, parentId: TopicId | null) => void;
+  readonly drag?: TopicDrag;
 }
 
 export function TopicTree({
@@ -25,14 +26,12 @@ export function TopicTree({
   onRename,
   onDelete,
   onMoveDialog,
-  onMove,
+  drag,
 }: TopicTreeProps) {
   const [expandedIds, setExpandedIds] = useState<ReadonlySet<TopicId>>(
     () => new Set(['customers', 'alpha', 'own-notes']),
   );
   const [menu, setMenu] = useState<{ id: TopicId; x: number; y: number } | null>(null);
-  const dragSource = useRef<TopicId | null>(null);
-  const [dropTarget, setDropTarget] = useState<TopicId | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
 
@@ -60,27 +59,6 @@ export function TopicTree({
       document.removeEventListener('keydown', closeOnEscape);
     };
   }, [menu]);
-
-  useEffect(() => {
-    const clearDrag = () => {
-      dragSource.current = null;
-      setDropTarget(null);
-    };
-    const cancelOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') clearDrag();
-    };
-    // A drop on the sidebar root or outside this tree must clear its feedback as well.
-    document.addEventListener('drop', clearDrag);
-    document.addEventListener('dragend', clearDrag);
-    document.addEventListener('keydown', cancelOnEscape);
-    window.addEventListener('blur', clearDrag);
-    return () => {
-      document.removeEventListener('drop', clearDrag);
-      document.removeEventListener('dragend', clearDrag);
-      document.removeEventListener('keydown', cancelOnEscape);
-      window.removeEventListener('blur', clearDrag);
-    };
-  }, []);
 
   function toggle(id: TopicId) {
     setExpandedIds((previous) => {
@@ -117,24 +95,16 @@ export function TopicTree({
     return (
       <li className={styles.item} key={topic.id}>
         <div
-          className={`${styles.itemRow} ${selectedTopicId === topic.id ? styles.selected : ''} ${dropTarget === topic.id ? styles.drop : ''}`}
-          draggable={!!onMove && !topic.systemKey}
+          className={`${styles.itemRow} ${selectedTopicId === topic.id ? styles.selected : ''} ${drag?.dropTarget === topic.id ? styles.drop : ''}`}
+          draggable={!!drag && !topic.systemKey}
           onDragStart={(event) => {
-            if (!onMove || topic.systemKey) return;
             event.stopPropagation();
-            dragSource.current = topic.id;
-            setDropTarget(null);
-            event.dataTransfer.setData('application/x-minidoc-topic', topic.id);
-            event.dataTransfer.effectAllowed = 'move';
+            if (!drag?.start(topic.id, event.dataTransfer)) event.preventDefault();
           }}
           onDragOver={(event) => {
-            const source = dragSource.current;
-            if (onMove && source && canMoveTopic(topics, source, topic.id)) {
+            if (drag?.over(topic.id)) {
               event.preventDefault();
               event.dataTransfer.dropEffect = 'move';
-              setDropTarget(topic.id);
-            } else {
-              setDropTarget(null);
             }
           }}
           onDragLeave={(event) => {
@@ -142,21 +112,15 @@ export function TopicTree({
               !(event.relatedTarget instanceof Node) ||
               !event.currentTarget.contains(event.relatedTarget)
             ) {
-              setDropTarget((current) => (current === topic.id ? null : current));
+              drag?.leave(topic.id);
             }
           }}
           onDrop={(event) => {
-            const id =
-              event.dataTransfer.getData('application/x-minidoc-topic') || dragSource.current;
-            dragSource.current = null;
-            setDropTarget(null);
-            if (id && onMove) {
-              event.preventDefault();
-              event.stopPropagation();
-              if (canMoveTopic(topics, id, topic.id))
-                setExpandedIds((previous) => new Set([...previous, topic.id]));
-              onMove(id, topic.id);
-            }
+            if (!drag) return;
+            event.preventDefault();
+            event.stopPropagation();
+            if (drag.drop(topic.id, event.dataTransfer))
+              setExpandedIds((previous) => new Set([...previous, topic.id]));
           }}
         >
           {kids.length > 0 ? (
