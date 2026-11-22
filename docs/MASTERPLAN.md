@@ -14,6 +14,7 @@ Das geplante Zielbild ist **React → ASP.NET Core MiniDocs API (.NET 10) → Po
 
 - M1 Grundlayout und M2 Themenbaum sind technisch abgeschlossen; ihre visuellen Browserabnahmen sind offen und werden in M8 nachverfolgt.
 - Q1 verbessert die Tastaturbedienung und Dialogfokus technisch; Browser- und Screenreader-Prüfungen sind offen. M3 Listen- und Kachelansicht ist als Nächstes geplant. Danach folgen M4–M8 gemäß [Ticketkatalog](TICKETS.md).
+- Q2 CSS-Qualitätsprüfung ist technisch umgesetzt; visuelle und Accessibility-Abnahmen bleiben offen.
 - Die Datenanbindung D1–D8 ist geplant. Backend, PostgreSQL-Anbindung und VIA.Docs-Verbindung sind noch nicht implementiert.
 
 ## Abhängigkeiten

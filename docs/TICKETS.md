@@ -13,6 +13,16 @@ Stand: 22.11.2026. Einstieg, Phasen und kritischer Pfad: [Masterplan](MASTERPLAN
 - **Risiken:** Browser-DnD, `inert` und Assistive-Technology-Verhalten benötigen echte Browserprüfung.
 - **Radix-Entscheidung:** Vorhandene Dialog-/Menüstruktur bleibt; eine kleine, zielgerichtete Korrektur und native Hintergrundisolierung reichen für den jetzigen Umfang. Radix Dialog/Context Menu (MIT, React-19-Unterstützung laut Audit) würde beide Komponenten und Portal-/Styling-/Testverhalten migrieren; aktuell kein nachgewiesener Vorteil, keine zweite Infrastruktur oder Installation. Bei neuem Dialogbedarf und nach Browser-/AT-Prüfung erneut bewerten.
 
+## Q2 – CSS-Qualitätsprüfung und Design-Tokens
+
+- **Status:** technisch abgeschlossen; Browser-/Accessibility-Abnahme offen.
+- **Ziel / Umfang:** vorhandene CSS-Doppelregeln und ungenutzten Selektor bereinigen, Panel-Token nutzen, reduzierte Bewegung berücksichtigen, Stylelint in `npm run check` integrieren.
+- **Ausgeschlossen:** M3, visuelle Neugestaltung, zusätzliche Styling-Systeme und andere Hilfsbibliotheken.
+- **Abhängigkeiten:** Q1, CSS-Audit R11–R14 und bestehende CSS Modules.
+- **Akzeptanz:** CSS-Lint ohne relevante Fehler; bestehende Tests bestehen; CSS-Modules-Syntax und eng begrenzte Ausnahmen geprüft; bestehende Desktopwerte beibehalten.
+- **Technische DoD / Tests:** `npm run lint:css`, `npm run check`, `git diff --check`; CSS-Modules- und Gegenproben sowie statischer Import-/Klassennamenabgleich. Visuelle und Screenreader-Abnahmen sind nicht durch diese Prüfungen ersetzt.
+- **Risiken:** schmale Fenster, tief verschachtelte Bäume, lange Titel, Überlauf, Kontrast, Fokus und Scrollverhalten benötigen reale Browserprüfung.
+
 ## Phase A – KU-Demo
 
 ### M1 – Grundlayout, Tokens und Icons

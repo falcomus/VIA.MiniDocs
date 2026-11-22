@@ -6,7 +6,7 @@ Gilt für neue Tickets im [Ticketkatalog](TICKETS.md); siehe auch [Masterplan](M
 
 - Alle ticketbezogenen Akzeptanzkriterien erfüllt; vorhandene Funktionen bewahrt und Änderungen auf den Auftrag begrenzt.
 - Architektur- und Sicherheitsregeln eingehalten; keine unnötigen Abhängigkeiten. Fehler und Grenzen nachvollziehbar dokumentiert.
-- Für betroffene Frontend-Arbeit `npm run check` erfolgreich: TypeScript, ESLint, bestehende und erforderliche neue Vitest-Tests sowie Vite-Build. Für API-/DB-Arbeit zusätzlich die im Ticket festgelegten projektspezifischen Build-, Lint- und Testbefehle erfolgreich; Befehle und Exitcodes festhalten.
+- Für betroffene Frontend-Arbeit `npm run check` erfolgreich: TypeScript, ESLint, Stylelint (`npm run lint:css`), bestehende und erforderliche neue Vitest-Tests sowie Vite-Build. Bei CSS-Änderungen ist die erfolgreiche CSS-Lintprüfung Pflicht. Für API-/DB-Arbeit zusätzlich die im Ticket festgelegten projektspezifischen Build-, Lint- und Testbefehle erfolgreich; Befehle und Exitcodes festhalten.
 - `git diff --check` und Prüfung des vorgemerkten Diffs erfolgreich. Keine Secrets, Zugangsdaten, lokalen Originalreferenzen, lokalen Hilfsdateien oder Build-/Testartefakte im Commit. Relevante Dokumentation und offene Entscheidungen aktualisiert.
 - Beabsichtigte Änderungen committed und regulär nach `origin/main` gepusht; lokales `main` und tatsächliches `origin/main` abgeglichen. Bei Remote-Konflikt oder fehlender Berechtigung nicht force-pushen und Ticketabschluss nicht behaupten.
 
