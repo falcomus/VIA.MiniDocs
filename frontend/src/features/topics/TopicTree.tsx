@@ -154,8 +154,7 @@ export function TopicTree({
             type="button"
             className={styles.topicButton}
             data-topic-id={topic.id}
-            aria-description={`${count} Dokumente einschließlich Unterthemen`}
-            title={`${topic.name} · ${count} Dokumente`}
+            aria-description={`${count} ${count === 1 ? 'Dokument' : 'Dokumente'} einschließlich Unterthemen`}
             aria-current={selectedTopicId === topic.id ? 'page' : undefined}
             onClick={() => onSelect(topic.id)}
             onDoubleClick={() => {

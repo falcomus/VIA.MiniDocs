@@ -301,3 +301,103 @@ it('sortiert per Tabellenkopf und erhält Zoom am unteren Grenzwert beim Ansicht
   fireEvent.click(screen.getByRole('button', { name: 'Kachelansicht' }));
   expect(zoom).toHaveValue('110');
 });
+it('verschiebt mehrere Dokumente gezielt in ein verschachteltes Baumthema und stellt Zähler und Herkunft per Undo wieder her', () => {
+  render(<App />);
+  const tree = within(screen.getByRole('navigation', { name: 'Themen' }));
+  const count = (name: string) =>
+    tree.getByRole('button', { name }).getAttribute('aria-description');
+  expect(count('Nicht zugeordnet')).toBe('2 Dokumente einschließlich Unterthemen');
+  expect(count('Kunden')).toBe('3 Dokumente einschließlich Unterthemen');
+  expect(count('Kunde Alpha')).toBe('2 Dokumente einschließlich Unterthemen');
+  expect(count('Lenkungskreis')).toBe('1 Dokument einschließlich Unterthemen');
+  expect(tree.getByRole('button', { name: 'Lenkungskreis' })).not.toHaveAttribute('title');
+  fireEvent.click(screen.getByRole('button', { name: 'Alle auswählen' }));
+  const dataTransfer = transfer();
+  fireEvent.dragStart(row(), { dataTransfer });
+  const target = tree.getByRole('button', { name: 'Lenkungskreis' }).parentElement!;
+  fireEvent.dragOver(target, { dataTransfer });
+  fireEvent.drop(target, { dataTransfer });
+  expect(count('Nicht zugeordnet')).toBe('0 Dokumente einschließlich Unterthemen');
+  expect(count('Kunden')).toBe('5 Dokumente einschließlich Unterthemen');
+  expect(count('Kunde Alpha')).toBe('4 Dokumente einschließlich Unterthemen');
+  expect(count('Lenkungskreis')).toBe('3 Dokumente einschließlich Unterthemen');
+  expect(screen.getByRole('status', { name: 'Statusmeldung' })).toHaveTextContent(
+    '2 Dokumente verschoben.',
+  );
+  fireEvent.click(tree.getByRole('button', { name: 'Kunde Alpha' }));
+  expect(screen.getByRole('status', { name: 'Statusmeldung' })).toBeEmptyDOMElement();
+  expect(screen.queryByText('2 Dokumente verschoben.')).not.toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Rückgängig' })).toBeInTheDocument();
+  expect(
+    screen.queryByRole('checkbox', { name: 'Besprechungsnotizen – Eingang auswählen' }),
+  ).not.toBeInTheDocument();
+  fireEvent.click(tree.getByRole('button', { name: 'Lenkungskreis' }));
+  expect(checkbox()).toBeInTheDocument();
+  expect(checkbox('Offene Punkte – Entwurf')).toBeInTheDocument();
+  expect(checkbox('Lenkungskreis – Planungsstand')).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'Rückgängig' }));
+  expect(count('Kunden')).toBe('3 Dokumente einschließlich Unterthemen');
+  expect(count('Kunde Alpha')).toBe('2 Dokumente einschließlich Unterthemen');
+  expect(count('Lenkungskreis')).toBe('1 Dokument einschließlich Unterthemen');
+  expect(count('Nicht zugeordnet')).toBe('2 Dokumente einschließlich Unterthemen');
+  expect(
+    screen.queryByRole('checkbox', { name: 'Besprechungsnotizen – Eingang auswählen' }),
+  ).not.toBeInTheDocument();
+  expect(checkbox('Lenkungskreis – Planungsstand')).toBeInTheDocument();
+  fireEvent.click(tree.getByRole('button', { name: 'Nicht zugeordnet' }));
+  expect(checkbox()).toBeInTheDocument();
+  expect(checkbox('Offene Punkte – Entwurf')).toBeInTheDocument();
+  expect(screen.getByText(/Dokumente ·/)).toHaveTextContent('6 Dokumente · 13 Seiten');
+});
+it.each(['Listenansicht', 'Kachelansicht'])(
+  'ordnet beim Drop auf einen Unterordner in %s das genaue Kind zu und stellt es wieder her',
+  async (view) => {
+    const user = userEvent.setup();
+    render(<App />);
+    const tree = within(screen.getByRole('navigation', { name: 'Themen' }));
+    await user.click(checkbox());
+    await user.click(screen.getByRole('button', { name: 'Verschieben nach …' }));
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Zielthema' }), 'alpha');
+    await user.click(screen.getByRole('button', { name: 'Verschieben' }));
+    await user.click(tree.getByRole('button', { name: 'Kunde Alpha' }));
+    await user.click(screen.getByRole('button', { name: view }));
+    const area = within(
+      view === 'Listenansicht'
+        ? screen.getByRole('table')
+        : screen.getByRole('list', { name: 'Kachelansicht' }),
+    );
+    const folder = area
+      .getByRole('button', { name: /Lenkungskreis/ })
+      .closest(view === 'Listenansicht' ? 'tr' : 'li')!;
+    if (view === 'Kachelansicht') expect(folder).toHaveTextContent('1 Dokument');
+    const dataTransfer = transfer();
+    fireEvent.dragStart(row(), { dataTransfer });
+    fireEvent.dragOver(folder, { dataTransfer });
+    fireEvent.drop(folder, { dataTransfer });
+    expect(tree.getByRole('button', { name: 'Kunde Alpha' })).toHaveAttribute(
+      'aria-description',
+      '3 Dokumente einschließlich Unterthemen',
+    );
+    expect(tree.getByRole('button', { name: 'Lenkungskreis' })).toHaveAttribute(
+      'aria-description',
+      '2 Dokumente einschließlich Unterthemen',
+    );
+    expect(
+      screen.queryByRole('checkbox', { name: 'Besprechungsnotizen – Eingang auswählen' }),
+    ).not.toBeInTheDocument();
+    await user.click(tree.getByRole('button', { name: 'Lenkungskreis' }));
+    expect(checkbox()).toBeInTheDocument();
+    expect(checkbox('Lenkungskreis – Planungsstand')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Rückgängig' }));
+    expect(tree.getByRole('button', { name: 'Lenkungskreis' })).toHaveAttribute(
+      'aria-description',
+      '1 Dokument einschließlich Unterthemen',
+    );
+    expect(
+      screen.queryByRole('checkbox', { name: 'Besprechungsnotizen – Eingang auswählen' }),
+    ).not.toBeInTheDocument();
+    await user.click(tree.getByRole('button', { name: 'Kunde Alpha' }));
+    expect(checkbox()).toBeInTheDocument();
+    expect(screen.getByText(/Dokumente ·/)).toHaveTextContent('6 Dokumente · 13 Seiten');
+  },
+);

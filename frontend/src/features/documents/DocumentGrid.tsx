@@ -41,7 +41,10 @@ export function DocumentGrid({
             </span>
             <span className={styles.meta}>
               <span className={styles.title}>{folder.name}</span>
-              <span className={styles.sub}>{folderCounts.get(folder.id) ?? 0} Dokumente</span>
+              <span className={styles.sub}>
+                {folderCounts.get(folder.id) ?? 0}{' '}
+                {(folderCounts.get(folder.id) ?? 0) === 1 ? 'Dokument' : 'Dokumente'}
+              </span>
             </span>
           </button>
         </li>

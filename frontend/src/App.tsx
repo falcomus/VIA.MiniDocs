@@ -27,6 +27,7 @@ export function App() {
   const documentDrag = useDocumentDrag(workspace, topics, drag.cancel);
   function navigate(id: TopicId) {
     workspace.clear();
+    workspace.setMessage('');
     setSelectedTopicId(id);
   }
   const returnFocus = useRef<HTMLElement | null>(null);
@@ -208,10 +209,7 @@ export function App() {
         </span>
         {workspace.undo && (
           <div className={styles.toast}>
-            <span>
-              {workspace.undo.size}{' '}
-              {workspace.undo.size === 1 ? 'Dokument verschoben.' : 'Dokumente verschoben.'}
-            </span>
+            {workspace.message && <span>{workspace.message}</span>}
             <button
               onClick={() => {
                 returnFocus.current = null;
