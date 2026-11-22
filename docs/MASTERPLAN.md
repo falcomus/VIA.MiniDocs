@@ -1,6 +1,6 @@
 # VIA.MiniDocs – Masterplan
 
-Dieser Masterplan ist der zentrale Einstieg für den aktuellen Projektstand und die gültige Planung. Es gelten die [Entwicklungsregeln](../AGENTS.md), die [Frontend-Architektur](architecture/FRONTEND-ARCHITECTURE.md), das [UI-Inventar](architecture/KU-UI-INVENTORY.md) und der [KU-Migrationsplan](architecture/KU-MIGRATION-PLAN.md). Die lokale Original-HTML-Datei unter `.local-reference/` ist die verbindliche Design- und Verhaltensreferenz; sie wird nicht versioniert.
+Dieser Masterplan ist der zentrale Einstieg für den aktuellen Projektstand und die gültige Planung. Es gelten die [Entwicklungsregeln](../AGENTS.md), die [Engineering-Standards](ENGINEERING-STANDARDS.md), die [Frontend-Architektur](architecture/FRONTEND-ARCHITECTURE.md), das [UI-Inventar](architecture/KU-UI-INVENTORY.md) und der [KU-Migrationsplan](architecture/KU-MIGRATION-PLAN.md). Die lokale Original-HTML-Datei unter `.local-reference/` ist die verbindliche Design- und Verhaltensreferenz; sie wird nicht versioniert.
 
 ## Projektziel und Architektur
 

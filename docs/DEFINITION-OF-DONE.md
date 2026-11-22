@@ -31,3 +31,10 @@ Gilt für neue Tickets im [Ticketkatalog](TICKETS.md); siehe auch [Masterplan](M
 - Freigegebene Konfiguration, Geheimnisverwaltung, Transport- und Zugriffsschutz geprüft; keine produktiven Zugangsdaten im Frontend oder Repository.
 - Backup und Restore für alle beteiligten Daten einschließlich Zuständigkeiten und Konsistenz geprüft; Wiederherstellung praktisch nachgewiesen.
 - Monitoring, aussagekräftige Logs ohne Secrets, Fehleralarmierung und Wiederanlauf nach Ausfall getestet; Betriebsanleitung und Zuständigkeiten dokumentiert. Deployment und produktive Zugriffe erfolgen nur im jeweils ausdrücklich autorisierten Rahmen.
+
+## Architektur-, CSS- und Dokumentationsqualität
+
+- [Engineering-Standards](ENGINEERING-STANDARDS.md) im Review anwenden: Verantwortlichkeiten und State-Struktur nachvollziehbar, TypeScript-Qualität sowie Fehler- und API-Grenzen geprüft.
+- Keine vermeidbaren CSS-Duplikate, unbegründeten globalen Styles oder unnötigen `!important`-Overrides; bestehende Design-Tokens semantisch korrekt verwenden und Originaltreue prüfen.
+- Accessibility für den betroffenen Umfang berücksichtigt; Tests und bestehende Funktionen intakt. Neue Dependencies fachlich begründet und freigegeben.
+- Dokumentationsqualität geprüft: verständliche Namen und Verträge, bei Bedarf TSDoc, fachliche Begründungen und CSS-Ausnahmen korrekt und aktuell; bei relevanten Entscheidungen ADR, wenn Codeerklärung nicht ausreicht. Keine Codeleichen oder irreführenden Kommentare.

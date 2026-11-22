@@ -8,3 +8,7 @@
 - Keine eigenmächtige UI-Neugestaltung: `.local-reference/MiniDoc_Prototyp.html` ist die verbindliche Designreferenz. Farben, Abstände, Schriften, Icons, Controls, Dialoge und Bedienverhalten möglichst 1:1 übernehmen; Abweichungen kenntlich machen.
 - Niemals Secrets oder produktive Zugangsdaten ins Frontend oder Git aufnehmen. Keine produktiven VIA.Docs-Zugriffe ohne gesonderten Testauftrag.
 - Keine Änderungen außerhalb des Workspaces ohne ausdrückliche Freigabe. Lokale Originalreferenzen nicht veröffentlichen.
+
+## Engineering-Standards
+
+Bei jeder Implementierung [Engineering-Standards](docs/ENGINEERING-STANDARDS.md) berücksichtigen: bestehende Architektur respektieren, CSS-Struktur sauber halten, vermeidbare doppelte Styles vermeiden und Design-Tokens konsistent verwenden. Libraries nach nachgewiesenem Nutzen auswählen, Accessibility beachten, Änderungen auf Senior-Niveau prüfen und keine neuen vermeidbaren technischen Schulden einführen. Kommentierung und Dokumentation nach den dortigen Regeln pflegen.
