@@ -24,7 +24,11 @@ export function App() {
   const [dialog, setDialog] = useState<TopicDialogState | null>(null);
   const [dialogError, setDialogError] = useState('');
   const drag = useTopicDrag(topics, moveTopic, rejectMove);
-  const documentDrag = useDocumentDrag(workspace, topics, drag.cancel);
+  const [dropNavigation, setDropNavigation] = useState<{ id: TopicId } | null>(null);
+  const documentDrag = useDocumentDrag(workspace, topics, drag.cancel, (id) => {
+    setSelectedTopicId(id);
+    setDropNavigation({ id });
+  });
   function navigate(id: TopicId) {
     workspace.clear();
     workspace.setMessage('');
@@ -157,6 +161,7 @@ export function App() {
             onDelete={(id) => openDialog({ kind: 'delete', id })}
             onMoveDialog={(id) => openDialog({ kind: 'move', id })}
             documentDrag={documentDrag}
+            dropNavigation={dropNavigation}
             drag={drag}
           />
         </Sidebar>

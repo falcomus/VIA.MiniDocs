@@ -9,6 +9,7 @@ export function useDocumentDrag(
   workspace: DocumentWorkspace,
   topics: readonly Topic[],
   cancelTopicDrag: () => void,
+  onMoved: (id: string) => void,
 ) {
   const session = useRef<readonly string[] | null>(null);
   const [target, setTarget] = useState<string | null>(null);
@@ -76,8 +77,12 @@ export function useDocumentDrag(
         workspace.setMessage('Dokumente können nicht dorthin verschoben werden.');
         return false;
       }
+      const changed = workspace.documents.some(
+        (document) => ids.includes(document.id) && document.topicId !== id,
+      );
       workspace.move(ids, id);
-      return true;
+      if (changed) onMoved(id);
+      return changed;
     },
   };
 }

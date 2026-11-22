@@ -133,8 +133,13 @@ it('verschiebt die ausgewählte Gruppe per synthetischem Drop auf den Baum und s
   expect(screen.getByRole('status', { name: 'Statusmeldung' })).toHaveTextContent(
     '2 Dokumente verschoben',
   );
-  expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: 'Kunde Beta' })).toBeInTheDocument();
+  expect(checkbox()).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: 'Rückgängig' }));
+  expect(
+    screen.queryByRole('checkbox', { name: 'Besprechungsnotizen – Eingang auswählen' }),
+  ).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'Nicht zugeordnet' }));
   expect(checkbox()).toBeInTheDocument();
 });
 it.each(['mismatch', 'no-start', 'escape', 'mixed'])(
@@ -178,9 +183,8 @@ it.each(['Listenansicht', 'Kachelansicht'])(
     fireEvent.dragStart(row(), { dataTransfer });
     fireEvent.dragOver(folder, { dataTransfer });
     fireEvent.drop(folder, { dataTransfer });
-    expect(
-      screen.queryByRole('checkbox', { name: 'Besprechungsnotizen – Eingang auswählen' }),
-    ).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Kunde Beta' })).toBeInTheDocument();
+    expect(checkbox()).toBeInTheDocument();
     await user.click(
       within(screen.getByRole('navigation', { name: 'Themen' })).getByRole('button', {
         name: 'Kunde Beta',
@@ -214,9 +218,10 @@ it('ersetzt beim Dragstart eines nicht ausgewählten Dokuments die bisherige Aus
   expect(checkbox()).not.toBeChecked();
   expect(checkbox('Offene Punkte – Entwurf')).toBeChecked();
   fireEvent.drop(treeTarget(), { dataTransfer });
-  expect(checkbox()).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: 'Kunde Beta' })).toBeInTheDocument();
+  expect(checkbox('Offene Punkte – Entwurf')).toBeInTheDocument();
   expect(
-    screen.queryByRole('checkbox', { name: 'Offene Punkte – Entwurf auswählen' }),
+    screen.queryByRole('checkbox', { name: 'Besprechungsnotizen – Eingang auswählen' }),
   ).not.toBeInTheDocument();
 });
 it('verhindert Dokumentverschiebung nach zwischenzeitlichem Themen-Dragstart', () => {
@@ -382,10 +387,14 @@ it.each(['Listenansicht', 'Kachelansicht'])(
       'aria-description',
       '2 Dokumente einschließlich Unterthemen',
     );
+    expect(screen.getByRole('heading', { name: 'Lenkungskreis' })).toBeInTheDocument();
+    expect(tree.getByRole('button', { name: 'Lenkungskreis' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
     expect(
-      screen.queryByRole('checkbox', { name: 'Besprechungsnotizen – Eingang auswählen' }),
-    ).not.toBeInTheDocument();
-    await user.click(tree.getByRole('button', { name: 'Lenkungskreis' }));
+      within(screen.getByRole('main')).getByRole('button', { name: 'Kunde Alpha' }),
+    ).toBeInTheDocument();
     expect(checkbox()).toBeInTheDocument();
     expect(checkbox('Lenkungskreis – Planungsstand')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Rückgängig' }));
@@ -401,3 +410,59 @@ it.each(['Listenansicht', 'Kachelansicht'])(
     expect(screen.getByText(/Dokumente ·/)).toHaveTextContent('6 Dokumente · 13 Seiten');
   },
 );
+it('klappt die Vorfahren eines Ordnerziels nach dem Drop auf und synchronisiert Breadcrumb und Baum', async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  const tree = within(screen.getByRole('navigation', { name: 'Themen' }));
+  await user.click(checkbox());
+  await user.click(screen.getByRole('button', { name: 'Verschieben nach …' }));
+  await user.selectOptions(screen.getByRole('combobox', { name: 'Zielthema' }), 'alpha');
+  await user.click(screen.getByRole('button', { name: 'Verschieben' }));
+  await user.click(tree.getByRole('button', { name: 'Kunde Alpha' }));
+  await user.click(tree.getByRole('button', { name: 'Kunden: Unterthemen einklappen' }));
+  const folder = within(screen.getByRole('list', { name: 'Kachelansicht' }))
+    .getByRole('button', { name: /Lenkungskreis/ })
+    .closest('li')!;
+  const dataTransfer = transfer();
+  fireEvent.dragStart(row(), { dataTransfer });
+  fireEvent.drop(folder, { dataTransfer });
+  expect(screen.getByRole('heading', { name: 'Lenkungskreis' })).toBeInTheDocument();
+  expect(tree.getByRole('button', { name: 'Lenkungskreis' })).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
+  expect(tree.getByRole('button', { name: 'Kunden: Unterthemen einklappen' })).toHaveAttribute(
+    'aria-expanded',
+    'true',
+  );
+  expect(checkbox()).toBeInTheDocument();
+  expect(screen.getByRole('main')).toHaveTextContent('Kunden');
+  expect(screen.getByRole('main')).toHaveTextContent('Kunde Alpha');
+  await user.click(tree.getByRole('button', { name: 'Kunden: Unterthemen einklappen' }));
+  expect(tree.queryByRole('button', { name: 'Lenkungskreis' })).not.toBeInTheDocument();
+});
+it('navigiert bei einem unveränderten oder ungültigen Drop nicht und erhält die Themenwahl', () => {
+  render(<App />);
+  const tree = within(screen.getByRole('navigation', { name: 'Themen' }));
+  let dataTransfer = transfer();
+  fireEvent.dragStart(row(), { dataTransfer });
+  fireEvent.drop(tree.getByRole('button', { name: 'Nicht zugeordnet' }).parentElement!, {
+    dataTransfer,
+  });
+  expect(screen.getByRole('heading', { name: 'Nicht zugeordnet' })).toBeInTheDocument();
+  expect(tree.getByRole('button', { name: 'Nicht zugeordnet' })).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
+  expect(screen.queryByRole('button', { name: 'Rückgängig' })).not.toBeInTheDocument();
+  dataTransfer = transfer();
+  fireEvent.dragStart(row(), { dataTransfer });
+  dataTransfer.setData('application/x-minidoc-docs', '["falsch"]');
+  fireEvent.drop(treeTarget(), { dataTransfer });
+  expect(screen.getByRole('heading', { name: 'Nicht zugeordnet' })).toBeInTheDocument();
+  expect(tree.getByRole('button', { name: 'Nicht zugeordnet' })).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
+  expect(checkbox()).toBeInTheDocument();
+});

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Topic, TopicId } from './topic.types';
-import { descendantIds } from './topicUtils';
+import { descendantIds, topicPath } from './topicUtils';
 import type { DocumentDrag } from '../documents/useDocumentDrag';
 import type { TopicDrag } from './useTopicDrag';
 import { Icon } from '../../components/Icon';
@@ -16,6 +16,7 @@ interface TopicTreeProps {
   readonly onDelete?: (id: TopicId) => void;
   readonly onMoveDialog?: (id: TopicId) => void;
   readonly documentDrag?: DocumentDrag;
+  readonly dropNavigation?: { readonly id: TopicId } | null;
   readonly drag?: TopicDrag;
 }
 
@@ -30,6 +31,7 @@ export function TopicTree({
   onMoveDialog,
   drag,
   documentDrag,
+  dropNavigation,
 }: TopicTreeProps) {
   const [expandedIds, setExpandedIds] = useState<ReadonlySet<TopicId>>(
     () => new Set(['customers', 'alpha', 'own-notes']),
@@ -63,7 +65,34 @@ export function TopicTree({
     };
   }, [menu]);
 
+  const [expansionOverrides, setExpansionOverrides] = useState<{
+    request: typeof dropNavigation;
+    collapsed: ReadonlySet<TopicId>;
+  }>({ request: null, collapsed: new Set() });
+  const forcedAncestors = dropNavigation
+    ? new Set(
+        topicPath(topics, dropNavigation.id)
+          .slice(0, -1)
+          .map((topic) => topic.id),
+      )
+    : new Set<TopicId>();
+  const collapsed =
+    expansionOverrides.request === dropNavigation
+      ? expansionOverrides.collapsed
+      : new Set<TopicId>();
+  function isExpanded(id: TopicId) {
+    return forcedAncestors.has(id) ? !collapsed.has(id) : expandedIds.has(id);
+  }
   function toggle(id: TopicId) {
+    if (forcedAncestors.has(id)) {
+      setExpansionOverrides({
+        request: dropNavigation,
+        collapsed: new Set(
+          collapsed.has(id) ? [...collapsed].filter((item) => item !== id) : [...collapsed, id],
+        ),
+      });
+      return;
+    }
     setExpandedIds((previous) => {
       const next = new Set(previous);
       if (next.has(id)) next.delete(id);
@@ -92,7 +121,7 @@ export function TopicTree({
   }
   function branch(topic: Topic): React.ReactNode {
     const kids = children(topic.id);
-    const expanded = expandedIds.has(topic.id);
+    const expanded = isExpanded(topic.id);
     const countIds = descendantIds(topics, topic.id);
     const count = documentTopicIds.filter((id) => countIds.has(id)).length;
     return (

@@ -40,3 +40,8 @@ Browserzugang in M4 erneut geprüft: Die lokale Vite-Demo lief auf `http://127.0
 - `git diff --check`: Exit 0; `git diff --cached --check`: vor Commit verpflichtend geprüft (Exit 0).
 - Selbstreview: eine maßgebliche Dokumentliste, abgeleitete sichtbare Reihenfolge, ID-basierte Auswahl, atomare Verschiebung/Undo, getrennte Drag-Sitzungen, lokale CSS-Zustände und vorhandene Tokens. Kein `!important`, keine neuen globalen Styles, Libraries oder Backend-Zugriffe. Kommentare erläutern Kalenderprüfung, stabile Sortiergleichstände, Zustandsatomarität, Drag-Autorisierung und Undo-Fallback.
 - Die oben genannten nativen Browser-/AT-/Sichtnachweise bleiben trotz erfolgreicher technischer Prüfungen offen.
+## Nachprüfung: Zielnavigation nach Dokument-Drop
+
+Ein gültiger interner Dokument-Drop, der mindestens eine tatsächliche Zuordnung ändert, aktiviert das konkrete Zielthema. Baum, Breadcrumb und Dokumentübersicht verwenden dieselbe Themen-ID; dessen Vorfahren werden aufgeklappt und bleiben anschließend manuell bedienbar. Der bestehende Reducer führt die Verschiebung und den Undo-Snapshot aus; die Navigation liegt außerhalb der reinen Fachoperationen. Ungültige, abgebrochene und unveränderte Drops navigieren nicht. Undo stellt die einzelnen Ursprungszuordnungen wieder her und lässt das aktuelle Thema unverändert.
+
+Synthetische Integrationstests prüfen Baum- und Ordner-Drops in beiden Ansichten, sichtbare Dokumente, Breadcrumb, aktive Baumzeile, eingeklappte Vorfahren, Zähler und Undo sowie abgelehnte und unveränderte Drops. Die native Browser-, Sicht- und Screenreader-Abnahme bleibt offen.
