@@ -8,7 +8,7 @@ import { canMoveTopic, descendantIds, topicPath } from './features/topics/topicU
 import type { Topic, TopicId } from './features/topics/topic.types';
 import { demoDocuments } from './features/documents/demoDocuments';
 import { DocumentList } from './features/documents/DocumentList';
-import styles from './features/topics/TopicDialog.module.css';
+import styles from './App.module.css';
 
 export function App() {
   const [topics, setTopics] = useState<readonly Topic[]>(demoTopics);

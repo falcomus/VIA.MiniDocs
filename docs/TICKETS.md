@@ -184,3 +184,30 @@ Stand: 22.11.2026. Einstieg, Phasen und kritischer Pfad: [Masterplan](MASTERPLAN
 - **Technische DoD:** allgemeine, API-, Datenbank- sowie Deployment-/Betriebs-DoD.
 - **Tests:** Integrations- und Sicherheitstests, Ausfall-/Timeoutfälle, Backup/Restore und Wiederanlauf; keine produktiven Zugriffe ohne gesonderten Testauftrag.
 - **Risiken:** Verfügbarkeit externer Testsysteme, übergreifende Datenkonsistenz und unklare Zuständigkeit für VIA.Docs-Backups.
+
+## Q3 – Unabhängige Auditbefunde und Qualitätsregeln
+
+- **Status:** technisch umgesetzt; Browser-/Screenreader-Abnahmen offen.
+- **Ziel/Umfang:** Statusstyles in App-eigenes CSS Module verlegen, Callback-Test korrekt benennen, Wurzel-Löschfokus testen und Reviewregeln präzisieren.
+- **Ausgeschlossen:** M3, neue Libraries, globale Formatierung und pauschale Refactorings.
+- **Abhängigkeiten:** Q1/Q2 und konkrete Audit-Arbeitsaufträge.
+- **Akzeptanz/DoD:** keine fachfremde Status-CSS-Abhängigkeit; Testaussage entspricht Assertions; Wurzel-Fallback auf „Nicht zugeordnet“ belegt; allgemeine DoD und Standards erfüllt.
+- **Tests/Risiken:** bestehende Tests plus gezielter Wurzel-Löschtest; jsdom ersetzt keine Browser-/Screenreader-Abnahme.
+
+## Q4 – Prettier mit begrenztem Probeumfang bewerten
+
+- **Status:** geplant, Freigabe vor Installation erforderlich.
+- **Ziel/Umfang:** lesbare CSS-/TSX-Formatierung anhand eines kleinen repräsentativen Probe-Diffs und Teamentscheidung festlegen; optionalen CI-Formatcheck planen.
+- **Ausgeschlossen:** funktionale Änderungen, ungefragte Massenformatierung und Styling-Frameworks.
+- **Abhängigkeiten:** Engineering-Standards und Q2-Werkzeugbewertung.
+- **Akzeptanz/DoD:** Konfiguration, Umfang, Editor-/CI-Verhalten und bewusst entstehende Diffs bewertet; nur nach Entscheidung einführen.
+- **Tests/Risiken:** bestehender Check und Format-Gegenprobe; große Diffs können Reviews erschweren. Formatter prüft keine fachliche Architektur.
+
+## Q5 – Typisierte CSS Modules für npm run check evaluieren
+
+- **Status:** geplant, Freigabe vor Installation erforderlich.
+- **Ziel/Umfang:** konkrete Deklarationen generieren und ihre Aktualität vor TypeScript im Check prüfen; z. B. den in Q2 bewerteten Generator im begrenzten Probeumfang testen.
+- **Ausgeschlossen:** bloßes Editorplugin als CI-Nachweis, neue Styling-Systeme und automatische Architekturfreigabe.
+- **Abhängigkeiten:** bestehende Vite-/TypeScript-Konfiguration, Q2-Werkzeugbewertung.
+- **Akzeptanz/DoD:** fehlende Klasse und veraltete/fehlende Deklaration lassen den Check fehlschlagen; gültige CSS-Modules-Imports und Vite-Namenskonvention funktionieren; Generator-/Commitstrategie und Kompatibilität dokumentiert.
+- **Tests/Risiken:** positive und negative CLI-Proben plus bestehende Tests; veraltete generierte Typen oder abweichende Namenskonventionen dürfen keine falsche Sicherheit erzeugen.

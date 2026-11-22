@@ -51,8 +51,8 @@ Versionsangaben sind recherchierte Anhaltspunkte, nicht installierte oder verbin
 
 1. **Q1 (P1, vor M3):** R1–R3: Tastaturalternative, Dialogfokus/Modalität und Kontextmenü-Zugänglichkeit; Tests einschließlich Screenreader-/Browserpfad. Radix/dnd-kit nur als Alternativen nach fachlicher Freigabe prüfen.
 2. **Q2 (P1, vor M3):** R4/R5: schmale Viewports und tatsächliches Drag-Verhalten samt Integrationstests; Desktopvergleich erhalten.
-3. **Q3 (P2):** R6–R10: gezielte Trennung, Datumsvalidierung und fokussierte Zustands-/Performanceprüfung nach Bedarf.
-4. **Q4 (P2):** R11–R17: CSS-Konsolidierung und Stylelint-Evaluierung, Motion-/Scroll-/Kontrast- und Browserprüfung. Keine neuen Token-Systeme oder Stiländerungen ohne Referenzvergleich.
+3. **Verbesserungspaket (P2):** R6–R10: gezielte Trennung, Datumsvalidierung und fokussierte Zustands-/Performanceprüfung nach Bedarf.
+4. **CSS-Verbesserungspaket (P2):** R11–R17: CSS-Konsolidierung und Stylelint-Evaluierung, Motion-/Scroll-/Kontrast- und Browserprüfung. Keine neuen Token-Systeme oder Stiländerungen ohne Referenzvergleich.
 
 Diese Vorschläge sind keine bereits durchgeführten Refactorings und ändern den Status der bestehenden M1-/M2-Tickets nicht.
 
@@ -65,3 +65,27 @@ Diese Vorschläge sind keine bereits durchgeführten Refactorings und ändern de
 - **VS Code:** [CSS Modules DevTools](https://marketplace.visualstudio.com/items?itemName=razgraf.css-modules-devtools) und [CSS Navigation](https://marketplace.visualstudio.com/items?itemName=pucelle.vscode-css-navigation) bieten laut ihren Beschreibungen Completion und Definition-Navigation. Nur als optionale Editorhilfen evaluieren, Herausgeber/Berechtigungen und Kompatibilität prüfen; nicht installiert und kein Ersatz für einen Build-Check.
 
 Keine visuelle oder Accessibility-Abnahme durchgeführt. M1/M2 und Q1 bleiben hinsichtlich Browser-/Screenreader-Prüfung offen; Risiken für schmale Viewports, Dialog-Overflow, Scrollcontainer und Kontrast sind nicht als behoben markiert.
+
+## Q3 – Bewertung unabhängiger Befunde
+
+Der nachgereichte unabhängige Bericht von Claude Sonnet 4.6 vom 22.11.2026 bezieht sich auf Commit `f926a341`. Seine konkreten Fundstellen wurden gegen den aktuellen Code geprüft. Der Bericht lag als Chat-Anhang vor und wird hier bewertet, nicht als weitere Projektchronik übernommen.
+
+| Kategorie | Nachweis und Bewertung |
+|---|---|
+| A – Regelverstoß | `App.tsx` importierte `features/topics/TopicDialog.module.css` ausschließlich für die eigene Statusklasse. In Q3 auf eigenes `App.module.css` umgestellt, unveränderte Deklarationen; andere CSS-Module-Imports gehören ihren jeweiligen Komponenten. |
+| A – Unpräzise Testaussage | Der Callback-Test in `TopicTree.test.tsx` behauptete zusätzlich Zielschutz. Titel korrigiert. Der vorhandene App-Integrationstest weist ungültigen Drop zurück; kein redundanter Test ergänzt. R5 ist hinsichtlich Testtitel und App-Integration korrigiert, echter Browser-DnD-Nachweis bleibt offen. |
+| B – Regelpräzisierung | CSS-Modulzuständigkeit, Testaussage und Lesbarkeit ausdrücklich in Standards und DoD verankert. |
+| C – Automatisierungslücke | TypeScript strict prüft Typen/ungenutzte Symbole, ESLint React-Hooks und TypeScript-Grundregeln, Stylelint Syntax-/Deklarations-/Selektorregeln. Keines dieser Tools prüft aktuell fachliche CSS-Importzuständigkeit, die semantische Wahrheit eines Testtitels oder die vollständige visuelle Abnahme. Vite-CSS-Typen erlauben beliebige Klassenschlüssel. Review bleibt erforderlich; Folgetickets Q4/Q5 evaluieren Formatierung und generierte Typen. |
+| D – Manuelle Abnahme | Browser-, Screenreader-, Responsive-, Kontrast- und visuelle M1-/M2-Abnahmen bleiben offen; der neue Wurzel-Löschtest belegt nur jsdom-Fokusverhalten. |
+| E – Architekturentscheidung | Lokale React-Zustände und gezielter Dialog ohne neue Library bleiben vertretbar. Ein Custom Hook oder natives `dialog` ist keine pauschale technische Pflicht; Nutzen und Verhalten müssen belegt werden. |
+| F – Stilpräferenz | Ein bestimmter Formatter, Zeilenstil oder blindes Ersetzen sämtlicher Originalfarbwerte ist für sich kein nachgewiesener Fehler. Lesbarkeit ist verbindlich, konkrete Formatierungsautomatisierung bleibt eine separate Entscheidung. |
+
+Q3 ergänzt gezielt den Fokusnachweis nach Löschen eines Wurzelthemas: Auslöser entfernt, Dialog geschlossen und Fokus auf „Nicht zugeordnet“. Ein vorhandener Test deckt bereits den Elternknoten-Fallback ab.
+
+### Einordnung weiterer Aussagen des nachgereichten Berichts
+
+- **A bestätigt:** Statusklasse im fremden Dialogmodul und irreführender Drop-Testtitel sind korrigiert. Der gewünschte Wurzel-Löschfokus ist jetzt gezielt getestet.
+- **C korrigierte Empfehlung:** Typisierte CSS Modules würden den fachfremden Import nicht automatisch melden, solange `notice` dort existiert. Dafür braucht es eine eigene Importgrenzen-Regel oder Architekturreview. Q5 darf keinen solchen Schutz versprechen.
+- **D präzisiert:** Fokuslogik ist nicht „ungetestet“ oder insgesamt ohne Nachweis: Eltern-Fallback, Escape-Rückgabe und weitere Interaktionen sind getestet; Q3 ergänzt den Wurzel-Fallback. Das belegt keine vollständige Browser-/AT-Konformität. Der spätere Notfall-Fallback auf den „Neues Thema“-Button ist ein anderer Pfad.
+- **E/F:** Hook-Extraktion und native Dialoge bleiben Optionen mit Nutzen-/Verhaltensnachweis, keine Voraussetzung allein wegen ihrer Form. Originalfarben und Flex-Item-z-index sind nicht allein wegen direkter Werte bzw. fehlendem `position` fehlerhaft. `font-weight: 650` passiert den bestehenden Stylelint-Check; der behauptete Lintfehler ist aktuell nicht nachgewiesen.
+- **B/C:** Lange Einzeilen erschweren Review; Q4 bewertet eine einheitliche Formatierungsstrategie ohne globale Änderung in Q3. Q4/Q5 im lokalen Katalog bezeichnen die hier geplanten Werkzeuge; die abweichenden Nummern des externen Berichts werden nicht als zusätzliche parallele Tickets übernommen.

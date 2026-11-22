@@ -148,3 +148,19 @@ it('weist einen ungültigen Maus-Drop im vollständigen Ablauf zurück', () => {
   expect(alpha.closest('ul')?.closest('li')).toHaveTextContent('Kunden');
   expect(screen.getByRole('button', { name: 'Lenkungskreis' })).toBeInTheDocument();
 });
+
+it('stellt nach dem Löschen eines Wurzelthemas den Fokus auf Nicht zugeordnet', async () => {
+  const user = userEvent.setup();
+  render(<App />);
+
+  const root = screen.getByRole('button', { name: 'Eigene Notizen' });
+  await user.click(root);
+  await user.keyboard('{Shift>}{F10}{/Shift}');
+  await user.click(screen.getByRole('menuitem', { name: 'Löschen' }));
+  await user.click(screen.getByRole('button', { name: 'Löschen' }));
+
+  expect(root.isConnected).toBe(false);
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  expect(screen.getByRole('heading', { level: 1, name: 'Nicht zugeordnet' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Nicht zugeordnet' })).toHaveFocus();
+});

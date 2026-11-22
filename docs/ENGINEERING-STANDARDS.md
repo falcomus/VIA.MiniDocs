@@ -52,3 +52,10 @@ Diese Standards ergänzen [AGENTS.md](../AGENTS.md), die [Frontend-Architektur](
 3. Tastatur, Fokus, Semantik, Kontrast und relevante Assistive-Technologie-/Browserfälle berücksichtigt? Offene Abnahmen klar ausgewiesen?
 4. Tests sichern relevantes Verhalten, bestehende Funktionen bleiben erhalten und Leistungsentscheidungen sind belegt?
 5. Abhängigkeiten und Sicherheitsgrenzen fachlich begründet? Dokumentation, TSDoc, Kommentare und gegebenenfalls ADRs korrekt, aktuell und auf das Warum fokussiert?
+
+## Architekturgrenzen, Testaussage und Lesbarkeit
+
+- Ein CSS Module gehört zur verantwortlichen Komponente bzw. zum verantwortlichen Modul. Keine fremden Feature-CSS-Module zur bloßen Klassenwiederverwendung importieren; gemeinsame Styles benötigen eine begründete gemeinsame Zuständigkeit.
+- Testtitel und Assertions müssen denselben Funktionsumfang beschreiben. Ein Callback-Test belegt keine vollständige Zustandsänderung oder Schutzregel; bestehende Integrationstests gezielt nutzen statt duplizieren.
+- Code und CSS gut lesbar und nachvollziehbar formatieren. Zusammenhängende Entscheidungen und komplexe fachliche Regeln sinnvoll kommentieren; keine globale Umformatierung ohne Auftrag.
+- Nicht nachgewiesene Qualitätsanforderungen bleiben offen, auch bei grünen Tests. Hooks, native Dialoge und weitere Abstraktionen nur nach konkretem Nutzen wählen; Originalfarben nicht allein aus einer allgemeinen Tokenregel ersetzen.

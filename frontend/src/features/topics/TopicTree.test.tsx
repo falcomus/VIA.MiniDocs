@@ -46,7 +46,7 @@ it('zählt Dokumente rekursiv und öffnet das Menü per Tastatur', async () => {
   await user.keyboard('{Escape}'); expect(beta).toHaveFocus();
 });
 
-it('verschiebt Themen per Drop und schützt vor ungültigen Zielen', () => {
+it('meldet beim Drop die Quell- und Zielthemen an den Verschiebe-Handler', () => {
   const onMove = vi.fn();
   render(<TopicTree topics={demoTopics} selectedTopicId="unassigned" onSelect={vi.fn()} onMove={onMove} />);
   const dataTransfer = { types: ['application/x-minidoc-topic'], getData: () => 'alpha' };

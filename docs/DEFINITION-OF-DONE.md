@@ -38,3 +38,7 @@ Gilt für neue Tickets im [Ticketkatalog](TICKETS.md); siehe auch [Masterplan](M
 - Keine vermeidbaren CSS-Duplikate, unbegründeten globalen Styles oder unnötigen `!important`-Overrides; bestehende Design-Tokens semantisch korrekt verwenden und Originaltreue prüfen.
 - Accessibility für den betroffenen Umfang berücksichtigt; Tests und bestehende Funktionen intakt. Neue Dependencies fachlich begründet und freigegeben.
 - Dokumentationsqualität geprüft: verständliche Namen und Verträge, bei Bedarf TSDoc, fachliche Begründungen und CSS-Ausnahmen korrekt und aktuell; bei relevanten Entscheidungen ADR, wenn Codeerklärung nicht ausreicht. Keine Codeleichen oder irreführenden Kommentare.
+
+- Architekturgrenzen einschließlich CSS-Module-Imports explizit geprüft: keine fachfremde Klassenwiederverwendung ohne gemeinsame Zuständigkeit.
+- Testtitel mit tatsächlichen Assertions abgeglichen; Integration und Callback-Tests korrekt eingeordnet, keine unbelegten Schutzbehauptungen.
+- Lesbarkeit und nachvollziehbare Formatierung von Code/CSS sowie Kommentare zu fachlichen Entscheidungen geprüft; offene Qualitätsnachweise weiterhin ausgewiesen.
