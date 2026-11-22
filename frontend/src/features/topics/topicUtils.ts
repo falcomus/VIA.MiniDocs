@@ -1,5 +1,6 @@
 import type { Topic, TopicId } from './topic.types';
 
+/** Returns the source ID and all descendants, visiting each ID once even in cyclic input. */
 export function descendantIds(topics: readonly Topic[], id: TopicId): Set<TopicId> {
   const result = new Set<TopicId>();
   const visit = (current: TopicId) => {
@@ -11,6 +12,7 @@ export function descendantIds(topics: readonly Topic[], id: TopicId): Set<TopicI
   return result;
 }
 
+/** Returns the known ancestor path; stops at missing parents or a repeated ID. */
 export function topicPath(topics: readonly Topic[], id: TopicId): Topic[] {
   const path: Topic[] = [];
   const visited = new Set<TopicId>();
@@ -23,6 +25,7 @@ export function topicPath(topics: readonly Topic[], id: TopicId): Topic[] {
   return path;
 }
 
+/** Allows root or existing non-system parents; rejects missing sources, system nodes and cycles. */
 export function canMoveTopic(
   topics: readonly Topic[],
   id: TopicId,

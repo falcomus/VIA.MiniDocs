@@ -31,6 +31,11 @@
 .selected:hover {
   background: var(--sel);
 }
+.itemRow.drop {
+  outline: 2px dashed var(--accent-2);
+  outline-offset: -2px;
+  background: var(--accent-weak);
+}
 .disclosure,
 .disclosureSpacer {
   display: inline-grid;

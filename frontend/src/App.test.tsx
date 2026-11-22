@@ -32,7 +32,7 @@ it('kennzeichnet vorbereitete Bedienelemente als deaktiviert', () => {
 
 it('zeigt die Statistik aus den vorhandenen Demodaten', () => {
   render(<App />);
-  expect(screen.getByText(/Dokumente ·/)).toBeInTheDocument();
+  expect(screen.getByText(/Dokumente ·/)).toHaveTextContent('6 Dokumente · 13 Seiten');
   expect(screen.getByText(/Daten nur im Browser/)).toBeInTheDocument();
 });
 
@@ -179,7 +179,7 @@ it('bietet im Systemknoten ein fokussierbares Schließen und keine Änderungsakt
   expect(system).toHaveFocus();
 });
 
-it('weist einen ungültigen Maus-Drop im vollständigen Ablauf zurück', () => {
+it('weist einen synthetischen ungültigen Drop ab und erhält die Hierarchie', () => {
   render(<App />);
   const alpha = screen.getByRole('button', { name: 'Kunde Alpha' });
   const target = screen.getByRole('button', { name: 'Lenkungskreis' });
@@ -205,4 +205,17 @@ it('stellt nach dem Löschen eines Wurzelthemas den Fokus auf Nicht zugeordnet',
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   expect(screen.getByRole('heading', { level: 1, name: 'Nicht zugeordnet' })).toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'Nicht zugeordnet' })).toHaveFocus();
+});
+
+it('übernimmt eine gültige Themenverschiebung nach synthetischem Dragstart und Drop', () => {
+  render(<App />);
+  const source = screen.getByRole('button', { name: 'Kunde Alpha' }).parentElement!;
+  const target = screen.getByRole('button', { name: 'Kunde Beta' }).parentElement!;
+  const dataTransfer = { setData: () => {}, getData: () => 'alpha' };
+  fireEvent.dragStart(source, { dataTransfer });
+  fireEvent.dragOver(target, { dataTransfer });
+  fireEvent.drop(target, { dataTransfer });
+  const moved = screen.getByRole('button', { name: 'Kunde Alpha' });
+  expect(moved.closest('ul')?.closest('li')).toHaveTextContent('Kunde Beta');
+  expect(screen.getByRole('status')).toHaveTextContent('Thema verschoben.');
 });

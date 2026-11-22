@@ -31,6 +31,8 @@ export function TopicTree({
     () => new Set(['customers', 'alpha', 'own-notes']),
   );
   const [menu, setMenu] = useState<{ id: TopicId; x: number; y: number } | null>(null);
+  const dragSource = useRef<TopicId | null>(null);
+  const [dropTarget, setDropTarget] = useState<TopicId | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
 
@@ -58,6 +60,27 @@ export function TopicTree({
       document.removeEventListener('keydown', closeOnEscape);
     };
   }, [menu]);
+
+  useEffect(() => {
+    const clearDrag = () => {
+      dragSource.current = null;
+      setDropTarget(null);
+    };
+    const cancelOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') clearDrag();
+    };
+    // A drop on the sidebar root or outside this tree must clear its feedback as well.
+    document.addEventListener('drop', clearDrag);
+    document.addEventListener('dragend', clearDrag);
+    document.addEventListener('keydown', cancelOnEscape);
+    window.addEventListener('blur', clearDrag);
+    return () => {
+      document.removeEventListener('drop', clearDrag);
+      document.removeEventListener('dragend', clearDrag);
+      document.removeEventListener('keydown', cancelOnEscape);
+      window.removeEventListener('blur', clearDrag);
+    };
+  }, []);
 
   function toggle(id: TopicId) {
     setExpandedIds((previous) => {
@@ -94,22 +117,39 @@ export function TopicTree({
     return (
       <li className={styles.item} key={topic.id}>
         <div
-          className={`${styles.itemRow} ${selectedTopicId === topic.id ? styles.selected : ''}`}
+          className={`${styles.itemRow} ${selectedTopicId === topic.id ? styles.selected : ''} ${dropTarget === topic.id ? styles.drop : ''}`}
           draggable={!!onMove && !topic.systemKey}
           onDragStart={(event) => {
+            if (!onMove || topic.systemKey) return;
             event.stopPropagation();
+            dragSource.current = topic.id;
+            setDropTarget(null);
             event.dataTransfer.setData('application/x-minidoc-topic', topic.id);
             event.dataTransfer.effectAllowed = 'move';
           }}
           onDragOver={(event) => {
-            if (
-              onMove &&
-              Array.from(event.dataTransfer.types).includes('application/x-minidoc-topic')
-            )
+            const source = dragSource.current;
+            if (onMove && source && canMoveTopic(topics, source, topic.id)) {
               event.preventDefault();
+              event.dataTransfer.dropEffect = 'move';
+              setDropTarget(topic.id);
+            } else {
+              setDropTarget(null);
+            }
+          }}
+          onDragLeave={(event) => {
+            if (
+              !(event.relatedTarget instanceof Node) ||
+              !event.currentTarget.contains(event.relatedTarget)
+            ) {
+              setDropTarget((current) => (current === topic.id ? null : current));
+            }
           }}
           onDrop={(event) => {
-            const id = event.dataTransfer.getData('application/x-minidoc-topic');
+            const id =
+              event.dataTransfer.getData('application/x-minidoc-topic') || dragSource.current;
+            dragSource.current = null;
+            setDropTarget(null);
             if (id && onMove) {
               event.preventDefault();
               event.stopPropagation();

@@ -211,3 +211,13 @@ Stand: 22.11.2026. Einstieg, Phasen und kritischer Pfad: [Masterplan](MASTERPLAN
 - **Abhängigkeiten:** bestehende Vite-/TypeScript-Konfiguration, Q2-Werkzeugbewertung.
 - **Akzeptanz/DoD:** fehlende Klasse und veraltete/fehlende Deklaration lassen den Check fehlschlagen; gültige CSS-Modules-Imports und Vite-Namenskonvention funktionieren; Generator-/Commitstrategie und Kompatibilität dokumentiert.
 - **Tests/Risiken:** positive und negative CLI-Proben plus bestehende Tests; veraltete generierte Typen oder abweichende Namenskonventionen dürfen keine falsche Sicherheit erzeugen.
+
+## Q6 – M2-Dropmarkierung und Testpräzision
+
+- **Status:** technisch umgesetzt; Browser-/Screenreader- und visuelle Abnahmen offen.
+- **Ziel/Umfang:** gültige Themenzeilen beim Maus-DnD im KU-Stil markieren; ungültige Ziele mit vorhandener `canMoveTopic`-Regel ausschließen; Feedback bei Verlassen, Escape, Drag-End, Drop und Fensterfokusverlust entfernen. Bestehende Wurzelablage und Tastaturzielwahl bleiben erhalten.
+- **Ausgeschlossen:** Q5, M3, neue Libraries, allgemeine Refactorings und Backend.
+- **Abhängigkeiten:** M2, Q1 und Original-CSS `.trow.drop`.
+- **Akzeptanz/DoD:** `dragover` nutzt lokale Quell-ID statt geschütztem `getData`; keine gültige Markierung für Systemknoten, Selbstziel oder Nachfahren; Status-/Statistiktests behaupten nur tatsächlich belegtes Verhalten; Baumfunktionen dokumentiert.
+- **Tests:** vorhandene 21 Tests erhalten; zusätzliche jsdom-Fälle für Zielzustände, Cleanup und gültige Zustandsänderung. Statistik prüft 6 Dokumente und 13 Seiten. Synthetischer Drop ist ausdrücklich kein Browser-E2E-Test.
+- **Risiken/Abnahmen:** kein neuer Browser-Smoketest durchgeführt, da der bisherige Browserzugriff durch Timeout bzw. fehlende URL-Richtlinienunterstützung blockiert war. Die Blockierung wurde nicht umgangen und in Q6 nicht erneut geprüft. Maus-DnD, Tastaturalternative, Dialogfokus, schmale Fenster, 200 % Zoom und geringe Dialoghöhe bleiben real im Browser zu prüfen; keine M8-Abnahme.
