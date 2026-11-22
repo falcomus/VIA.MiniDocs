@@ -3,8 +3,8 @@ import type { Topic, TopicId } from '../features/topics/topic.types';
 import { Icon } from './Icon';
 import styles from './AppShell.module.css';
 
-export function AppShell({ sidebar, children }: { readonly sidebar: ReactNode; readonly children: ReactNode }) {
-  return <div className={styles.app}><Header /><div className={styles.layout}><aside className={styles.sidebar}>{sidebar}</aside><main className={styles.main}>{children}</main></div></div>;
+export function AppShell({ sidebar, children, modal }: { readonly sidebar: ReactNode; readonly children: ReactNode; readonly modal?: ReactNode }) {
+  return <div className={styles.app}><div className={styles.shell} inert={!!modal}><Header /><div className={styles.layout}><aside className={styles.sidebar}>{sidebar}</aside><main className={styles.main}>{children}</main></div></div>{modal}</div>;
 }
 
 function Header() {

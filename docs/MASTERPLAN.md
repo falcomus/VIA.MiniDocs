@@ -13,7 +13,7 @@ Das geplante Zielbild ist **React → ASP.NET Core MiniDocs API (.NET 10) → Po
 ## Aktueller Stand und nächste Meilensteine
 
 - M1 Grundlayout und M2 Themenbaum sind technisch abgeschlossen; ihre visuellen Browserabnahmen sind offen und werden in M8 nachverfolgt.
-- M3 Listen- und Kachelansicht ist als Nächstes geplant. Danach folgen M4–M8 gemäß [Ticketkatalog](TICKETS.md).
+- Q1 verbessert die Tastaturbedienung und Dialogfokus technisch; Browser- und Screenreader-Prüfungen sind offen. M3 Listen- und Kachelansicht ist als Nächstes geplant. Danach folgen M4–M8 gemäß [Ticketkatalog](TICKETS.md).
 - Die Datenanbindung D1–D8 ist geplant. Backend, PostgreSQL-Anbindung und VIA.Docs-Verbindung sind noch nicht implementiert.
 
 ## Abhängigkeiten
@@ -26,7 +26,7 @@ Für die spätere Datenanbindung bilden API-Verträge und Datenmodell die Grundl
 
 Zu klären sind die tatsächlichen VIA.Docs-Endpunkte, Berechtigungen und der Einladungs- und JWT-Lebenszyklus; MiniDocs-API-Verträge und Hosting; ID- und Vorschau-Mapping; Fehler- und Wiederanlaufverhalten bei Dateioperationen über zwei Systeme; Backup-/Restore-Zuständigkeiten; Suchsemantik und Indexstrategie sowie die PDF-Darstellung und Grenzen der Scrollsynchronisation. Der Datenmodell- und Suchentwurf des Begleitdokuments ist kein bestätigter API-Vertrag oder Performance-Nachweis.
 
-Die visuelle Vergleichsumgebung für M1 und M2 sowie eine Tastaturalternative zum Themenverschieben sind offen. Browserunterschiede, PDF-Viewer-Grenzen und inkonsistente Daten bei Teilausfällen bleiben relevante Risiken. Es gelten die Sicherheits- und Qualitätsanforderungen der [Definition of Done](DEFINITION-OF-DONE.md).
+Die visuelle Vergleichsumgebung für M1 und M2 sowie die Browser- und Screenreader-Prüfung der Tastaturalternative zum Themenverschieben sind offen. Browserunterschiede, PDF-Viewer-Grenzen und inkonsistente Daten bei Teilausfällen bleiben relevante Risiken. Es gelten die Sicherheits- und Qualitätsanforderungen der [Definition of Done](DEFINITION-OF-DONE.md).
 
 ## Dokumentationsregeln
 

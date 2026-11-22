@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { App } from './App';
@@ -83,4 +83,68 @@ it('schützt den Systemknoten und schließt Menü und Dialog mit Escape', async 
   expect(screen.getByLabelText('Name')).toHaveFocus(); await user.keyboard('{Escape}');
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'Neues Thema auf oberster Ebene' })).toHaveFocus();
+});
+
+it('verschiebt ein Thema vollständig per Tastatur und filtert ungültige Ziele', async () => {
+  const user = userEvent.setup(); render(<App />);
+  const tree = within(screen.getByRole('navigation', { name: 'Themen' }));
+  const alpha = tree.getByRole('button', { name: 'Kunde Alpha' }); alpha.focus();
+  await user.keyboard('{Shift>}{F10}{/Shift}');
+  expect(screen.getByRole('menuitem', { name: 'Neues Unterthema' })).toHaveFocus();
+  await user.keyboard('{ArrowDown}{ArrowDown}{Enter}');
+  const target = screen.getByRole('combobox', { name: 'Zielthema' });
+  expect(target).toHaveFocus();
+  expect(within(target).queryByRole('option', { name: /Nicht zugeordnet/ })).not.toBeInTheDocument();
+  expect(within(target).queryByRole('option', { name: /Kunde Alpha/ })).not.toBeInTheDocument();
+  expect(within(target).getByRole('option', { name: 'Oberste Ebene' })).toBeInTheDocument();
+  await user.selectOptions(target, 'own-notes');
+  await user.tab(); await user.tab(); await user.keyboard('{Enter}');
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  expect(screen.getByRole('status')).toHaveTextContent('Thema verschoben');
+  const moved = tree.getByRole('button', { name: 'Kunde Alpha' });
+  expect(moved.closest('ul')?.closest('li')).toHaveTextContent('Eigene Notizen');
+  await user.click(moved);
+  expect(screen.getByRole('heading', { level: 1, name: 'Kunde Alpha' })).toBeInTheDocument();
+  expect(tree.getByRole('button', { name: 'Eigene Notizen' })).toBeInTheDocument();
+});
+
+it('bricht das Verschieben ohne Änderung ab und gibt den Fokus zurück', async () => {
+  const user = userEvent.setup(); render(<App />);
+  const beta = screen.getByRole('button', { name: 'Kunde Beta' }); beta.focus();
+  await user.keyboard('{Shift>}{F10}{/Shift}');
+  await user.click(screen.getByRole('menuitem', { name: 'Verschieben…' }));
+  await user.selectOptions(screen.getByRole('combobox', { name: 'Zielthema' }), 'own-notes');
+  await user.keyboard('{Escape}');
+  expect(beta).toHaveFocus();
+  expect(beta.closest('ul')?.closest('li')).toHaveTextContent('Kunden');
+});
+
+it('stellt nach dem Löschen den Fokus auf ein bestehendes Elternthema', async () => {
+  const user = userEvent.setup(); render(<App />);
+  const alpha = screen.getByRole('button', { name: 'Kunde Alpha' }); alpha.focus();
+  await user.keyboard('{Shift>}{F10}{/Shift}'); await user.click(screen.getByRole('menuitem', { name: 'Löschen' }));
+  expect(screen.getByRole('button', { name: 'Abbrechen' })).toHaveFocus();
+  await user.tab({ shift: true }); expect(screen.getByRole('button', { name: 'Löschen' })).toHaveFocus();
+  await user.click(screen.getByRole('button', { name: 'Löschen' }));
+  expect(screen.getByRole('button', { name: 'Kunden' })).toHaveFocus();
+  expect(alpha.isConnected).toBe(false);
+});
+
+it('bietet im Systemknoten ein fokussierbares Schließen und keine Änderungsaktionen', async () => {
+  const user = userEvent.setup(); render(<App />);
+  const system = screen.getByRole('button', { name: 'Nicht zugeordnet' }); system.focus();
+  await user.keyboard('{Shift>}{F10}{/Shift}');
+  expect(screen.getByRole('menuitem', { name: 'Menü schließen' })).toHaveFocus();
+  expect(screen.queryByRole('menuitem', { name: 'Verschieben…' })).not.toBeInTheDocument();
+  await user.keyboard('{Enter}'); expect(system).toHaveFocus();
+});
+
+it('weist einen ungültigen Maus-Drop im vollständigen Ablauf zurück', () => {
+  render(<App />);
+  const alpha = screen.getByRole('button', { name: 'Kunde Alpha' });
+  const target = screen.getByRole('button', { name: 'Lenkungskreis' });
+  fireEvent.drop(target.parentElement!, { dataTransfer: { types: ['application/x-minidoc-topic'], getData: () => 'alpha' } });
+  expect(screen.getByRole('status')).toHaveTextContent('nicht dorthin verschoben');
+  expect(alpha.closest('ul')?.closest('li')).toHaveTextContent('Kunden');
+  expect(screen.getByRole('button', { name: 'Lenkungskreis' })).toBeInTheDocument();
 });

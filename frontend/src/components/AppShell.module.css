@@ -31,3 +31,4 @@
 @media (max-width: 1000px) { .topbar { flex-wrap: wrap; }.search { order: 3; flex-basis: 100%; max-width: none; }.actions { margin-left: auto; } }
 .add { cursor: pointer; }.add:hover { background: var(--line2); color: var(--text); }
 .crumb { display: inline-flex; align-items: center; gap: 4px; }.crumb button { border: 0; border-radius: 4px; padding: 2px 4px; background: transparent; color: var(--muted); cursor: pointer; }.crumb button:hover { background: var(--line2); color: var(--text); }.crumb svg { width: 14px; height: 14px; color: #a2abb8; }
+.shell { flex: 1; min-height: 0; display: flex; flex-direction: column; }

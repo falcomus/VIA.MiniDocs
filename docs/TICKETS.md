@@ -2,6 +2,17 @@
 
 Stand: 22.11.2026. Einstieg, Phasen und kritischer Pfad: [Masterplan](MASTERPLAN.md). Für jedes Ticket gelten zusätzlich die [allgemeinen und einschlägigen speziellen DoDs](DEFINITION-OF-DONE.md). Abhängigkeiten bezeichnen fachliche Voraussetzungen, keine Genehmigung für spätere produktive Zugriffe. **Technisch abgeschlossen** bedeutet bei M1/M2 ausdrücklich nicht, dass deren visuelle Abnahme bereits erfolgt ist. Die Meilensteine M1–M8 entsprechen dem [KU-Migrationsplan](architecture/KU-MIGRATION-PLAN.md); D-Tickets betreffen ausschließlich die später gesondert beauftragte Datenanbindung.
 
+## Q1 – Accessibility und Themeninteraktion
+
+- **Status:** technisch umgesetzt; Browser- und Screenreader-Abnahme offen. M1-/M2-Sichtabnahmen bleiben offen.
+- **Ziel / Umfang:** Tastatur-Zielwahl für Themen mit vorhandener Verschieberegel; Dialogfokus nach Löschung, modaler Hintergrund und bedienbares Kontextmenü.
+- **Ausgeschlossen:** M3, allgemeine CSS-Bereinigung, neue DnD-Library und Serveranbindung.
+- **Abhängigkeiten:** M2, [Qualitätsaudit](architecture/REACT-QUALITY-REVIEW.md) R1–R3.
+- **Akzeptanz:** gültige Ziele auswählbar, Zyklen/Systemknoten ausgeschlossen; Abbruch ohne Änderung; Fokus nach Löschen auf bestehendem Ziel; Menü mit Tastatur und Maus bedienbar.
+- **Technische DoD / Tests:** TypeScript, Lint, Vitest, Build und Integrationsfälle einschließlich Verschieben, Abbruch, Schutzregeln und Fokus. Browser-/Screenreader-Abnahme gesondert offen.
+- **Risiken:** Browser-DnD, `inert` und Assistive-Technology-Verhalten benötigen echte Browserprüfung.
+- **Radix-Entscheidung:** Vorhandene Dialog-/Menüstruktur bleibt; eine kleine, zielgerichtete Korrektur und native Hintergrundisolierung reichen für den jetzigen Umfang. Radix Dialog/Context Menu (MIT, React-19-Unterstützung laut Audit) würde beide Komponenten und Portal-/Styling-/Testverhalten migrieren; aktuell kein nachgewiesener Vorteil, keine zweite Infrastruktur oder Installation. Bei neuem Dialogbedarf und nach Browser-/AT-Prüfung erneut bewerten.
+
 ## Phase A – KU-Demo
 
 ### M1 – Grundlayout, Tokens und Icons
