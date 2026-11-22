@@ -4,7 +4,9 @@ import { canMoveTopic, topicPath } from './topicUtils';
 import styles from './TopicDialog.module.css';
 
 export type TopicDialogState =
-  { kind: 'new'; parentId: TopicId | null } | { kind: 'rename' | 'delete' | 'move'; id: TopicId };
+  | { kind: 'documents'; ids: readonly string[] }
+  | { kind: 'new'; parentId: TopicId | null }
+  | { kind: 'rename' | 'delete' | 'move'; id: TopicId };
 
 interface TopicDialogProps {
   readonly dialog: TopicDialogState;
@@ -25,26 +27,38 @@ export function TopicDialog({
   onCancel,
   onSubmit,
 }: TopicDialogProps) {
-  const topic = dialog.kind === 'new' ? undefined : topics.find((item) => item.id === dialog.id);
-  const [value, setValue] = useState(dialog.kind === 'rename' ? (topic?.name ?? '') : '');
+  const topic = 'id' in dialog ? topics.find((item) => item.id === dialog.id) : undefined;
+  const [value, setValue] = useState(
+    dialog.kind === 'documents'
+      ? (topics[0]?.id ?? '')
+      : dialog.kind === 'rename'
+        ? (topic?.name ?? '')
+        : '',
+  );
   const dialogRef = useRef<HTMLDivElement>(null);
   const validTargets =
-    dialog.kind === 'move' ? topics.filter((item) => canMoveTopic(topics, dialog.id, item.id)) : [];
+    dialog.kind === 'documents'
+      ? topics
+      : dialog.kind === 'move'
+        ? topics.filter((item) => canMoveTopic(topics, dialog.id, item.id))
+        : [];
 
   useEffect(() => {
     dialogRef.current?.querySelector<HTMLElement>('input, select, button:not(:disabled)')?.focus();
   }, []);
 
   const title =
-    dialog.kind === 'new'
-      ? dialog.parentId
-        ? `Neues Unterthema in „${topics.find((item) => item.id === dialog.parentId)?.name}“`
-        : 'Neues Thema'
-      : dialog.kind === 'rename'
-        ? 'Thema umbenennen'
-        : dialog.kind === 'delete'
-          ? 'Thema löschen'
-          : `„${topic?.name}“ verschieben`;
+    dialog.kind === 'documents'
+      ? `${dialog.ids.length} ${dialog.ids.length === 1 ? 'Dokument' : 'Dokumente'} verschieben nach …`
+      : dialog.kind === 'new'
+        ? dialog.parentId
+          ? `Neues Unterthema in „${topics.find((item) => item.id === dialog.parentId)?.name}“`
+          : 'Neues Thema'
+        : dialog.kind === 'rename'
+          ? 'Thema umbenennen'
+          : dialog.kind === 'delete'
+            ? 'Thema löschen'
+            : `„${topic?.name}“ verschieben`;
   return (
     <div
       className={styles.backdrop}
@@ -95,7 +109,7 @@ export function TopicDialog({
               onSubmit(value);
             }}
           >
-            {dialog.kind === 'move' ? (
+            {dialog.kind === 'move' || dialog.kind === 'documents' ? (
               <>
                 <label htmlFor="topic-target">Zielthema</label>
                 <select
@@ -103,7 +117,7 @@ export function TopicDialog({
                   value={value}
                   onChange={(event) => setValue(event.target.value)}
                 >
-                  <option value="">Oberste Ebene</option>
+                  {dialog.kind === 'move' && <option value="">Oberste Ebene</option>}
                   {validTargets.map((item) => (
                     <option key={item.id} value={item.id}>
                       {topicPath(topics, item.id)
@@ -136,7 +150,11 @@ export function TopicDialog({
             onClick={dialog.kind === 'delete' ? () => onSubmit(value) : undefined}
             disabled={(dialog.kind === 'new' || dialog.kind === 'rename') && !value.trim()}
           >
-            {dialog.kind === 'delete' ? 'Löschen' : dialog.kind === 'move' ? 'Verschieben' : 'OK'}
+            {dialog.kind === 'delete'
+              ? 'Löschen'
+              : dialog.kind === 'move' || dialog.kind === 'documents'
+                ? 'Verschieben'
+                : 'OK'}
           </button>
         </div>
       </div>

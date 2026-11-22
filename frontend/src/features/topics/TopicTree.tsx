@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Topic, TopicId } from './topic.types';
 import { descendantIds } from './topicUtils';
+import type { DocumentDrag } from '../documents/useDocumentDrag';
 import type { TopicDrag } from './useTopicDrag';
 import { Icon } from '../../components/Icon';
 import styles from './TopicTree.module.css';
@@ -14,6 +15,7 @@ interface TopicTreeProps {
   readonly onRename?: (id: TopicId) => void;
   readonly onDelete?: (id: TopicId) => void;
   readonly onMoveDialog?: (id: TopicId) => void;
+  readonly documentDrag?: DocumentDrag;
   readonly drag?: TopicDrag;
 }
 
@@ -27,6 +29,7 @@ export function TopicTree({
   onDelete,
   onMoveDialog,
   drag,
+  documentDrag,
 }: TopicTreeProps) {
   const [expandedIds, setExpandedIds] = useState<ReadonlySet<TopicId>>(
     () => new Set(['customers', 'alpha', 'own-notes']),
@@ -95,14 +98,18 @@ export function TopicTree({
     return (
       <li className={styles.item} key={topic.id}>
         <div
-          className={`${styles.itemRow} ${selectedTopicId === topic.id ? styles.selected : ''} ${drag?.dropTarget === topic.id ? styles.drop : ''}`}
+          className={`${styles.itemRow} ${selectedTopicId === topic.id ? styles.selected : ''} ${drag?.dropTarget === topic.id || documentDrag?.target === topic.id ? styles.drop : ''}`}
           draggable={!!drag && !topic.systemKey}
           onDragStart={(event) => {
             event.stopPropagation();
             if (!drag?.start(topic.id, event.dataTransfer)) event.preventDefault();
           }}
           onDragOver={(event) => {
-            if (drag?.over(topic.id)) {
+            if (
+              documentDrag?.handles(event.dataTransfer)
+                ? documentDrag.over(topic.id)
+                : drag?.over(topic.id)
+            ) {
               event.preventDefault();
               event.dataTransfer.dropEffect = 'move';
             }
@@ -113,9 +120,16 @@ export function TopicTree({
               !event.currentTarget.contains(event.relatedTarget)
             ) {
               drag?.leave(topic.id);
+              documentDrag?.leave(topic.id, event);
             }
           }}
           onDrop={(event) => {
+            if (documentDrag?.handles(event.dataTransfer)) {
+              event.preventDefault();
+              event.stopPropagation();
+              documentDrag.drop(topic.id, event.dataTransfer);
+              return;
+            }
             if (!drag) return;
             event.preventDefault();
             event.stopPropagation();

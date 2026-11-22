@@ -1,6 +1,6 @@
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(190px, 100%), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(var(--tile, 190px), 100%), 1fr));
   gap: 16px;
   align-items: start;
   list-style: none;
@@ -77,4 +77,36 @@
 }
 .folder:focus-visible {
   outline-offset: -3px;
+}
+
+.tile.selected {
+  border-color: var(--accent-2);
+  box-shadow: 0 0 0 2px var(--accent-2);
+}
+.tile.drop {
+  outline: 2px dashed var(--accent-2);
+  outline-offset: 2px;
+  background: var(--accent-weak);
+}
+.check {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.92);
+  display: grid;
+  place-items: center;
+  box-shadow: var(--shadow);
+}
+.check input {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: var(--accent);
+}
+.tile:focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 2px;
 }

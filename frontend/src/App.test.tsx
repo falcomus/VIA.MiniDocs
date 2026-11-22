@@ -31,7 +31,7 @@ it('kennzeichnet vorbereitete Bedienelemente als deaktiviert', () => {
   expect(screen.getByRole('searchbox', { name: 'Dokumente suchen' })).toBeDisabled();
   expect(screen.getByRole('button', { name: 'Hochladen' })).toBeDisabled();
   expect(screen.getByRole('button', { name: 'Kachelansicht' })).toBeEnabled();
-  expect(screen.getByRole('combobox', { name: 'Sortierung' })).toBeDisabled();
+  expect(screen.getByRole('combobox', { name: 'Sortierung' })).toBeEnabled();
 });
 
 it('zeigt die Statistik aus den vorhandenen Demodaten', () => {

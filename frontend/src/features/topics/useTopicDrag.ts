@@ -36,6 +36,10 @@ export function useTopicDrag(
 
   return {
     dropTarget,
+    cancel() {
+      source.current = null;
+      setDropTarget(null);
+    },
     start(id: TopicId, transfer: DataTransfer) {
       source.current = null;
       setDropTarget(null);

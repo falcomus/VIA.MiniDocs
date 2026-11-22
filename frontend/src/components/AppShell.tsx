@@ -1,3 +1,4 @@
+import type { DocumentSort } from '../features/documents/documentOperations';
 import type { DocumentView } from '../features/documents/document.types';
 import type { ReactNode } from 'react';
 import type { Topic, TopicId } from '../features/topics/topic.types';
@@ -98,12 +99,16 @@ export function Sidebar({
       <div
         className={styles.sidebarHeading}
         onDragOver={(event) => {
+          if (Array.from(event.dataTransfer.types ?? []).includes('application/x-minidoc-docs'))
+            return;
           if (drag.over(null)) {
             event.preventDefault();
             event.dataTransfer.dropEffect = 'move';
           }
         }}
         onDrop={(event) => {
+          if (Array.from(event.dataTransfer.types ?? []).includes('application/x-minidoc-docs'))
+            return;
           event.preventDefault();
           event.stopPropagation();
           drag.drop(null, event.dataTransfer);
@@ -130,12 +135,20 @@ export function Sidebar({
 }
 
 export function Toolbar({
+  sort,
+  onSortChange,
+  zoom,
+  onZoomChange,
   view,
   onViewChange,
   title,
   ancestors,
   onNavigate,
 }: {
+  readonly sort: DocumentSort;
+  readonly onSortChange: (sort: DocumentSort) => void;
+  readonly zoom: number;
+  readonly onZoomChange: (zoom: number) => void;
   readonly view: DocumentView;
   readonly onViewChange: (view: DocumentView) => void;
   readonly title: string;
@@ -156,8 +169,15 @@ export function Toolbar({
         <h1>{title}</h1>
       </div>
       <div className={styles.tools}>
-        <select className={styles.select} aria-label="Sortierung" disabled>
-          <option>Sortierung folgt</option>
+        <select
+          className={styles.select}
+          aria-label="Sortierung"
+          value={sort}
+          onChange={(event) => onSortChange(event.target.value as DocumentSort)}
+        >
+          <option value="date-desc">Datum – neueste zuerst</option>
+          <option value="date-asc">Datum – älteste zuerst</option>
+          <option value="title">Titel A–Z</option>
         </select>
         <div className={`${styles.segment} ${styles.square}`} aria-label="Ansicht">
           <button
@@ -179,7 +199,16 @@ export function Toolbar({
         </div>
         <label className={styles.zoom}>
           Zoom{' '}
-          <input type="range" min="110" max="380" value="190" aria-label="Zoom" disabled readOnly />
+          <input
+            type="range"
+            min="110"
+            max="380"
+            step="10"
+            value={zoom}
+            aria-label="Zoom"
+            disabled={view === 'list'}
+            onChange={(event) => onZoomChange(Number(event.target.value))}
+          />
         </label>
       </div>
     </div>
@@ -189,9 +218,6 @@ export function Toolbar({
 export function Content({ children }: { readonly children: ReactNode }) {
   return (
     <>
-      <div className={styles.bulkHint}>
-        Auswahl, Mehrfachauswahl und Öffnen folgen in weiteren Paketen.
-      </div>
       <div className={styles.content}>{children}</div>
     </>
   );

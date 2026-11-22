@@ -85,3 +85,33 @@
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+
+.table .selected td {
+  background: var(--sel);
+}
+.table .drop td {
+  background: var(--accent-weak);
+  box-shadow: inset 0 0 0 1px var(--accent-2);
+}
+.table input {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: var(--accent);
+}
+.table tr:focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: -2px;
+}
+
+.sort {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  padding: 0;
+  cursor: pointer;
+}
+.sort:hover:not(:disabled) {
+  color: var(--text);
+}

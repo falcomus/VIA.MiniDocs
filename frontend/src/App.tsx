@@ -11,22 +11,30 @@ import { demoDocuments } from './features/documents/demoDocuments';
 import { DocumentOverview } from './features/documents/DocumentOverview';
 import type { DocumentView } from './features/documents/document.types';
 import styles from './App.module.css';
+import { useDocumentWorkspace } from './features/documents/useDocumentWorkspace';
+import { useDocumentDrag } from './features/documents/useDocumentDrag';
+import { SelectionBar } from './features/documents/SelectionBar';
 
 export function App() {
   const [view, setView] = useState<DocumentView>('grid');
   const [topics, setTopics] = useState<readonly Topic[]>(demoTopics);
-  const [documents, setDocuments] = useState(demoDocuments);
   const [selectedTopicId, setSelectedTopicId] = useState<TopicId>('unassigned');
+  const workspace = useDocumentWorkspace(demoDocuments, topics, selectedTopicId);
+  const { documents, update: setDocuments } = workspace;
   const [dialog, setDialog] = useState<TopicDialogState | null>(null);
-  const [notice, setNotice] = useState('');
   const [dialogError, setDialogError] = useState('');
   const drag = useTopicDrag(topics, moveTopic, rejectMove);
+  const documentDrag = useDocumentDrag(workspace, topics, drag.cancel);
+  function navigate(id: TopicId) {
+    workspace.clear();
+    setSelectedTopicId(id);
+  }
   const returnFocus = useRef<HTMLElement | null>(null);
   const fallbackFocus = useRef<TopicId>('unassigned');
   const restoreFocus = useRef(false);
   const path = topicPath(topics, selectedTopicId);
   const dialogTopic =
-    dialog && dialog.kind !== 'new' ? topics.find((topic) => topic.id === dialog.id) : undefined;
+    dialog && 'id' in dialog ? topics.find((topic) => topic.id === dialog.id) : undefined;
   const deletedIds =
     dialog?.kind === 'delete' && dialogTopic
       ? descendantIds(topics, dialogTopic.id)
@@ -61,10 +69,10 @@ export function App() {
       target ??
       document.querySelector<HTMLButtonElement>('[aria-label="Neues Thema auf oberster Ebene"]')
     )?.focus();
-  }, [dialog]);
+  }, [dialog, documents, workspace.selected.length]);
 
   function rejectMove() {
-    setNotice('Ein Thema kann nicht dorthin verschoben werden.');
+    workspace.setMessage('Ein Thema kann nicht dorthin verschoben werden.');
   }
   function moveTopic(id: TopicId, parentId: TopicId | null): boolean {
     if (!canMoveTopic(topics, id, parentId)) {
@@ -74,17 +82,23 @@ export function App() {
     setTopics((previous) =>
       previous.map((topic) => (topic.id === id ? { ...topic, parentId } : topic)),
     );
-    setNotice('Thema verschoben.');
+    workspace.setMessage('Thema verschoben.');
     return true;
   }
   function submit(value: string) {
     if (!dialog) return;
-    if (dialog.kind === 'new') {
+    if (dialog.kind === 'documents') {
+      if (!topics.some((topic) => topic.id === value)) {
+        setDialogError('Das gewählte Ziel ist nicht zulässig.');
+        return;
+      }
+      workspace.move(dialog.ids, value);
+    } else if (dialog.kind === 'new') {
       const parent = dialog.parentId && topics.find((topic) => topic.id === dialog.parentId);
       if (!value.trim() || (dialog.parentId !== null && (!parent || parent.systemKey))) return;
       const id = `topic-${crypto.randomUUID()}`;
       setTopics((previous) => [...previous, { id, parentId: dialog.parentId, name: value.trim() }]);
-      setSelectedTopicId(id);
+      navigate(id);
     } else if (dialog.kind === 'rename') {
       if (!dialogTopic || dialogTopic.systemKey || !value.trim()) return;
       setTopics((previous) =>
@@ -107,7 +121,7 @@ export function App() {
           deletedIds.has(document.topicId) ? { ...document, topicId: 'unassigned' } : document,
         ),
       );
-      if (deletedIds.has(selectedTopicId)) setSelectedTopicId(dialogTopic.parentId ?? 'unassigned');
+      if (deletedIds.has(selectedTopicId)) navigate(dialogTopic.parentId ?? 'unassigned');
     }
     closeDialog();
   }
@@ -135,37 +149,81 @@ export function App() {
           <TopicTree
             topics={topics}
             selectedTopicId={selectedTopicId}
-            onSelect={setSelectedTopicId}
+            onSelect={navigate}
             documentTopicIds={documents.map((document) => document.topicId)}
             onNew={(id) => openDialog({ kind: 'new', parentId: id })}
             onRename={(id) => openDialog({ kind: 'rename', id })}
             onDelete={(id) => openDialog({ kind: 'delete', id })}
             onMoveDialog={(id) => openDialog({ kind: 'move', id })}
+            documentDrag={documentDrag}
             drag={drag}
           />
         </Sidebar>
       }
     >
       <Toolbar
+        sort={workspace.sort}
+        onSortChange={workspace.setSort}
+        zoom={workspace.zoom}
+        onZoomChange={workspace.setZoom}
         view={view}
         onViewChange={setView}
         title={path.at(-1)?.name ?? 'Unbekanntes Thema'}
         ancestors={path.slice(0, -1)}
-        onNavigate={setSelectedTopicId}
+        onNavigate={navigate}
+      />
+      <SelectionBar
+        count={workspace.selected.length}
+        hasDocuments={workspace.visible.length > 0}
+        onAll={() => workspace.all(true)}
+        onClear={() => {
+          returnFocus.current = null;
+          fallbackFocus.current = selectedTopicId;
+          restoreFocus.current = true;
+          workspace.clear();
+        }}
+        onMove={() => openDialog({ kind: 'documents', ids: workspace.selected })}
       />
       <Content>
-        <section aria-label="Dokumentübersicht">
+        <section
+          aria-label="Dokumentübersicht"
+          onKeyDown={(event) => {
+            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'a') {
+              event.preventDefault();
+              workspace.all(true);
+            } else if (event.key === 'Escape') workspace.clear();
+          }}
+        >
           <DocumentOverview
             topics={topics}
-            documents={documents}
+            workspace={workspace}
+            documentDrag={documentDrag}
             selectedTopicId={selectedTopicId}
             view={view}
-            onNavigate={setSelectedTopicId}
+            onNavigate={navigate}
           />
         </section>
-        <span role="status" className={styles.notice}>
-          {notice}
+        <span role="status" aria-label="Statusmeldung" className={styles.notice}>
+          {workspace.message}
         </span>
+        {workspace.undo && (
+          <div className={styles.toast}>
+            <span>
+              {workspace.undo.size}{' '}
+              {workspace.undo.size === 1 ? 'Dokument verschoben.' : 'Dokumente verschoben.'}
+            </span>
+            <button
+              onClick={() => {
+                returnFocus.current = null;
+                fallbackFocus.current = selectedTopicId;
+                restoreFocus.current = true;
+                workspace.undoMove();
+              }}
+            >
+              Rückgängig
+            </button>
+          </div>
+        )}
       </Content>
     </AppShell>
   );

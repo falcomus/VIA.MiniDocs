@@ -2,3 +2,28 @@
   display: block;
   color: var(--muted);
 }
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  z-index: 100;
+  background: #1f2937;
+  color: #fff;
+  border-radius: 8px;
+  padding: 10px 14px;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  font-size: 13.5px;
+}
+.toast button {
+  background: transparent;
+  border: 0;
+  color: #9cd3f0;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}

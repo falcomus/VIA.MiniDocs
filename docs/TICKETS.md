@@ -55,14 +55,15 @@ Stand: 22.11.2026. Einstieg, Phasen und kritischer Pfad: [Masterplan](MASTERPLAN
 - **Risiken:** synthetische Vorschauen, Unterschiede zwischen Demodaten und Original, Performance; Browser-/Screenreader-/Zoom- und visuelle Abnahme offen.
 
 ### M4 – Auswahl, Sortierung, Zoom und Dokumentverschiebung
-- **Status:** geplant – nächstes Ticket.
+- **Status:** technisch umgesetzt; native Maus-DnD-, visuelle Browser- und Screenreader-Abnahme ausdrücklich offen.
 - **Ziel / Umfang:** Klick, Checkbox, Strg/Meta-/Shift-Auswahl, Alle/Keine; Datum/Titel sortieren, Kachelzoom, Dokumente auf Thema/Ordner oder per Dialog verschieben, Undo.
 - **Ausgeschlossen:** Volltext, Tagverwaltung, Viewer und echte Persistenz.
 - **Abhängigkeiten:** M2, M3; Dialog-/Toast-Bausteine bei Bedarf.
 - **Akzeptanz:** Mehrfachauswahl und Anker bleiben konsistent; Sortierung und Zoom wirken wie im Original; Verschieben und Rückgängig erhalten alle ursprünglichen Zuordnungen.
 - **Technische DoD:** UI-DoD; abgeleitete Auswahl/Ansicht ohne redundante Datenkopien.
 - **Tests:** Auswahlbereiche, fehlendes Datum, Sortierung, Zoom, Mehrfach-Drop und Undo; echte Browser-Drop-Prüfung.
-- **Risiken:** Browser-Drop-Events, nicht sichtbare Auswahl und versehentliche Verschiebung.
+- **Nachweise:** [M4-Designvergleich](architecture/M4-DESIGNVERGLEICH.md), gemeinsame Reducer-/Hook-Regeln und gezielte Interaktionstests. `npm run check`: Exit 0, 87 erfolgreiche Tests (55 bestehende + 32 neue), Produktionsbuild grün; Diff-Prüfungen Exit 0.
+- **Risiken:** Browser-Drop-Events, Fokus, Kontrast, 200 % Zoom und Screenreader-Verhalten offen. Erneuter IAB-Zugriff auf lokale Vite-Demo scheiterte mit `ERR_CONNECTION_TIMED_OUT`; kein nativer Maus-DnD-Nachweis.
 
 ### M5 – Suche, Filter und Tags
 - **Status:** geplant.
