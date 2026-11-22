@@ -1,0 +1,10 @@
+.empty {
+  margin: 60px auto;
+  max-width: 420px;
+  text-align: center;
+  color: var(--muted);
+}
+.empty strong {
+  color: var(--text);
+  font-size: 16px;
+}

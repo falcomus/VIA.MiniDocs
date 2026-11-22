@@ -44,17 +44,18 @@ Stand: 22.11.2026. Einstieg, Phasen und kritischer Pfad: [Masterplan](MASTERPLAN
 - **Risiken:** native Drop-Markierung und Scrollverhalten sowie Browser-/Screenreader-Verhalten der seit Q1 implementierten, automatisiert getesteten Tastaturalternative; in M8 gesondert prüfen und beheben bzw. Entscheidung dokumentieren.
 
 ### M3 – Listen- und Kachelansicht
-- **Status:** geplant – nächstes Ticket.
+- **Status:** technisch umgesetzt; visuelle Browser-/Screenreader-Abnahme offen.
 - **Ziel / Umfang:** vorhandene Liste erweitern, Kacheln und Umschaltung, direkte Unterthemen als Ordner, Metadaten, Status, Vorschau und leere Zustände anhand des Originals; Demo-Vorschauen getrennt von echten Dateien.
 - **Ausgeschlossen:** Auswahl, Sortierung, Zoom und Dokument-Drop aus M4; Suche, Viewer und echte VIA.Docs-Vorschauen.
 - **Abhängigkeiten:** M1, M2; Komponenten für spätere Aktionen nur sichtbar, wenn klar deaktiviert.
 - **Akzeptanz:** Liste und Kacheln zeigen die passenden Dokumente und Unterordner; leere Themen und Navigation entsprechen dem Referenzumfang; bestehende Themenauswahl funktioniert.
 - **Technische DoD:** UI-DoD, datentypisierte Feature-Komponenten und CSS Modules; keine neue Datenanbindung.
 - **Tests:** beide Ansichten, Wechsel, Unterordner, leere Themen und Metadaten; Browser- und Referenzvergleich.
-- **Risiken:** synthetische Vorschauen, Unterschiede zwischen Demodaten und Original, Performance.
+- **Nachweise:** [M3-Designvergleich](architecture/M3-DESIGNVERGLEICH.md); 44 bestehende und 10 neue Testfälle. `npm run check` und `git diff --check`: Exit 0.
+- **Risiken:** synthetische Vorschauen, Unterschiede zwischen Demodaten und Original, Performance; Browser-/Screenreader-/Zoom- und visuelle Abnahme offen.
 
 ### M4 – Auswahl, Sortierung, Zoom und Dokumentverschiebung
-- **Status:** geplant.
+- **Status:** geplant – nächstes Ticket.
 - **Ziel / Umfang:** Klick, Checkbox, Strg/Meta-/Shift-Auswahl, Alle/Keine; Datum/Titel sortieren, Kachelzoom, Dokumente auf Thema/Ordner oder per Dialog verschieben, Undo.
 - **Ausgeschlossen:** Volltext, Tagverwaltung, Viewer und echte Persistenz.
 - **Abhängigkeiten:** M2, M3; Dialog-/Toast-Bausteine bei Bedarf.

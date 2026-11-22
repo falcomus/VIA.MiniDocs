@@ -1,3 +1,4 @@
+import type { DocumentView } from '../features/documents/document.types';
 import type { ReactNode } from 'react';
 import type { Topic, TopicId } from '../features/topics/topic.types';
 import type { TopicDrag } from '../features/topics/useTopicDrag';
@@ -129,10 +130,14 @@ export function Sidebar({
 }
 
 export function Toolbar({
+  view,
+  onViewChange,
   title,
   ancestors,
   onNavigate,
 }: {
+  readonly view: DocumentView;
+  readonly onViewChange: (view: DocumentView) => void;
   readonly title: string;
   readonly ancestors: readonly Topic[];
   readonly onNavigate: (id: TopicId) => void;
@@ -155,10 +160,20 @@ export function Toolbar({
           <option>Sortierung folgt</option>
         </select>
         <div className={`${styles.segment} ${styles.square}`} aria-label="Ansicht">
-          <button className={styles.active} aria-label="Listenansicht" disabled>
+          <button
+            className={view === 'list' ? styles.active : undefined}
+            aria-label="Listenansicht"
+            aria-pressed={view === 'list'}
+            onClick={() => onViewChange('list')}
+          >
             <Icon name="list" />
           </button>
-          <button aria-label="Kachelansicht" disabled>
+          <button
+            className={view === 'grid' ? styles.active : undefined}
+            aria-label="Kachelansicht"
+            aria-pressed={view === 'grid'}
+            onClick={() => onViewChange('grid')}
+          >
             <Icon name="grid" />
           </button>
         </div>

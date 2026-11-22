@@ -4,22 +4,27 @@ import type { DocumentSummary } from './document.types';
 export const demoDocuments: readonly DocumentSummary[] = [
   {
     id: 'demo-1',
+    fileName: 'Demo-Notizen-1.pdf',
     title: 'Besprechungsnotizen – Eingang',
     topicId: 'unassigned',
     date: '2026-11-18',
     pages: 2,
     kind: 'Besprechung',
+    transcriptStatus: 'available',
   },
   {
     id: 'demo-2',
+    fileName: 'Demo-Notizen-2.pdf',
     title: 'Offene Punkte – Entwurf',
     topicId: 'unassigned',
     date: '2026-11-15',
     pages: 1,
     kind: 'Notiz',
+    transcriptStatus: 'missing',
   },
   {
     id: 'demo-3',
+    fileName: 'Demo-Notizen-3.pdf',
     title: 'Lenkungskreis – Planungsstand',
     topicId: 'alpha-steering',
     date: '2026-10-29',
@@ -28,6 +33,7 @@ export const demoDocuments: readonly DocumentSummary[] = [
   },
   {
     id: 'demo-4',
+    fileName: 'Demo-Notizen-4.pdf',
     title: 'Projektrahmen – Diskussion',
     topicId: 'alpha-project',
     date: '2026-09-11',
@@ -36,6 +42,7 @@ export const demoDocuments: readonly DocumentSummary[] = [
   },
   {
     id: 'demo-5',
+    fileName: 'Demo-Notizen-5.pdf',
     title: 'Notizen zur Zusammenarbeit',
     topicId: 'beta',
     date: '2026-10-02',
@@ -44,6 +51,7 @@ export const demoDocuments: readonly DocumentSummary[] = [
   },
   {
     id: 'demo-6',
+    fileName: 'Demo-Notizen-6.pdf',
     title: 'Ideen für die nächste Version',
     topicId: 'ideas',
     date: '2026-11-12',

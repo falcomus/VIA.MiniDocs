@@ -8,10 +8,12 @@ import type { TopicDialogState } from './features/topics/TopicDialog';
 import { canMoveTopic, descendantIds, topicPath } from './features/topics/topicUtils';
 import type { Topic, TopicId } from './features/topics/topic.types';
 import { demoDocuments } from './features/documents/demoDocuments';
-import { DocumentList } from './features/documents/DocumentList';
+import { DocumentOverview } from './features/documents/DocumentOverview';
+import type { DocumentView } from './features/documents/document.types';
 import styles from './App.module.css';
 
 export function App() {
+  const [view, setView] = useState<DocumentView>('list');
   const [topics, setTopics] = useState<readonly Topic[]>(demoTopics);
   const [documents, setDocuments] = useState(demoDocuments);
   const [selectedTopicId, setSelectedTopicId] = useState<TopicId>('unassigned');
@@ -23,7 +25,6 @@ export function App() {
   const fallbackFocus = useRef<TopicId>('unassigned');
   const restoreFocus = useRef(false);
   const path = topicPath(topics, selectedTopicId);
-  const visibleDocuments = documents.filter((document) => document.topicId === selectedTopicId);
   const dialogTopic =
     dialog && dialog.kind !== 'new' ? topics.find((topic) => topic.id === dialog.id) : undefined;
   const deletedIds =
@@ -146,13 +147,21 @@ export function App() {
       }
     >
       <Toolbar
+        view={view}
+        onViewChange={setView}
         title={path.at(-1)?.name ?? 'Unbekanntes Thema'}
         ancestors={path.slice(0, -1)}
         onNavigate={setSelectedTopicId}
       />
       <Content>
         <section aria-label="Dokumentübersicht">
-          <DocumentList documents={visibleDocuments} />
+          <DocumentOverview
+            topics={topics}
+            documents={documents}
+            selectedTopicId={selectedTopicId}
+            view={view}
+            onNavigate={setSelectedTopicId}
+          />
         </section>
         <span role="status" className={styles.notice}>
           {notice}

@@ -17,7 +17,9 @@ describe('App', () => {
 
     await user.click(screen.getByRole('button', { name: 'Lenkungskreis' }));
     expect(screen.getByRole('heading', { level: 1, name: 'Lenkungskreis' })).toBeInTheDocument();
-    expect(screen.getByText('Lenkungskreis – Planungsstand')).toBeInTheDocument();
+    expect(
+      screen.getByText('Lenkungskreis – Planungsstand', { selector: 'strong' }),
+    ).toBeInTheDocument();
     expect(screen.queryByText('Besprechungsnotizen – Eingang')).not.toBeInTheDocument();
   });
 });
@@ -26,7 +28,7 @@ it('kennzeichnet vorbereitete Bedienelemente als deaktiviert', () => {
   render(<App />);
   expect(screen.getByRole('searchbox', { name: 'Dokumente suchen' })).toBeDisabled();
   expect(screen.getByRole('button', { name: 'Hochladen' })).toBeDisabled();
-  expect(screen.getByRole('button', { name: 'Kachelansicht' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'Kachelansicht' })).toBeEnabled();
   expect(screen.getByRole('combobox', { name: 'Sortierung' })).toBeDisabled();
 });
 
@@ -53,7 +55,9 @@ it('legt ein Unterthema an und zeigt die leere Dokumentliste', async () => {
       name: 'Kunde Beta',
     }),
   );
-  expect(screen.getByText('Notizen zur Zusammenarbeit')).toBeInTheDocument();
+  expect(
+    screen.getByText('Notizen zur Zusammenarbeit', { selector: 'strong' }),
+  ).toBeInTheDocument();
 });
 
 it('benennt ein Thema um und verhindert leere Namen', async () => {
@@ -89,8 +93,12 @@ it('löscht Teilbäume und ordnet ihre Dokumente dem Systemknoten zu', async () 
   expect(screen.queryByRole('button', { name: 'Kunde Alpha' })).not.toBeInTheDocument();
   expect(screen.getByRole('heading', { level: 1, name: 'Kunden' })).toBeInTheDocument();
   await user.click(screen.getByRole('button', { name: 'Nicht zugeordnet' }));
-  expect(screen.getByText('Lenkungskreis – Planungsstand')).toBeInTheDocument();
-  expect(screen.getByText('Projektrahmen – Diskussion')).toBeInTheDocument();
+  expect(
+    screen.getByText('Lenkungskreis – Planungsstand', { selector: 'strong' }),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByText('Projektrahmen – Diskussion', { selector: 'strong' }),
+  ).toBeInTheDocument();
 });
 
 it('schützt den Systemknoten und schließt Menü und Dialog mit Escape', async () => {
