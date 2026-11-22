@@ -8,6 +8,7 @@ Die Anwendung startet wie das Original mit aktiver Kachelansicht; die bisherige 
 
 ## Bewusste Abweichungen und Grenzen
 
+- Dokument- und Ordnerkacheln verwenden für mehr Kontrast und Tiefe einen blaugrauen Rahmen (`#b9c6d2`) und einen dezenten dauerhaften Schatten; Hover verstärkt den Schatten. Diese gezielte visuelle Verbesserung ist freigegeben; Auswahlring, Fokus und Drop-Markierung bleiben erhalten. Eine visuelle Browserabnahme steht aus.
 - Kleiner bisheriger Demo-Datensatz, einfache synthetische SVG-Notizen statt des vollständigen Original-Scan-Generators; keine echten PDF-Vorschauen.
 - Ordner als native Buttons mit einfachem Klick bzw. Enter/Leertaste statt ausschließlich Doppelklick. Dokumente öffnen noch keinen Viewer.
 - Auswahl, Tags zuweisen, Tab und Download deaktiviert; Aktionen dauerhaft sichtbar statt nur bei Hover, damit der vorbereitete Zustand erkennbar bleibt. Keine Auswahl-/Sortier-/Zoomfunktion aus M4 implementiert.

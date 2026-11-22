@@ -1,6 +1,6 @@
 # Engineering-Standards
 
-Diese Standards ergänzen [AGENTS.md](../AGENTS.md), die [Frontend-Architektur](architecture/FRONTEND-ARCHITECTURE.md) und die [Definition of Done](DEFINITION-OF-DONE.md). Der [Qualitätsaudit](architecture/REACT-QUALITY-REVIEW.md) beschreibt den aktuellen Bestand und freizugebende Vorschläge. Das lokale KU-Original bleibt für Design und Verhalten verbindlich; Sicherheits- und Accessibility-Verbesserungen sind gegen die Referenz abzuwägen und Abweichungen zu dokumentieren.
+Diese Standards ergänzen [AGENTS.md](../AGENTS.md), die [Frontend-Architektur](architecture/FRONTEND-ARCHITECTURE.md) und die [Definition of Done](DEFINITION-OF-DONE.md). Der [Qualitätsaudit](architecture/REACT-QUALITY-REVIEW.md) beschreibt den aktuellen Bestand und freizugebende Vorschläge. Das lokale KU-Original bleibt für Funktion, Bedienkonzept und Grundlayout verbindlich. Gezielt freigegebene Verbesserungen von Kontrast, Tiefe, Lesbarkeit und visueller Qualität sind zulässig; Abweichungen sind zu dokumentieren.
 
 ## React-Architektur und Zustand
 

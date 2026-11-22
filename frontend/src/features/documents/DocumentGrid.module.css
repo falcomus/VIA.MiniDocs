@@ -11,13 +11,13 @@
   position: relative;
   min-width: 0;
   background: var(--panel);
-  border: 1px solid var(--line);
+  border: 1px solid #b9c6d2;
   border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
   overflow: hidden;
 }
 .tile:hover {
-  box-shadow: var(--shadow);
-  border-color: #cfd5dd;
+  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.12);
 }
 .thumb {
   display: block;
@@ -81,7 +81,14 @@
 
 .tile.selected {
   border-color: var(--accent-2);
-  box-shadow: 0 0 0 2px var(--accent-2);
+  box-shadow:
+    0 0 0 2px var(--accent-2),
+    0 1px 4px rgba(0, 0, 0, 0.07);
+}
+.tile.selected:hover {
+  box-shadow:
+    0 0 0 2px var(--accent-2),
+    0 2px 7px rgba(0, 0, 0, 0.12);
 }
 .tile.drop {
   outline: 2px dashed var(--accent-2);
