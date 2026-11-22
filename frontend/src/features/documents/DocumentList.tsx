@@ -37,14 +37,18 @@ export function DocumentList({ documents }: DocumentListProps) {
             <tr key={document.id}>
               <td>
                 <div className={styles.titleRow}>
-                  <span className={styles.documentIcon} aria-hidden="true">▤</span>
+                  <span className={styles.documentIcon} aria-hidden="true">
+                    ▤
+                  </span>
                   <span>
                     <strong className={styles.title}>{document.title}</strong>
                     <span className={styles.kind}>{document.kind}</span>
                   </span>
                 </div>
               </td>
-              <td className={styles.secondary}>{dateFormatter.format(new Date(`${document.date}T00:00:00Z`))}</td>
+              <td className={styles.secondary}>
+                {dateFormatter.format(new Date(`${document.date}T00:00:00Z`))}
+              </td>
               <td className={styles.secondary}>{document.pages}</td>
             </tr>
           ))}

@@ -59,3 +59,11 @@ Diese Standards ergänzen [AGENTS.md](../AGENTS.md), die [Frontend-Architektur](
 - Testtitel und Assertions müssen denselben Funktionsumfang beschreiben. Ein Callback-Test belegt keine vollständige Zustandsänderung oder Schutzregel; bestehende Integrationstests gezielt nutzen statt duplizieren.
 - Code und CSS gut lesbar und nachvollziehbar formatieren. Zusammenhängende Entscheidungen und komplexe fachliche Regeln sinnvoll kommentieren; keine globale Umformatierung ohne Auftrag.
 - Nicht nachgewiesene Qualitätsanforderungen bleiben offen, auch bei grünen Tests. Hooks, native Dialoge und weitere Abstraktionen nur nach konkretem Nutzen wählen; Originalfarben nicht allein aus einer allgemeinen Tokenregel ersetzen.
+
+## Automatische Frontend-Formatierung
+
+Prettier 3.10.1 ist als feste Entwicklungsabhängigkeit eingerichtet. `npm run format` schreibt die Formatierung, `npm run format:check` prüft sie ohne Änderungen und ist verbindlicher erster Schritt von `npm run check`. ESLint und Stylelint bleiben für Code-/CSS-Qualitätsregeln zuständig; es werden keine konkurrierenden Formatierungsplugins eingeführt.
+
+Die Frontend-Konfiguration `.prettierrc.json` legt Single Quotes, 100 Zeichen Zielzeilenlänge und LF fest. Die bestehende `.editorconfig` liefert UTF-8 und zwei Leerzeichen Einrückung. Umfang: `src/**/*.{ts,tsx,css}`, Konfiguration und Einstieg im Frontendroot (`*.{js,ts,json,html}`) sowie `.prettierrc.json`. `.prettierignore` schließt Abhängigkeiten, Build-/Coverage-Ausgaben, Deklarationsdateien, Lockfile und lokale Originalreferenzen aus. Neue generierte Dateitypen müssen bei Bedarf ausdrücklich ergänzt werden. Dokumentation und Dateien außerhalb des Frontends gehören nicht zum Format-Script.
+
+Formatierungsänderungen und fachliche Änderungen in Reviews auseinanderhalten. Nach der einmaligen Einführung keine zusätzlichen Refactorings in Formatierungs-Diffs verstecken.

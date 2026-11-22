@@ -1,14 +1,51 @@
 :root {
-  --bg: #f4f5f7; --panel: #fff; --line: #e1e4e9; --line2: #eef0f3;
-  --text: #1b2230; --muted: #667085; --accent: #225b79; --accent-2: #2d7ba3;
-  --accent-weak: #e4eff6; --sel: #d5e7f2; --hot: #c2410c; --r: 8px;
-  --shadow: 0 1px 2px rgba(16, 24, 40, .06), 0 1px 3px rgba(16, 24, 40, .08);
-  --shadow-lg: 0 12px 32px rgba(16, 24, 40, .18), 0 2px 6px rgba(16, 24, 40, .08);
-  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  color: var(--text); background: var(--bg);
+  --bg: #f4f5f7;
+  --panel: #fff;
+  --line: #e1e4e9;
+  --line2: #eef0f3;
+  --text: #1b2230;
+  --muted: #667085;
+  --accent: #225b79;
+  --accent-2: #2d7ba3;
+  --accent-weak: #e4eff6;
+  --sel: #d5e7f2;
+  --hot: #c2410c;
+  --r: 8px;
+  --shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.08);
+  --shadow-lg: 0 12px 32px rgba(16, 24, 40, 0.18), 0 2px 6px rgba(16, 24, 40, 0.08);
+  font:
+    14px/1.45 system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+  color: var(--text);
+  background: var(--bg);
 }
-* { box-sizing: border-box; }
-html, body, #root { height: 100%; margin: 0; }
-body { overflow: hidden; }
-button, input, select, textarea { font: inherit; color: inherit; }
-button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; }
+* {
+  box-sizing: border-box;
+}
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+body {
+  overflow: hidden;
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 2px;
+}

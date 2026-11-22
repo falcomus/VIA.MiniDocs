@@ -4,7 +4,11 @@ import { canMoveTopic, descendantIds, topicPath } from './topicUtils';
 
 describe('Themenhierarchie', () => {
   it('ermittelt Pfad und tief verschachtelte Nachfahren', () => {
-    expect(topicPath(demoTopics, 'alpha-steering').map((topic) => topic.name)).toEqual(['Kunden', 'Kunde Alpha', 'Lenkungskreis']);
+    expect(topicPath(demoTopics, 'alpha-steering').map((topic) => topic.name)).toEqual([
+      'Kunden',
+      'Kunde Alpha',
+      'Lenkungskreis',
+    ]);
     expect(descendantIds(demoTopics, 'customers').has('alpha-steering')).toBe(true);
   });
   it('verhindert Zyklen, Systemknoten und ungültige Ziele', () => {

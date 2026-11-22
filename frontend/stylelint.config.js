@@ -22,11 +22,14 @@ export default {
   },
   overrides: [
     // CSS Modules use these constructs in addition to standard CSS.
-    { files: ['**/*.module.css'], rules: {
-      'at-rule-no-unknown': [true, { ignoreAtRules: ['value'] }],
-      'property-no-unknown': [true, { ignoreProperties: ['composes'] }],
-      'selector-pseudo-class-no-unknown': [true, { ignorePseudoClasses: ['global', 'local'] }],
-    } },
+    {
+      files: ['**/*.module.css'],
+      rules: {
+        'at-rule-no-unknown': [true, { ignoreAtRules: ['value'] }],
+        'property-no-unknown': [true, { ignoreProperties: ['composes'] }],
+        'selector-pseudo-class-no-unknown': [true, { ignorePseudoClasses: ['global', 'local'] }],
+      },
+    },
     // #root is the Vite mount point, so the global reset needs one ID selector.
     { files: ['src/styles/global.css'], rules: { 'selector-max-specificity': '1,0,0' } },
   ],

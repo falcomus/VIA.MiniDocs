@@ -42,3 +42,5 @@ Gilt für neue Tickets im [Ticketkatalog](TICKETS.md); siehe auch [Masterplan](M
 - Architekturgrenzen einschließlich CSS-Module-Imports explizit geprüft: keine fachfremde Klassenwiederverwendung ohne gemeinsame Zuständigkeit.
 - Testtitel mit tatsächlichen Assertions abgeglichen; Integration und Callback-Tests korrekt eingeordnet, keine unbelegten Schutzbehauptungen.
 - Lesbarkeit und nachvollziehbare Formatierung von Code/CSS sowie Kommentare zu fachlichen Entscheidungen geprüft; offene Qualitätsnachweise weiterhin ausgewiesen.
+
+- `npm run format:check` muss für den definierten Frontendumfang erfolgreich sein; es ist in `npm run check` integriert. Formatierung gegebenenfalls mit `npm run format` anwenden und den Diff auf unbeabsichtigte fachliche Änderungen prüfen.

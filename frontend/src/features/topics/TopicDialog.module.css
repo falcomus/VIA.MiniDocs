@@ -1,6 +1,78 @@
-.backdrop { position: fixed; inset: 0; background: rgba(16,24,40,.42); z-index: 80; display: grid; place-items: center; padding: 24px; }
-.dialog { background: var(--panel); border-radius: 12px; box-shadow: var(--shadow-lg); width: min(560px,100%); max-height: calc(100vh - 48px); display: flex; flex-direction: column; }
-.dialog h2 { margin: 0; font-size: 17px; padding: 18px 22px 6px; }.dialog p, .dialog form { margin: 0; padding: 8px 22px 14px; color: #475467; }.dialog form { display: flex; flex-direction: column; gap: 5px; }.dialog label { font-size: 12.5px; font-weight: 600; color: #344054; }.dialog input { height: 36px; border: 1px solid var(--line); border-radius: 6px; padding: 0 8px; }
-.actions { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 22px 16px; border-top: 1px solid var(--line2); }.actions button { height: 34px; padding: 0 12px; border: 1px solid var(--line); border-radius: var(--r); background: var(--panel); cursor: pointer; }.actions button:last-child { background: var(--accent); border-color: var(--accent); color: #fff; }.actions button:disabled { opacity: .45; cursor: default; }
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(16, 24, 40, 0.42);
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+.dialog {
+  background: var(--panel);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  width: min(560px, 100%);
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+}
+.dialog h2 {
+  margin: 0;
+  font-size: 17px;
+  padding: 18px 22px 6px;
+}
+.dialog p,
+.dialog form {
+  margin: 0;
+  padding: 8px 22px 14px;
+  color: #475467;
+}
+.dialog form {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.dialog label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #344054;
+}
+.dialog input {
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0 8px;
+}
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 22px 16px;
+  border-top: 1px solid var(--line2);
+}
+.actions button {
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--panel);
+  cursor: pointer;
+}
+.actions button:last-child {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.actions button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
 
-.dialog select { height: 36px; border: 1px solid var(--line); border-radius: 6px; padding: 0 8px; background: var(--panel); max-width: 100%; }
+.dialog select {
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0 8px;
+  background: var(--panel);
+  max-width: 100%;
+}

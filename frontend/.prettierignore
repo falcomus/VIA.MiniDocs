@@ -1,0 +1,9 @@
+node_modules/
+dist/
+coverage/
+.vite/
+**/*.d.ts
+package-lock.json
+.local-reference/
+../.local-reference/
+**/MiniDoc_Prototyp.html

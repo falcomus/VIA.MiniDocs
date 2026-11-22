@@ -194,14 +194,14 @@ Stand: 22.11.2026. Einstieg, Phasen und kritischer Pfad: [Masterplan](MASTERPLAN
 - **Akzeptanz/DoD:** keine fachfremde Status-CSS-Abhängigkeit; Testaussage entspricht Assertions; Wurzel-Fallback auf „Nicht zugeordnet“ belegt; allgemeine DoD und Standards erfüllt.
 - **Tests/Risiken:** bestehende Tests plus gezielter Wurzel-Löschtest; jsdom ersetzt keine Browser-/Screenreader-Abnahme.
 
-## Q4 – Prettier mit begrenztem Probeumfang bewerten
+## Q4 – Einheitliche Frontend-Formatierung
 
-- **Status:** geplant, Freigabe vor Installation erforderlich.
-- **Ziel/Umfang:** lesbare CSS-/TSX-Formatierung anhand eines kleinen repräsentativen Probe-Diffs und Teamentscheidung festlegen; optionalen CI-Formatcheck planen.
-- **Ausgeschlossen:** funktionale Änderungen, ungefragte Massenformatierung und Styling-Frameworks.
-- **Abhängigkeiten:** Engineering-Standards und Q2-Werkzeugbewertung.
-- **Akzeptanz/DoD:** Konfiguration, Umfang, Editor-/CI-Verhalten und bewusst entstehende Diffs bewertet; nur nach Entscheidung einführen.
-- **Tests/Risiken:** bestehender Check und Format-Gegenprobe; große Diffs können Reviews erschweren. Formatter prüft keine fachliche Architektur.
+- **Status:** technisch abgeschlossen; Einführung durch aktuellen Auftrag freigegeben.
+- **Ziel/Umfang:** Prettier 3.10.1, definierter Frontendumfang, einmalige Formatierung und verpflichtendes `format:check` in `npm run check`.
+- **Ausgeschlossen:** fachliche Änderungen, Refactorings, typisierte CSS Modules, M3 und Formatierung lokaler Originalreferenzen/generierter Dateien.
+- **Abhängigkeiten:** Engineering-Standards, `.editorconfig` und vorhandene ESLint-/Stylelint-Prüfungen.
+- **Akzeptanz/DoD:** Konfiguration und Ignorierregeln dokumentiert; Formatcheck, CSS-Lint, bestehende Tests und Build erfolgreich; Quellcode-Diff ausschließlich durch Prettier erzeugt.
+- **Tests/Risiken:** 21 bestehende Tests; Abgleich der 18 geänderten Quellcode-/Bestandskonfigurationsdateien mit Prettier-Ausgabe des vorherigen Git-Stands. Formatter ersetzt keine fachliche, visuelle oder Accessibility-Abnahme.
 
 ## Q5 – Typisierte CSS Modules für npm run check evaluieren
 

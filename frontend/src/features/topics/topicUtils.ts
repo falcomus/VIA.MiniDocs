@@ -23,8 +23,17 @@ export function topicPath(topics: readonly Topic[], id: TopicId): Topic[] {
   return path;
 }
 
-export function canMoveTopic(topics: readonly Topic[], id: TopicId, parentId: TopicId | null): boolean {
+export function canMoveTopic(
+  topics: readonly Topic[],
+  id: TopicId,
+  parentId: TopicId | null,
+): boolean {
   const topic = topics.find((item) => item.id === id);
   const parent = parentId === null ? null : topics.find((item) => item.id === parentId);
-  return !!topic && !topic.systemKey && (parentId === null || (!!parent && !parent.systemKey && !descendantIds(topics, id).has(parentId)));
+  return (
+    !!topic &&
+    !topic.systemKey &&
+    (parentId === null ||
+      (!!parent && !parent.systemKey && !descendantIds(topics, id).has(parentId)))
+  );
 }
