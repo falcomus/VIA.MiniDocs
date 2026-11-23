@@ -554,3 +554,47 @@ it('kehrt nach Themenlöschung mit Dokumenten automatisch zu Nicht zugeordnet zu
   expect(screen.getByRole('heading', { name: 'Nicht zugeordnet' })).toBeInTheDocument();
   expect(checkbox()).toBeInTheDocument();
 });
+it('öffnet nach Drop-Navigation und manuellem Einklappen ein neu angelegtes Unterthema dauerhaft sichtbar', async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  const tree = within(screen.getByRole('navigation', { name: 'Themen' }));
+  await user.click(tree.getByRole('button', { name: 'Kunden: Unterthemen einklappen' }));
+  const first = transfer();
+  fireEvent.dragStart(row(), { dataTransfer: first });
+  const alpha = within(screen.getByRole('main'));
+  fireEvent.drop(tree.getByRole('button', { name: 'Kunden' }).parentElement!, {
+    dataTransfer: first,
+  });
+  const folder = alpha.getByRole('button', { name: /Kunde Alpha/ }).closest('li')!;
+  const second = transfer();
+  fireEvent.dragStart(row(), { dataTransfer: second });
+  fireEvent.drop(folder, { dataTransfer: second });
+  expect(tree.getByRole('button', { name: 'Kunden: Unterthemen einklappen' })).toHaveAttribute(
+    'aria-expanded',
+    'true',
+  );
+  expect(tree.getByRole('button', { name: 'Kunde Alpha' })).toHaveAttribute('aria-current', 'page');
+  await user.click(tree.getByRole('button', { name: 'Kunden: Unterthemen einklappen' }));
+  expect(tree.queryByRole('button', { name: 'Kunde Alpha' })).not.toBeInTheDocument();
+  await user.click(screen.getByRole('button', { name: 'Listenansicht' }));
+  expect(tree.queryByRole('button', { name: 'Kunde Alpha' })).not.toBeInTheDocument();
+  await user.pointer({
+    target: tree.getByRole('button', { name: 'Kunden' }),
+    keys: '[MouseRight]',
+  });
+  await user.click(screen.getByRole('menuitem', { name: 'Neues Unterthema' }));
+  await user.type(screen.getByLabelText('Name'), 'Neues Q7-Thema');
+  await user.click(screen.getByRole('button', { name: 'OK' }));
+  expect(tree.getByRole('button', { name: 'Neues Q7-Thema' })).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
+  expect(tree.getByRole('button', { name: 'Kunden: Unterthemen einklappen' })).toHaveAttribute(
+    'aria-expanded',
+    'true',
+  );
+  await user.click(tree.getByRole('button', { name: 'Kunden: Unterthemen einklappen' }));
+  expect(tree.queryByRole('button', { name: 'Neues Q7-Thema' })).not.toBeInTheDocument();
+  await user.click(tree.getByRole('button', { name: 'Kunden: Unterthemen aufklappen' }));
+  expect(tree.getByRole('button', { name: 'Neues Q7-Thema' })).toBeInTheDocument();
+});

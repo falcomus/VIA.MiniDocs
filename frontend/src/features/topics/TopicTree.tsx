@@ -34,9 +34,21 @@ export function TopicTree({
   documentDrag,
   dropNavigation,
 }: TopicTreeProps) {
-  const [expandedIds, setExpandedIds] = useState<ReadonlySet<TopicId>>(
-    () => new Set(['customers', 'alpha', 'own-notes']),
-  );
+  const [expansion, setExpansion] = useState<{
+    request: typeof dropNavigation;
+    ids: ReadonlySet<TopicId>;
+  }>(() => ({
+    request: dropNavigation,
+    ids: new Set(['customers', 'alpha', 'own-notes']),
+  }));
+  // Consume each navigation request once; later renders preserve manual choices.
+  if (expansion.request !== dropNavigation) {
+    const ancestors = dropNavigation ? topicPath(topics, dropNavigation.id).slice(0, -1) : [];
+    setExpansion({
+      request: dropNavigation,
+      ids: new Set([...expansion.ids, ...ancestors.map((topic) => topic.id)]),
+    });
+  }
   const [menu, setMenu] = useState<{ id: TopicId; x: number; y: number } | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -66,39 +78,15 @@ export function TopicTree({
     };
   }, [menu]);
 
-  const [expansionOverrides, setExpansionOverrides] = useState<{
-    request: typeof dropNavigation;
-    collapsed: ReadonlySet<TopicId>;
-  }>({ request: null, collapsed: new Set() });
-  const forcedAncestors = dropNavigation
-    ? new Set(
-        topicPath(topics, dropNavigation.id)
-          .slice(0, -1)
-          .map((topic) => topic.id),
-      )
-    : new Set<TopicId>();
-  const collapsed =
-    expansionOverrides.request === dropNavigation
-      ? expansionOverrides.collapsed
-      : new Set<TopicId>();
-  function isExpanded(id: TopicId) {
-    return forcedAncestors.has(id) ? !collapsed.has(id) : expandedIds.has(id);
+  function expand(id: TopicId) {
+    setExpansion((previous) => ({ ...previous, ids: new Set([...previous.ids, id]) }));
   }
   function toggle(id: TopicId) {
-    if (forcedAncestors.has(id)) {
-      setExpansionOverrides({
-        request: dropNavigation,
-        collapsed: new Set(
-          collapsed.has(id) ? [...collapsed].filter((item) => item !== id) : [...collapsed, id],
-        ),
-      });
-      return;
-    }
-    setExpandedIds((previous) => {
-      const next = new Set(previous);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
+    setExpansion((previous) => {
+      const ids = new Set(previous.ids);
+      if (ids.has(id)) ids.delete(id);
+      else ids.add(id);
+      return { ...previous, ids };
     });
   }
   function openMenu(event: React.MouseEvent<HTMLButtonElement>, id: TopicId) {
@@ -124,7 +112,7 @@ export function TopicTree({
     const kids = children(topic.id);
     const complete = topic.systemKey === 'UNASSIGNED' && !documentTopicIds.includes(topic.id);
     const displayName = topicDisplayName(topic, documentTopicIds);
-    const expanded = isExpanded(topic.id);
+    const expanded = expansion.ids.has(topic.id);
     const countIds = descendantIds(topics, topic.id);
     const count = documentTopicIds.filter((id) => countIds.has(id)).length;
     return (
@@ -165,8 +153,7 @@ export function TopicTree({
             if (!drag) return;
             event.preventDefault();
             event.stopPropagation();
-            if (drag.drop(topic.id, event.dataTransfer))
-              setExpandedIds((previous) => new Set([...previous, topic.id]));
+            if (drag.drop(topic.id, event.dataTransfer)) expand(topic.id);
           }}
         >
           {kids.length > 0 ? (
@@ -269,7 +256,7 @@ export function TopicTree({
                 <button
                   role="menuitem"
                   onClick={() => {
-                    setExpandedIds((previous) => new Set([...previous, menuTopic.id]));
+                    expand(menuTopic.id);
                     action(onNew);
                   }}
                 >
