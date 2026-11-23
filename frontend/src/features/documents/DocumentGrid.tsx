@@ -1,3 +1,5 @@
+import { Highlight } from '../search/Highlight';
+import { topicPath } from '../topics/topicUtils';
 import { demoTags, tagNames } from './tags';
 import { documentSelectionProps } from './documentInteractions';
 import { Icon } from '../../components/Icon';
@@ -7,6 +9,7 @@ import { formatDocumentDate } from './documentDate';
 import styles from './DocumentGrid.module.css';
 export function DocumentGrid({
   documents,
+  topics = [],
   folders,
   folderCounts,
   onNavigate,
@@ -75,13 +78,32 @@ export function DocumentGrid({
           </div>
           <div className={styles.meta}>
             <div className={styles.title} title={document.title}>
-              {document.title}
+              <Highlight
+                text={document.title}
+                terms={workspace?.results.get(document.id)?.terms ?? []}
+              />
             </div>
             <div className={styles.sub}>
               {formatDocumentDate(document.date)} · {document.pages} S.{' '}
               <TranscriptStatus document={document} />
+              {workspace?.results.get(document.id)?.hit && (
+                <span>Treffer S. {workspace.results.get(document.id)?.hit?.page}</span>
+              )}
             </div>
-            <div className={styles.sub}>{document.kind}</div>
+            <div className={styles.sub}>
+              {document.kind} ·{' '}
+              <Highlight
+                text={document.fileName ?? '—'}
+                terms={workspace?.results.get(document.id)?.terms ?? []}
+              />
+            </div>
+            {workspace?.searchActive && (
+              <div className={styles.sub}>
+                {topicPath(topics, document.topicId)
+                  .map((topic) => topic.name)
+                  .join(' / ')}
+              </div>
+            )}
             {tagNames(document.tagIds, demoTags).length ? (
               <div className={styles.sub}>{tagNames(document.tagIds, demoTags).join(' · ')}</div>
             ) : null}

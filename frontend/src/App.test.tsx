@@ -28,7 +28,7 @@ describe('App', () => {
 
 it('kennzeichnet vorbereitete Bedienelemente als deaktiviert', () => {
   render(<App />);
-  expect(screen.getByRole('searchbox', { name: 'Dokumente suchen' })).toBeDisabled();
+  expect(screen.getByRole('searchbox', { name: 'Dokumente suchen' })).toBeEnabled();
   expect(screen.getByRole('button', { name: 'Hochladen' })).toBeDisabled();
   expect(screen.getByRole('button', { name: 'Kachelansicht' })).toBeEnabled();
   expect(screen.getByRole('combobox', { name: 'Sortierung' })).toBeEnabled();

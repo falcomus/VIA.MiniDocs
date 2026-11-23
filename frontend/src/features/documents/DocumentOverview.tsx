@@ -22,7 +22,9 @@ export function DocumentOverview({
   readonly view: DocumentView;
   readonly onNavigate: (id: TopicId) => void;
 }) {
-  const folders = topics.filter((topic) => topic.parentId === selectedTopicId);
+  const folders = workspace.searchActive
+    ? []
+    : topics.filter((topic) => topic.parentId === selectedTopicId);
   const visible = workspace.visible;
   const counts = new Map(
     folders.map((folder) => {
@@ -36,10 +38,13 @@ export function DocumentOverview({
   if (!folders.length && !visible.length)
     return (
       <div className={styles.empty} role="status">
-        <strong>Keine Dokumente in diesem Thema</strong>
+        <strong>
+          {workspace.searchActive ? 'Keine Treffer' : 'Keine Dokumente in diesem Thema'}
+        </strong>
         <p>
-          Dieses Thema ist leer. Upload folgt später; Dokumente können über den Verschiebedialog
-          zugeordnet werden.
+          {workspace.searchActive
+            ? 'Andere Suchbegriffe versuchen oder Filter anpassen.'
+            : 'Dieses Thema ist leer. Upload folgt später; Dokumente können über den Verschiebedialog zugeordnet werden.'}
         </p>
       </div>
     );
@@ -51,6 +56,7 @@ export function DocumentOverview({
       documents={visible}
       folders={folders}
       folderCounts={counts}
+      topics={topics}
       onNavigate={onNavigate}
     />
   );

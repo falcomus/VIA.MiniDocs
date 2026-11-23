@@ -66,7 +66,7 @@ Stand: 22.11.2026. Einstieg, Phasen und kritischer Pfad: [Masterplan](MASTERPLAN
 - **Risiken:** Browser-Drop-Events, Fokus, Kontrast, 200 % Zoom und Screenreader-Verhalten offen. Erneuter IAB-Zugriff auf lokale Vite-Demo scheiterte mit `ERR_CONNECTION_TIMED_OUT`; kein nativer Maus-DnD-Nachweis.
 
 ### M5 – Suche, Filter und Tags
-- **Status:** M5-A technisch umgesetzt; M5-B und M5-C geplant. M5 insgesamt nicht abgeschlossen.
+- **Status:** M5-A und M5-B technisch umgesetzt; M5-C geplant. M5 insgesamt nicht abgeschlossen.
 - **Ziel / Umfang:** Titel-/Volltextmodus mit Phrasen, Original-Teilstringsuche und Relevanz; Zeitraum, Voreinstellungen, Tag-UND und Themenbereich; Tags definieren und einzeln/mehrfach zuweisen.
 - **Ausgeschlossen:** PostgreSQL-Suche, KI-Suche und produktive API.
 - **Abhängigkeiten:** M2–M4; Trefferseite wird in M6 genutzt.
@@ -75,7 +75,9 @@ Stand: 22.11.2026. Einstieg, Phasen und kritischer Pfad: [Masterplan](MASTERPLAN
 - **Tests:** Normalisierung, Phrasen, Filterkombinationen, Relevanz, keine Treffer, Tagpflege und Mehrfachzuweisung.
 - **M5-A:** Reine Such-/Filterfunktionen und typisierter Ergebnisvertrag unter `frontend/src/features/search/`; stabile Tag-IDs mit zentralen Demodefinitionen, optionale Transkripte mit Seiten und Bearbeitungsstatus. Titel und Dateiname zählen pro Begriff einmal +10; Volltext addiert nicht überlappende Vorkommen. Trefferseite ist die erste Seite des ersten Suchbegriffs mit Texttreffer gemäß KU. Leere Suche liefert alle gefilterten Dokumente; Ergebnisreihenfolge bleibt unverändert, Relevanzsortierung ist separat und stabil. Ungültige Datumsfilter oder unbekannter Themenbereich liefern keine Treffer; Datums-Presets erhalten einen Stichtag, Schaltjahr-Rollover folgt `setFullYear` in UTC.
 - **M5-A-Nachweise:** `npm run check` Exit 0, 110 Tests einschließlich 13 neuer Such-/Filterfälle, TypeScript, Lint, Stylelint, Prettier und Produktionsbuild erfolgreich; `git diff --check` Exit 0. M5-B muss dieselbe gefilterte Ergebnis-ID-Reihenfolge für Ansichten, Auswahl und Drag-and-drop nutzen; M5-C übernimmt veränderbare Tagdefinitionen und Zuweisung.
-- **Risiken:** Demo-Teilstringsuche ist keine Datenbanksuche; Demo-Tags sind momentan unveränderlich. Browser-/Screenreader- und visuelle Abnahmen bleiben offen.
+- **M5-B:** Suchfeld mit Titel-/Volltextmodus und `/`-Tastenkürzel; Datums-, Tag- und Themenfilter; Ergebnisdarstellung in Liste und Kacheln einschließlich Trefferseite und sicherer Hervorhebung. Eine abgeleitete sortierte Ergebnismenge bestimmt Anzeige, Zähler und Auswahl; bei Kriterienwechsel werden Auswahl und Anker zurückgesetzt. Dokumentverschiebung und Undo bleiben auch bei themenübergreifenden Treffern verfügbar. Direkte Unterthemen werden bei aktiver Suche oder Filterung wie im Original ausgeblendet.
+- **M5-B-Nachweise:** `npm run check` Exit 0: 120 Tests, darunter 10 neue Integrationstests für Suche, Filter, Ansichten, Sortierung, Auswahl, Verschiebung und Undo sowie Tastaturbedienung; TypeScript, Lint, Stylelint, Formatprüfung und Produktionsbuild erfolgreich. Der lokale Vite-Server startete, der integrierte Browser meldete jedoch `ERR_CONNECTION_TIMED_OUT`. M5-C für veränderbare Tagdefinitionen und Zuweisung bleibt offen.
+- **Risiken:** Demo-Teilstringsuche ist keine Datenbanksuche; Demo-Tags sind momentan unveränderlich. Browser-/Screenreader-, native Drag-and-drop- und visuelle Abnahmen bleiben offen.
 
 ### M6 – Viewer und Transkript-Editor
 - **Status:** geplant.
@@ -89,13 +91,29 @@ Stand: 22.11.2026. Einstieg, Phasen und kritischer Pfad: [Masterplan](MASTERPLAN
 
 ### M7 – Upload, Downloads, Dialoge und Einstellungen
 - **Status:** geplant.
-- **Ziel / Umfang:** lokale PDF-/ZIP-/MD-/TXT-Importe mit Bericht, Duplikat-/Konfliktbehandlung und wartenden Transkripten; Einzel-/ZIP-Download inkl. `Transkripte.md`; Einstellungen und Demo-Reset.
+- **Ziel / Umfang:** lokale PDF-/ZIP-/MD-/TXT-Importe mit Bericht, Konfliktbehandlung und wartenden Transkripten; gleiche Dateinamen zulassen, unklare Transkriptzuordnungen zur Entscheidung stellen und erfolgreiche Teile von Importen übernehmen; Einzel-/ZIP-Download inkl. `Transkripte.md`; Einstellungen und Demo-Reset.
 - **Ausgeschlossen:** Word-Einlesen, Backend, produktive Dateien und Datenbank. Word zeigt wie im Original einen Hinweis.
 - **Abhängigkeiten:** M2–M6; Dialog-/Toast-Grundbausteine dürfen früher entstehen.
 - **Akzeptanz:** Datei-Drop und Button-Import, Zuordnung nach Dateiname vor/nach PDF, Konfliktabfrage, Berichte und Downloads funktionieren lokal wie im Original; Einstellungen sind bedienbar.
 - **Technische DoD:** UI-DoD, Import-/Exportlogik gekapselt, Objekt-URLs freigegeben.
 - **Tests:** Parser, Duplikate, Zuordnung, Konflikte, ZIP, Teilerfolge und Reset; Dateien, Dateidialog und Downloads im Browser.
 - **Risiken:** ZIP-Unterstützung, beschädigte Dateien, heuristische Seitenzählung und Ressourcenverbrauch.
+
+### Q8 – Themenlöschung an KU-Regel anpassen
+- **Status:** geplant; die vorhandene M2-Löschung entspricht der neuen Vorgabe noch nicht.
+- **Ziel / Umfang:** Themen nur löschen, wenn sie leer sind; Bedeutung von „leer“ und Rückmeldung für nicht löschbare Themen vor Umsetzung fachlich präzisieren.
+- **Ausgeschlossen:** Änderung der Löschlogik im Rahmen von M5-B.
+- **Abhängigkeiten:** M2; Abstimmung zu bestehenden Unterthemen und Dokumentzuordnungen.
+- **Akzeptanz / Tests:** Leere und nicht leere Themen sowie Systemknoten und geschützte Fälle anhand der abgestimmten Regel prüfen; bestehende Daten bleiben erhalten.
+- **Risiko:** bisheriges Verhalten und neue Regel widersprechen sich bis zur Umsetzung.
+
+### Q9 – Papierkorb und Wiederherstellung planen
+- **Status:** geplant.
+- **Ziel / Umfang:** Papierkorb und Wiederherstellung gemäß KU-Entscheidung vorsehen; Umfang, Aufbewahrung und Zusammenspiel mit der Themenlöschung fachlich klären.
+- **Ausgeschlossen:** Implementierung in M5-B.
+- **Abhängigkeiten:** abgestimmte Löschregeln und spätere Persistenzentscheidung.
+- **Akzeptanz / Tests:** erst nach Festlegung von Lebenszyklus und Zuständigkeiten konkretisieren.
+- **Risiko:** Wiederherstellbarkeit ist derzeit nicht implementiert.
 
 ### M8 – Visueller und funktionaler Gesamtvergleich
 - **Status:** geplant; enthält ausdrücklich die offenen visuellen Abnahmen von M1 und M2.
@@ -180,6 +198,7 @@ Stand: 22.11.2026. Einstieg, Phasen und kritischer Pfad: [Masterplan](MASTERPLAN
 - **Risiken:** Abweichung zwischen Original-Teilstringsuche und Datenbanksuche; Dateinamenkollisionen.
 
 ### D8 – Integrations-, Sicherheits- und Betriebstests
+- **KU-Vorgabe:** sicheren Zugriff von unterwegs vorsehen; Authentifizierung, Betriebsmodell und Absicherung vor Umsetzung konkretisieren.
 - **Status:** geplant, gesonderter Auftrag erforderlich.
 - **Ziel / Umfang:** integrierte Testumgebung, Sicherheits- und Fehlerfallprüfung, Betriebsdokumentation, Backup/Restore, Monitoring und Wiederanlauf für die beteiligten Systeme.
 - **Ausgeschlossen:** Änderung von VIA.Docs, unautorisierte Produktivtests und automatische Produktivfreigabe.

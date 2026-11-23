@@ -1,0 +1,125 @@
+.container {
+  flex: 1;
+  min-width: 0;
+  max-width: 860px;
+  position: relative;
+}
+.search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.searchBox {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0 5px 0 12px;
+  height: 38px;
+  background: var(--bg);
+  min-width: 0;
+  color: var(--muted);
+}
+.searchBox:focus-within {
+  border-color: var(--accent-2);
+  background: var(--panel);
+  box-shadow: 0 0 0 3px var(--accent-weak);
+}
+.searchBox input {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  height: 100%;
+  min-width: 60px;
+}
+.searchBox input:focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: -2px;
+}
+.segment {
+  display: inline-flex;
+  background: var(--line2);
+  border-radius: 999px;
+  padding: 2px;
+  flex: none;
+}
+.segment button {
+  border: 0;
+  background: transparent;
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.segment button.active {
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  border-radius: var(--r);
+  white-space: nowrap;
+}
+.filter {
+  order: 4;
+  flex: 0 0 calc(100% + 32px);
+  display: flex;
+  gap: 12px 26px;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 10px 16px 10px 260px;
+  margin: -6px -16px -10px;
+  background: #fafbfc;
+  border-top: 1px solid var(--line);
+}
+.group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+.group label {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+.group legend {
+  float: left;
+  margin-right: 6px;
+}
+@media (max-width: 1000px) {
+  .container {
+    order: 3;
+    flex-basis: 100%;
+    max-width: none;
+  }
+  .filter {
+    padding-left: 16px;
+    margin-top: 0;
+  }
+  .segment {
+    flex-wrap: wrap;
+  }
+}
+.clear {
+  display: inline-grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  padding: 3px;
+  color: var(--muted);
+  cursor: pointer;
+}

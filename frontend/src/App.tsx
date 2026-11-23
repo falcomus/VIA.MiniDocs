@@ -14,13 +14,20 @@ import type { DocumentView } from './features/documents/document.types';
 import styles from './App.module.css';
 import { useDocumentWorkspace } from './features/documents/useDocumentWorkspace';
 import { useDocumentDrag } from './features/documents/useDocumentDrag';
+import { useSearchState, emptySearch } from './features/search/useSearchState';
+import type { SearchState } from './features/search/useSearchState';
 import { SelectionBar } from './features/documents/SelectionBar';
 
 export function App() {
   const [view, setView] = useState<DocumentView>('grid');
   const [topics, setTopics] = useState<readonly Topic[]>(demoTopics);
   const [selectedTopicId, setSelectedTopicId] = useState<TopicId>('unassigned');
-  const workspace = useDocumentWorkspace(demoDocuments, topics, selectedTopicId);
+  const search = useSearchState();
+  const workspace = useDocumentWorkspace(demoDocuments, topics, selectedTopicId, search);
+  function changeSearch(next: SearchState) {
+    workspace.clear();
+    search.setCriteria(next);
+  }
   const { documents, update: setDocuments } = workspace;
   const [dialog, setDialog] = useState<TopicDialogState | null>(null);
   const [dialogError, setDialogError] = useState('');
@@ -32,6 +39,7 @@ export function App() {
   });
   function navigate(id: TopicId) {
     workspace.clear();
+    search.setCriteria({ ...emptySearch, mode: search.criteria.mode });
     workspace.setMessage('');
     setSelectedTopicId(id);
   }
@@ -146,6 +154,8 @@ export function App() {
   return (
     <AppShell
       modal={modal}
+      search={search}
+      onSearchChange={changeSearch}
       sidebar={
         <Sidebar
           documentCount={documents.length}
@@ -170,6 +180,8 @@ export function App() {
       }
     >
       <Toolbar
+        searchActive={search.active}
+        queryActive={!!search.criteria.query.trim()}
         sort={workspace.sort}
         onSortChange={workspace.setSort}
         zoom={workspace.zoom}
@@ -182,6 +194,14 @@ export function App() {
           .map((topic) => ({ ...topic, name: topicDisplayName(topic, documentTopicIds) }))}
         onNavigate={navigate}
       />
+      {search.active && (
+        <div className={styles.searchResults}>
+          <strong>{workspace.visible.length} Treffer</strong>
+          <button onClick={() => changeSearch({ ...emptySearch, mode: search.criteria.mode })}>
+            Suche beenden
+          </button>
+        </div>
+      )}
       <SelectionBar
         count={workspace.selected.length}
         hasDocuments={workspace.visible.length > 0}

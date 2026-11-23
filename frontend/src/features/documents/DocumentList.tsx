@@ -1,3 +1,5 @@
+import { Highlight } from '../search/Highlight';
+import { topicPath } from '../topics/topicUtils';
 import { demoTags, tagNames } from './tags';
 import { documentSelectionProps } from './documentInteractions';
 import type { DocumentWorkspace } from './useDocumentWorkspace';
@@ -12,12 +14,14 @@ export interface DocumentItemsProps {
   readonly workspace?: DocumentWorkspace;
   readonly documentDrag?: DocumentDrag;
   readonly documents: readonly DocumentSummary[];
+  readonly topics?: readonly Topic[];
   readonly folders: readonly Topic[];
   readonly folderCounts: ReadonlyMap<TopicId, number>;
   readonly onNavigate: (id: TopicId) => void;
 }
 export function DocumentList({
   documents,
+  topics = [],
   folders,
   folderCounts,
   onNavigate,
@@ -39,7 +43,7 @@ export function DocumentList({
               />
             </th>
             <th scope="col" aria-label="Vorschau" />
-            <th scope="col">
+            <th scope="col" aria-sort={workspace?.sort === 'title' ? 'ascending' : undefined}>
               <button
                 className={styles.sort}
                 disabled={!workspace}
@@ -71,6 +75,7 @@ export function DocumentList({
             <th scope="col">Seiten</th>
             <th scope="col">Tags</th>
             <th scope="col">Transkript</th>
+            {workspace?.searchActive && <th scope="col">Thema</th>}
             <th scope="col">Aktionen</th>
           </tr>
         </thead>
@@ -129,9 +134,18 @@ export function DocumentList({
                 </div>
               </td>
               <td>
-                <strong className={styles.title}>{document.title}</strong>
+                <strong className={styles.title}>
+                  <Highlight
+                    text={document.title}
+                    terms={workspace?.results.get(document.id)?.terms ?? []}
+                  />
+                </strong>
                 <span className={styles.kind}>
-                  {document.fileName ?? '—'} · {document.kind}
+                  <Highlight
+                    text={document.fileName ?? '—'}
+                    terms={workspace?.results.get(document.id)?.terms ?? []}
+                  />{' '}
+                  · {document.kind}
                 </span>
               </td>
               <td className={styles.secondary}>{formatDocumentDate(document.date)}</td>
@@ -139,7 +153,17 @@ export function DocumentList({
               <td>{tagNames(document.tagIds, demoTags).join(' · ') || '—'}</td>
               <td>
                 <TranscriptStatus document={document} />
+                {workspace?.results.get(document.id)?.hit && (
+                  <span> Treffer S. {workspace.results.get(document.id)?.hit?.page}</span>
+                )}
               </td>
+              {workspace?.searchActive && (
+                <td>
+                  {topicPath(topics, document.topicId)
+                    .map((topic) => topic.name)
+                    .join(' / ')}
+                </td>
+              )}
               <td>
                 <DocumentActions />
               </td>

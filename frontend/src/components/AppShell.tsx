@@ -1,3 +1,5 @@
+import { SearchControls } from '../features/search/SearchControls';
+import type { SearchControlsState, SearchState } from '../features/search/useSearchState';
 import type { DocumentSort } from '../features/documents/documentOperations';
 import type { DocumentView } from '../features/documents/document.types';
 import type { ReactNode } from 'react';
@@ -10,7 +12,11 @@ export function AppShell({
   sidebar,
   children,
   modal,
+  search,
+  onSearchChange,
 }: {
+  readonly search: SearchControlsState;
+  readonly onSearchChange: (state: SearchState) => void;
   readonly sidebar: ReactNode;
   readonly children: ReactNode;
   readonly modal?: ReactNode;
@@ -18,7 +24,7 @@ export function AppShell({
   return (
     <div className={styles.app}>
       <div className={styles.shell} inert={!!modal}>
-        <Header />
+        <Header search={search} onSearchChange={onSearchChange} />
         <div className={styles.layout}>
           <aside className={styles.sidebar}>{sidebar}</aside>
           <main className={styles.main}>{children}</main>
@@ -29,7 +35,13 @@ export function AppShell({
   );
 }
 
-function Header() {
+function Header({
+  search,
+  onSearchChange,
+}: {
+  readonly search: SearchControlsState;
+  readonly onSearchChange: (state: SearchState) => void;
+}) {
   return (
     <header className={styles.topbar}>
       <div className={styles.brand}>
@@ -39,27 +51,7 @@ function Header() {
           <small>Prototyp · Notizen-Archiv</small>
         </div>
       </div>
-      <div className={styles.search}>
-        <div className={styles.searchBox}>
-          <Icon name="search" />
-          <input
-            type="search"
-            aria-label="Dokumente suchen"
-            placeholder="Dokumente suchen …  (Taste /)"
-            disabled
-          />
-          <div className={styles.segment} aria-label="Suchmodus">
-            <button disabled>Nur Titel</button>
-            <button className={styles.active} disabled>
-              Volltext inkl. Transkripte
-            </button>
-          </div>
-        </div>
-        <button className={styles.button} disabled>
-          <Icon name="filter" />
-          Filter
-        </button>
-      </div>
+      <SearchControls search={search} onChange={onSearchChange} />
       <div className={styles.actions}>
         <button className={styles.button} disabled>
           <Icon name="text" />
@@ -135,6 +127,8 @@ export function Sidebar({
 }
 
 export function Toolbar({
+  searchActive,
+  queryActive,
   sort,
   onSortChange,
   zoom,
@@ -145,8 +139,10 @@ export function Toolbar({
   ancestors,
   onNavigate,
 }: {
-  readonly sort: DocumentSort;
-  readonly onSortChange: (sort: DocumentSort) => void;
+  readonly searchActive: boolean;
+  readonly queryActive: boolean;
+  readonly sort: DocumentSort | 'relevance';
+  readonly onSortChange: (sort: DocumentSort | 'relevance') => void;
   readonly zoom: number;
   readonly onZoomChange: (zoom: number) => void;
   readonly view: DocumentView;
@@ -158,23 +154,25 @@ export function Toolbar({
   return (
     <div className={styles.toolbar}>
       <div className={styles.crumbs}>
-        {ancestors.map((topic) => (
-          <span className={styles.crumb} key={topic.id}>
-            <button type="button" onClick={() => onNavigate(topic.id)}>
-              {topic.name}
-            </button>
-            <Icon name="chevron" />
-          </span>
-        ))}
-        <h1>{title}</h1>
+        {!searchActive &&
+          ancestors.map((topic) => (
+            <span className={styles.crumb} key={topic.id}>
+              <button type="button" onClick={() => onNavigate(topic.id)}>
+                {topic.name}
+              </button>
+              <Icon name="chevron" />
+            </span>
+          ))}
+        <h1>{searchActive ? 'Suchergebnisse' : title}</h1>
       </div>
       <div className={styles.tools}>
         <select
           className={styles.select}
           aria-label="Sortierung"
           value={sort}
-          onChange={(event) => onSortChange(event.target.value as DocumentSort)}
+          onChange={(event) => onSortChange(event.target.value as DocumentSort | 'relevance')}
         >
+          {searchActive && queryActive && <option value="relevance">Relevanz</option>}
           <option value="date-desc">Datum – neueste zuerst</option>
           <option value="date-asc">Datum – älteste zuerst</option>
           <option value="title">Titel A–Z</option>
