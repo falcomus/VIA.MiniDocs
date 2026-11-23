@@ -76,7 +76,7 @@ export function DocumentGrid({
           <div className={styles.actions}>
             <DocumentActions onTags={onTags ? () => onTags(document.id) : undefined} />
           </div>
-          <div className={styles.thumb}>
+          <div className={`${styles.thumb} ${styles.documentThumb}`}>
             <DemoPreview document={document} />
           </div>
           <div className={styles.meta}>

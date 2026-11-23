@@ -48,8 +48,8 @@ export function DemoPreview({ document }: { readonly document: DocumentSummary }
       role="img"
       aria-label="Synthetische Demovorschau"
     >
-      <rect width="210" height="297" fill="#faf9f5" />
-      <text x="18" y="25" fontSize="9" fill="#667085">
+      <rect className={styles.paper} width="210" height="297" />
+      <text className={styles.paperLabel} x="18" y="25" fontSize="9">
         DEMO · {document.kind}
       </text>
       {(

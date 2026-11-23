@@ -26,6 +26,9 @@
   background: var(--preview-surface);
   border-bottom: 1px solid var(--line2);
 }
+.documentThumb {
+  padding: var(--demo-preview-inset);
+}
 .meta {
   display: block;
   padding: 8px 10px 10px;
@@ -74,6 +77,8 @@
   position: absolute;
   top: 8px;
   right: 8px;
+  background: var(--card-action-surface);
+  border-radius: 6px;
 }
 .folder:focus-visible {
   outline-offset: -3px;

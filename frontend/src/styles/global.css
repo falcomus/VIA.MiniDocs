@@ -22,6 +22,10 @@
   --surface-hover: #f8fafc;
   --surface-filter: #fafbfc;
   --preview-surface: #eceef1;
+  --demo-paper: #faf9f5;
+  --demo-paper-label: #667085;
+  --demo-preview-inset: 0px;
+  --card-action-surface: transparent;
   --folder-start: #f7f8fa;
   --folder-end: #eef1f4;
   --folder-icon: #9aa8b8;
@@ -73,6 +77,10 @@
   --surface-hover: #263a54;
   --surface-filter: #1c2d45;
   --preview-surface: #22324b;
+  --demo-paper: #e1dfd5;
+  --demo-paper-label: #475467;
+  --demo-preview-inset: 8px;
+  --card-action-surface: var(--panel);
   --folder-start: #273d58;
   --folder-end: #1c3048;
   --folder-icon: #a9bad0;

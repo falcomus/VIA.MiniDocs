@@ -186,3 +186,20 @@ it('erhält Undo nach Tagänderung bei aktiver themenübergreifender Suche', () 
   expect(row.getByText('Nicht zugeordnet')).toBeInTheDocument();
   expect(row.getByText('Idee')).toBeInTheDocument();
 });
+it.each(['Kachelansicht', 'Listenansicht'])(
+  'bietet in der %s nur die implementierte Dokumentaktion an',
+  (view) => {
+    render(<App />);
+    if (view === 'Listenansicht')
+      fireEvent.click(screen.getByRole('button', { name: 'Listenansicht' }));
+    const row = within(document.querySelector<HTMLElement>('[data-document-id="demo-1"]')!);
+    const tag = row.getByRole('button', { name: 'Tags zuweisen' });
+    expect(tag).toBeEnabled();
+    expect(row.getByRole('button', { name: 'In neuem Tab öffnen' })).toBeDisabled();
+    expect(row.getByRole('button', { name: 'Herunterladen' })).toBeDisabled();
+    fireEvent.click(tag);
+    fireEvent.click(modal().getByRole('checkbox', { name: 'Idee' }));
+    fireEvent.click(modal().getByRole('button', { name: 'Fertig' }));
+    expect(row.getByText('Idee')).toBeInTheDocument();
+  },
+);
