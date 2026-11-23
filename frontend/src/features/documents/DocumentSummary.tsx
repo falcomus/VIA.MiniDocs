@@ -2,7 +2,11 @@ import { Icon } from '../../components/Icon';
 import type { DocumentSummary } from './document.types';
 import styles from './DocumentSummary.module.css';
 export function TranscriptStatus({ document }: { readonly document: DocumentSummary }) {
-  const status = document.transcriptStatus ?? 'missing';
+  const status = !document.transcript
+    ? 'missing'
+    : document.transcript.edited
+      ? 'edited'
+      : 'available';
   const label =
     status === 'missing'
       ? 'Noch kein Transkript'

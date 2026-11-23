@@ -1,3 +1,4 @@
+import { demoTags, tagNames } from './tags';
 import { documentSelectionProps } from './documentInteractions';
 import { Icon } from '../../components/Icon';
 import type { DocumentItemsProps } from './DocumentList';
@@ -81,8 +82,8 @@ export function DocumentGrid({
               <TranscriptStatus document={document} />
             </div>
             <div className={styles.sub}>{document.kind}</div>
-            {document.tags?.length ? (
-              <div className={styles.sub}>{document.tags.join(' · ')}</div>
+            {tagNames(document.tagIds, demoTags).length ? (
+              <div className={styles.sub}>{tagNames(document.tagIds, demoTags).join(' · ')}</div>
             ) : null}
           </div>
         </li>

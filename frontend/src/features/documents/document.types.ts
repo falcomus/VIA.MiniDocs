@@ -1,3 +1,4 @@
+import type { TagId } from './tags';
 import type { TopicId } from '../topics/topic.types';
 export type DocumentView = 'list' | 'grid';
 export interface DocumentSummary {
@@ -8,7 +9,10 @@ export interface DocumentSummary {
   readonly pages: number;
   readonly kind: 'Besprechung' | 'Notiz';
   readonly fileName?: string;
-  readonly tags?: readonly string[];
-  readonly transcriptStatus?: 'missing' | 'available' | 'edited';
+  readonly tagIds?: readonly TagId[];
+  readonly transcript?: {
+    readonly pages: readonly { readonly page: number; readonly text: string }[];
+    readonly edited: boolean;
+  } | null;
   readonly demoPreview?: { readonly lines: readonly string[] };
 }

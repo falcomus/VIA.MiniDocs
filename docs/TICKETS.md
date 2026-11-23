@@ -66,14 +66,16 @@ Stand: 22.11.2026. Einstieg, Phasen und kritischer Pfad: [Masterplan](MASTERPLAN
 - **Risiken:** Browser-Drop-Events, Fokus, Kontrast, 200 % Zoom und Screenreader-Verhalten offen. Erneuter IAB-Zugriff auf lokale Vite-Demo scheiterte mit `ERR_CONNECTION_TIMED_OUT`; kein nativer Maus-DnD-Nachweis.
 
 ### M5 – Suche, Filter und Tags
-- **Status:** geplant.
+- **Status:** M5-A technisch umgesetzt; M5-B und M5-C geplant. M5 insgesamt nicht abgeschlossen.
 - **Ziel / Umfang:** Titel-/Volltextmodus mit Phrasen, Original-Teilstringsuche und Relevanz; Zeitraum, Voreinstellungen, Tag-UND und Themenbereich; Tags definieren und einzeln/mehrfach zuweisen.
 - **Ausgeschlossen:** PostgreSQL-Suche, KI-Suche und produktive API.
 - **Abhängigkeiten:** M2–M4; Trefferseite wird in M6 genutzt.
 - **Akzeptanz:** kombinierte Filter, Treffer, Hervorhebung und Tagzuordnung entsprechen der Demo; Suchergebnisse in verfügbaren Ansichten.
 - **Technische DoD:** UI-DoD; reine Such- und Filterlogik getrennt von Darstellung.
 - **Tests:** Normalisierung, Phrasen, Filterkombinationen, Relevanz, keine Treffer, Tagpflege und Mehrfachzuweisung.
-- **Risiken:** Verwechslung der Demo-Teilstringsuche mit späterer Datenbanksuche; Fokus und Filterzustand.
+- **M5-A:** Reine Such-/Filterfunktionen und typisierter Ergebnisvertrag unter `frontend/src/features/search/`; stabile Tag-IDs mit zentralen Demodefinitionen, optionale Transkripte mit Seiten und Bearbeitungsstatus. Titel und Dateiname zählen pro Begriff einmal +10; Volltext addiert nicht überlappende Vorkommen. Trefferseite ist die erste Seite des ersten Suchbegriffs mit Texttreffer gemäß KU. Leere Suche liefert alle gefilterten Dokumente; Ergebnisreihenfolge bleibt unverändert, Relevanzsortierung ist separat und stabil. Ungültige Datumsfilter oder unbekannter Themenbereich liefern keine Treffer; Datums-Presets erhalten einen Stichtag, Schaltjahr-Rollover folgt `setFullYear` in UTC.
+- **M5-A-Nachweise:** `npm run check` Exit 0, 110 Tests einschließlich 13 neuer Such-/Filterfälle, TypeScript, Lint, Stylelint, Prettier und Produktionsbuild erfolgreich; `git diff --check` Exit 0. M5-B muss dieselbe gefilterte Ergebnis-ID-Reihenfolge für Ansichten, Auswahl und Drag-and-drop nutzen; M5-C übernimmt veränderbare Tagdefinitionen und Zuweisung.
+- **Risiken:** Demo-Teilstringsuche ist keine Datenbanksuche; Demo-Tags sind momentan unveränderlich. Browser-/Screenreader- und visuelle Abnahmen bleiben offen.
 
 ### M6 – Viewer und Transkript-Editor
 - **Status:** geplant.

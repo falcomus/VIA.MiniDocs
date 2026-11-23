@@ -19,8 +19,8 @@ it('zeigt Dateiname, Typ, Tags und bearbeiteten Transkriptstatus in Originalspal
           ...demoDocuments[0],
           date: null,
           fileName: 'demo.pdf',
-          tags: ['Projekt'],
-          transcriptStatus: 'edited',
+          tagIds: ['projekt'],
+          transcript: { edited: true, pages: [{ page: 1, text: 'Test' }] },
         },
       ]}
       folders={[]}

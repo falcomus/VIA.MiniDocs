@@ -1,3 +1,4 @@
+import { demoTags, tagNames } from './tags';
 import { documentSelectionProps } from './documentInteractions';
 import type { DocumentWorkspace } from './useDocumentWorkspace';
 import type { DocumentDrag } from './useDocumentDrag';
@@ -135,7 +136,7 @@ export function DocumentList({
               </td>
               <td className={styles.secondary}>{formatDocumentDate(document.date)}</td>
               <td className={styles.secondary}>{document.pages}</td>
-              <td>{document.tags?.join(' · ') || '—'}</td>
+              <td>{tagNames(document.tagIds, demoTags).join(' · ') || '—'}</td>
               <td>
                 <TranscriptStatus document={document} />
               </td>

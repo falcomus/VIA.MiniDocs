@@ -10,7 +10,14 @@ export const demoDocuments: readonly DocumentSummary[] = [
     date: '2026-11-18',
     pages: 2,
     kind: 'Besprechung',
-    transcriptStatus: 'available',
+    tagIds: ['projekt', 'aufgabe'],
+    transcript: {
+      edited: false,
+      pages: [
+        { page: 1, text: 'Projektstart: Nächste Schritte festlegen.' },
+        { page: 2, text: 'Frühjahr: Lösung prüfen und Aufgaben sammeln.' },
+      ],
+    },
   },
   {
     id: 'demo-2',
@@ -20,9 +27,18 @@ export const demoDocuments: readonly DocumentSummary[] = [
     date: '2026-11-15',
     pages: 1,
     kind: 'Notiz',
-    transcriptStatus: 'missing',
+    tagIds: ['idee'],
+    transcript: null,
   },
   {
+    tagIds: ['projekt'],
+    transcript: {
+      edited: false,
+      pages: [
+        { page: 1, text: 'Planung für den Lenkungskreis.' },
+        { page: 2, text: 'Aufgaben und nächste Schritte.' },
+      ],
+    },
     id: 'demo-3',
     fileName: 'Demo-Notizen-3.pdf',
     title: 'Lenkungskreis – Planungsstand',
@@ -41,6 +57,8 @@ export const demoDocuments: readonly DocumentSummary[] = [
     kind: 'Besprechung',
   },
   {
+    tagIds: ['aufgabe'],
+    transcript: { edited: false, pages: [{ page: 1, text: 'Zusammenarbeit und Rückmeldung.' }] },
     id: 'demo-5',
     fileName: 'Demo-Notizen-5.pdf',
     title: 'Notizen zur Zusammenarbeit',
