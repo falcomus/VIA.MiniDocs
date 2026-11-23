@@ -12,6 +12,7 @@ export function DocumentGrid({
   documents,
   tags = demoTags,
   onTags,
+  onOpen,
   topics = [],
   folders,
   folderCounts,
@@ -61,7 +62,7 @@ export function DocumentGrid({
           key={document.id}
           className={`${styles.tile} ${workspace?.selected.includes(document.id) ? styles.selected : ''}`}
           {...(workspace && documentDrag
-            ? documentSelectionProps(document.id, workspace, documentDrag)
+            ? documentSelectionProps(document.id, workspace, documentDrag, onOpen)
             : {})}
         >
           <label className={styles.check}>
@@ -74,7 +75,10 @@ export function DocumentGrid({
             />
           </label>
           <div className={styles.actions}>
-            <DocumentActions onTags={onTags ? () => onTags(document.id) : undefined} />
+            <DocumentActions
+              onTags={onTags ? () => onTags(document.id) : undefined}
+              onOpenTab={onOpen ? () => onOpen(document.id, true) : undefined}
+            />
           </div>
           <div className={`${styles.thumb} ${styles.documentThumb}`}>
             <DemoPreview document={document} />

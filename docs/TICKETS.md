@@ -83,7 +83,7 @@ Stand: 22.11.2026. Einstieg, Phasen und kritischer Pfad: [Masterplan](MASTERPLAN
 - **Risiken:** Änderungen bestehen nur im Demo-Arbeitsspeicher; Browser-/Screenreader-, native Drag-and-drop- und visuelle Abnahmen bleiben offen. Demo-Teilstringsuche ist keine Datenbanksuche.
 
 ### M6 – Viewer und Transkript-Editor
-- **Status:** geplant.
+- **Status:** M6-A technisch umgesetzt; M6-B und M6-C geplant. M6 insgesamt bleibt offen.
 - **Ziel / Umfang:** Overlay/Tab, Trefferseite, Dokumentnavigation, Viewer-Metadaten und Tags, Demo-Zoom, seitenweiser Editor, Suchen/alle ersetzen, Synchronisierung und Splitter.
 - **Ausgeschlossen:** dauerhafte Speicherung und echte VIA.Docs-Verbindung; Import-/Exportabläufe aus M7.
 - **Abhängigkeiten:** M3–M5; M7 ergänzt importierte Dateien.
@@ -91,6 +91,14 @@ Stand: 22.11.2026. Einstieg, Phasen und kritischer Pfad: [Masterplan](MASTERPLAN
 - **Technische DoD:** UI-DoD, Ressourcen-/Objekt-URL-Lebensdauer und Tastaturführung geprüft.
 - **Tests:** Öffnungsmodus, Trefferseite, Navigation, Bearbeitung, Ersetzen, Escape; Browserprüfung für PDF, Scrollen und Tabs.
 - **Risiken:** native PDF-Viewer erlauben nicht in jedem Browser vollständige Synchronisation oder Zoomsteuerung.
+
+#### M6-A – Dokumentviewer und Navigation
+- **Status:** technisch umgesetzt; vollständige Sicht-, Screenreader- und Zoomabnahme offen.
+- **Umfang:** Doppelklick, Enter, Einzelaktion und konfigurierbarer Öffnungsmodus; Overlay mit Metadaten, Tags, Seiten- und Dokumentnavigation, Suchtrefferseite und unabhängigem Demozoom. Modifizierter Doppelklick, Mittelklick und Symbol öffnen einen neuen Tab.
+- **Architektur:** Viewer speichert ID, Seitenzahl und bei Öffnung gültigen sortierten ID-/Trefferkontext; Dokumentdaten bleiben im bestehenden Zustand. Eigenständige Tab-URL: ?viewer=tab&document=<ID>&page=<Seite>, optional term. Zugriff anhand stabiler ID; Eingaben werden geprüft.
+- **Grenzen:** Tab nutzt initiale Demodaten und synchronisiert Änderungen oder Ergebnisreihenfolge nicht zwischen Tabs. Synthetische Seiten sind keine PDF-Dateien. Popup-Blockaden sind wegen noopener nicht zuverlässig erkennbar. Echter PDF-Renderer und Synchronisierung bleiben M6-C; Transkripteditor bleibt M6-B.
+- **Browsernachweis:** Integrierter Browser mit lokalem Vite-Server: Overlay per Doppelklick geöffnet, auf Seite 2 gewechselt und per Aktion echten neuen Tab mit dokumentierter URL und Seite 2 geöffnet. Keine vollständige visuelle oder Screenreader-Abnahme.
+- **Tests / Nachweise:** npm run check Exit 0, 156 Tests einschließlich 13 neuer Viewer-Fälle; Fokus, Tastatur, Öffnungsmodi, Persistenz, sichere URLs, Trefferseiten, Navigation, Seiten, Zoom, Auswahl und Speicherfehler sowie Produktionsbuild geprüft. Viewer-Zoom nutzt einen Slider; Strg-Mausrad ist nicht implementiert.
 
 ### M7 – Upload, Downloads, Dialoge und Einstellungen
 - **Status:** geplant.

@@ -1,3 +1,4 @@
+import type { OpeningMode } from '../features/viewer/openingMode';
 import { SettingsMenu } from '../features/settings/SettingsMenu';
 import type { TagDefinition } from '../features/documents/tags';
 import { SearchControls } from '../features/search/SearchControls';
@@ -18,9 +19,13 @@ export function AppShell({
   onSearchChange,
   tags,
   onManageTags,
+  openingMode,
+  onOpeningModeChange,
 }: {
   readonly tags: readonly TagDefinition[];
   readonly onManageTags: () => void;
+  readonly openingMode: OpeningMode;
+  readonly onOpeningModeChange: (mode: OpeningMode) => void;
   readonly search: SearchControlsState;
   readonly onSearchChange: (state: SearchState) => void;
   readonly sidebar: ReactNode;
@@ -35,6 +40,8 @@ export function AppShell({
           onSearchChange={onSearchChange}
           tags={tags}
           onManageTags={onManageTags}
+          openingMode={openingMode}
+          onOpeningModeChange={onOpeningModeChange}
         />
         <div className={styles.layout}>
           <aside className={styles.sidebar}>{sidebar}</aside>
@@ -51,7 +58,11 @@ function Header({
   onSearchChange,
   tags,
   onManageTags,
+  openingMode,
+  onOpeningModeChange,
 }: {
+  readonly openingMode: OpeningMode;
+  readonly onOpeningModeChange: (mode: OpeningMode) => void;
   readonly tags: readonly TagDefinition[];
   readonly onManageTags: () => void;
   readonly search: SearchControlsState;
@@ -76,7 +87,11 @@ function Header({
           <Icon name="upload" />
           Hochladen
         </button>
-        <SettingsMenu onManageTags={onManageTags} />
+        <SettingsMenu
+          onManageTags={onManageTags}
+          openingMode={openingMode}
+          onOpeningModeChange={onOpeningModeChange}
+        />
       </div>
     </header>
   );

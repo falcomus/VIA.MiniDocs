@@ -7,6 +7,7 @@ export function SelectionBar({
   onClear,
   onMove,
   onTags,
+  onOpen,
 }: {
   readonly count: number;
   readonly hasDocuments: boolean;
@@ -14,6 +15,7 @@ export function SelectionBar({
   readonly onClear: () => void;
   readonly onMove: () => void;
   readonly onTags: () => void;
+  readonly onOpen: () => void;
 }) {
   return (
     <div
@@ -27,7 +29,7 @@ export function SelectionBar({
           </b>
           <span className={styles.spacer} />
           {count === 1 && (
-            <button disabled>
+            <button onClick={onOpen}>
               <Icon name="open" /> Öffnen
             </button>
           )}

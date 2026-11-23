@@ -24,13 +24,19 @@ export function TranscriptStatus({ document }: { readonly document: DocumentSumm
     </span>
   );
 }
-export function DocumentActions({ onTags }: { readonly onTags?: () => void }) {
+export function DocumentActions({
+  onTags,
+  onOpenTab,
+}: {
+  readonly onTags?: () => void;
+  readonly onOpenTab?: () => void;
+}) {
   return (
     <div className={styles.actions}>
       <button disabled={!onTags} onClick={onTags} aria-label="Tags zuweisen">
         <Icon name="tag" />
       </button>
-      <button disabled aria-label="In neuem Tab öffnen">
+      <button disabled={!onOpenTab} onClick={onOpenTab} aria-label="In neuem Tab öffnen">
         <Icon name="external" />
       </button>
       <button disabled aria-label="Herunterladen">

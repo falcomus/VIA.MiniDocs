@@ -12,6 +12,7 @@ export function DocumentOverview({
   workspace,
   tags,
   onTags,
+  onOpen,
   documentDrag,
   topics,
   selectedTopicId,
@@ -20,6 +21,7 @@ export function DocumentOverview({
 }: {
   readonly tags: readonly TagDefinition[];
   readonly onTags: (id: string) => void;
+  readonly onOpen: (id: string, forceTab: boolean) => void;
   readonly workspace: DocumentWorkspace;
   readonly documentDrag: DocumentDrag;
   readonly topics: readonly Topic[];
@@ -58,6 +60,7 @@ export function DocumentOverview({
     <View
       tags={tags}
       onTags={onTags}
+      onOpen={onOpen}
       workspace={workspace}
       documentDrag={documentDrag}
       documents={visible}

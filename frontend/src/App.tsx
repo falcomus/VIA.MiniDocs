@@ -21,6 +21,10 @@ import { useDocumentWorkspace } from './features/documents/useDocumentWorkspace'
 import { useDocumentDrag } from './features/documents/useDocumentDrag';
 import { useSearchState, emptySearch } from './features/search/useSearchState';
 import type { SearchState } from './features/search/useSearchState';
+import { useOpeningMode } from './features/viewer/openingMode';
+import { DocumentViewer } from './features/viewer/DocumentViewer';
+import { openViewerTab, startPage } from './features/viewer/viewerModel';
+import type { ViewerSession } from './features/viewer/viewerModel';
 import { SelectionBar } from './features/documents/SelectionBar';
 import { demoTags } from './features/documents/tags';
 import { TagDialog } from './features/documents/TagDialog';
@@ -31,6 +35,8 @@ export function App() {
   const [topics, setTopics] = useState<readonly Topic[]>(demoTopics);
   const [selectedTopicId, setSelectedTopicId] = useState<TopicId>('unassigned');
   const search = useSearchState();
+  const opening = useOpeningMode();
+  const [viewer, setViewer] = useState<ViewerSession | null>(null);
   const [tags, setTags] = useState(demoTags);
   const [tagDialog, setTagDialog] = useState<TagDialogState | null>(null);
   const workspace = useDocumentWorkspace(demoDocuments, topics, selectedTopicId, search);
@@ -63,6 +69,28 @@ export function App() {
   const deleteReason =
     dialog?.kind === 'delete' ? topicDeleteBlockReason(topics, documents, dialog.id) : null;
 
+  function openDocument(id: string, forceTab = false) {
+    const doc = workspace.visible.find((item) => item.id === id);
+    if (!doc) return;
+    const hits = Object.fromEntries(
+      workspace.visible.map((item) => [item.id, workspace.results.get(item.id)?.hit ?? null]),
+    );
+    const hit = hits[id];
+    if (forceTab || opening.mode === 'tab') {
+      if (!openViewerTab(id, startPage(doc, hit), hit?.term))
+        workspace.setMessage('Der Dokument-Tab konnte nicht geöffnet werden.');
+      return;
+    }
+    const active = document.activeElement;
+    returnFocus.current =
+      active instanceof HTMLElement && active !== document.body
+        ? active
+        : (Array.from(document.querySelectorAll<HTMLElement>('[data-document-id]')).find(
+            (item) => item.dataset.documentId === id,
+          ) ?? null);
+    fallbackFocus.current = selectedTopicId;
+    setViewer({ id, ids: workspace.visible.map((item) => item.id), hits });
+  }
   function openTags(next: TagDialogState) {
     returnFocus.current =
       document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -87,7 +115,7 @@ export function App() {
 
   // Restore only after React has committed deletion/movement and removed the inert background.
   useLayoutEffect(() => {
-    if (dialog || tagDialog || !restoreFocus.current) return;
+    if (dialog || tagDialog || viewer || !restoreFocus.current) return;
     restoreFocus.current = false;
     const previous = returnFocus.current;
     if (previous?.isConnected && !previous.closest('[inert]')) {
@@ -101,7 +129,7 @@ export function App() {
       target ??
       document.querySelector<HTMLButtonElement>('[aria-label="Neues Thema auf oberster Ebene"]')
     )?.focus();
-  }, [dialog, tagDialog, documents, workspace.selected.length]);
+  }, [dialog, tagDialog, viewer, documents, workspace.selected.length]);
 
   function rejectMove() {
     workspace.setMessage('Ein Thema kann nicht dorthin verschoben werden.');
@@ -198,7 +226,24 @@ export function App() {
     <AppShell
       tags={tags}
       onManageTags={() => openTags({ kind: 'manage' })}
-      modal={topicModal || tagModal}
+      modal={
+        topicModal ||
+        tagModal ||
+        (viewer && (
+          <DocumentViewer
+            session={viewer}
+            documents={documents}
+            topics={topics}
+            tags={tags}
+            onClose={() => {
+              restoreFocus.current = true;
+              setViewer(null);
+            }}
+          />
+        ))
+      }
+      openingMode={opening.mode}
+      onOpeningModeChange={opening.setMode}
       search={search}
       onSearchChange={changeSearch}
       sidebar={
@@ -257,6 +302,9 @@ export function App() {
           restoreFocus.current = true;
           workspace.clear();
         }}
+        onOpen={() => {
+          if (workspace.selected.length === 1) openDocument(workspace.selected[0]);
+        }}
         onTags={() => openTags({ kind: 'picker', ids: workspace.selected })}
         onMove={() => openDialog({ kind: 'documents', ids: workspace.selected })}
       />
@@ -272,6 +320,7 @@ export function App() {
         >
           <DocumentOverview
             topics={topics}
+            onOpen={openDocument}
             tags={tags}
             onTags={(id) =>
               openTags({

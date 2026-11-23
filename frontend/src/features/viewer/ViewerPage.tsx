@@ -1,0 +1,35 @@
+import type { DocumentSummary } from '../documents/document.types';
+import styles from './DocumentViewer.module.css';
+export function ViewerPage({
+  document,
+  page,
+  zoom,
+}: {
+  readonly document: DocumentSummary;
+  readonly page: number;
+  readonly zoom: number;
+}) {
+  const transcript = document.transcript?.pages.find((item) => item.page === page);
+  return (
+    <div
+      className={styles.page}
+      style={{
+        width: `${zoom * 6.8}px`,
+        minHeight: `${zoom * 6}px`,
+        padding: `${zoom * 0.3}px`,
+        fontSize: `${zoom / 100}em`,
+      }}
+    >
+      <strong>Synthetische Demoseite – kein PDF</strong>
+      <h3>{document.title}</h3>
+      <p>
+        Seite {page} von {document.pages}
+      </p>
+      {transcript ? (
+        <pre>{transcript.text}</pre>
+      ) : (
+        <p>Für diese Seite sind keine Demo-Textdaten vorhanden.</p>
+      )}
+    </div>
+  );
+}

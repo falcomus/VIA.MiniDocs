@@ -15,6 +15,7 @@ import styles from './DocumentList.module.css';
 export interface DocumentItemsProps {
   readonly tags?: readonly TagDefinition[];
   readonly onTags?: (id: string) => void;
+  readonly onOpen?: (id: string, forceTab: boolean) => void;
   readonly workspace?: DocumentWorkspace;
   readonly documentDrag?: DocumentDrag;
   readonly documents: readonly DocumentSummary[];
@@ -27,6 +28,7 @@ export function DocumentList({
   documents,
   tags = demoTags,
   onTags,
+  onOpen,
   topics = [],
   folders,
   folderCounts,
@@ -122,7 +124,7 @@ export function DocumentList({
               key={document.id}
               className={workspace?.selected.includes(document.id) ? styles.selected : undefined}
               {...(workspace && documentDrag
-                ? documentSelectionProps(document.id, workspace, documentDrag)
+                ? documentSelectionProps(document.id, workspace, documentDrag, onOpen)
                 : {})}
             >
               <td>
@@ -173,7 +175,10 @@ export function DocumentList({
                 </td>
               )}
               <td>
-                <DocumentActions onTags={onTags ? () => onTags(document.id) : undefined} />
+                <DocumentActions
+                  onTags={onTags ? () => onTags(document.id) : undefined}
+                  onOpenTab={onOpen ? () => onOpen(document.id, true) : undefined}
+                />
               </td>
             </tr>
           ))}

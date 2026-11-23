@@ -1,9 +1,18 @@
+import type { OpeningMode } from '../viewer/openingMode';
 import { useEffect, useRef, useState } from 'react';
 import { Icon } from '../../components/Icon';
 import { useTheme } from './useTheme';
 import type { ThemeMode } from './theme';
 import styles from './SettingsMenu.module.css';
-export function SettingsMenu({ onManageTags }: { readonly onManageTags: () => void }) {
+export function SettingsMenu({
+  onManageTags,
+  openingMode,
+  onOpeningModeChange,
+}: {
+  readonly onManageTags: () => void;
+  readonly openingMode: OpeningMode;
+  readonly onOpeningModeChange: (mode: OpeningMode) => void;
+}) {
   const [open, setOpen] = useState(false);
   const { mode, setMode } = useTheme();
   const root = useRef<HTMLDivElement>(null);
@@ -64,6 +73,27 @@ export function SettingsMenu({ onManageTags }: { readonly onManageTags: () => vo
                     onChange={() => setMode(value)}
                   />
                   <span>{label}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend>Dokumente öffnen</legend>
+            <div className={styles.choices}>
+              {(
+                [
+                  ['overlay', 'Im Overlay'],
+                  ['tab', 'In neuem Tab'],
+                ] as const
+              ).map(([value, label]) => (
+                <label key={value}>
+                  <input
+                    type="radio"
+                    name="opening-mode"
+                    checked={openingMode === value}
+                    onChange={() => onOpeningModeChange(value)}
+                  />
+                  {label}
                 </label>
               ))}
             </div>

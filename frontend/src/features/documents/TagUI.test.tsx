@@ -187,7 +187,7 @@ it('erhält Undo nach Tagänderung bei aktiver themenübergreifender Suche', () 
   expect(row.getByText('Idee')).toBeInTheDocument();
 });
 it.each(['Kachelansicht', 'Listenansicht'])(
-  'bietet in der %s nur die implementierte Dokumentaktion an',
+  'bietet in der %s Tag- und Tabaktionen an und deaktiviert Download',
   (view) => {
     render(<App />);
     if (view === 'Listenansicht')
@@ -195,7 +195,7 @@ it.each(['Kachelansicht', 'Listenansicht'])(
     const row = within(document.querySelector<HTMLElement>('[data-document-id="demo-1"]')!);
     const tag = row.getByRole('button', { name: 'Tags zuweisen' });
     expect(tag).toBeEnabled();
-    expect(row.getByRole('button', { name: 'In neuem Tab öffnen' })).toBeDisabled();
+    expect(row.getByRole('button', { name: 'In neuem Tab öffnen' })).toBeEnabled();
     expect(row.getByRole('button', { name: 'Herunterladen' })).toBeDisabled();
     fireEvent.click(tag);
     fireEvent.click(modal().getByRole('checkbox', { name: 'Idee' }));
