@@ -1,6 +1,7 @@
 import { Highlight } from '../search/Highlight';
 import { topicPath } from '../topics/topicUtils';
-import { demoTags, tagNames } from './tags';
+import { demoTags } from './tags';
+import { TagChips } from './TagChips';
 import { documentSelectionProps } from './documentInteractions';
 import { Icon } from '../../components/Icon';
 import type { DocumentItemsProps } from './DocumentList';
@@ -9,6 +10,8 @@ import { formatDocumentDate } from './documentDate';
 import styles from './DocumentGrid.module.css';
 export function DocumentGrid({
   documents,
+  tags = demoTags,
+  onTags,
   topics = [],
   folders,
   folderCounts,
@@ -71,7 +74,7 @@ export function DocumentGrid({
             />
           </label>
           <div className={styles.actions}>
-            <DocumentActions />
+            <DocumentActions onTags={onTags ? () => onTags(document.id) : undefined} />
           </div>
           <div className={styles.thumb}>
             <DemoPreview document={document} />
@@ -104,9 +107,7 @@ export function DocumentGrid({
                   .join(' / ')}
               </div>
             )}
-            {tagNames(document.tagIds, demoTags).length ? (
-              <div className={styles.sub}>{tagNames(document.tagIds, demoTags).join(' · ')}</div>
-            ) : null}
+            <TagChips ids={document.tagIds} tags={tags} />
           </div>
         </li>
       ))}

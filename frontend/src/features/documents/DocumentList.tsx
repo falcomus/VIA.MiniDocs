@@ -1,6 +1,8 @@
 import { Highlight } from '../search/Highlight';
 import { topicPath } from '../topics/topicUtils';
-import { demoTags, tagNames } from './tags';
+import { demoTags } from './tags';
+import type { TagDefinition } from './tags';
+import { TagChips } from './TagChips';
 import { documentSelectionProps } from './documentInteractions';
 import type { DocumentWorkspace } from './useDocumentWorkspace';
 import type { DocumentDrag } from './useDocumentDrag';
@@ -11,6 +13,8 @@ import { DemoPreview, DocumentActions, TranscriptStatus } from './DocumentSummar
 import { formatDocumentDate } from './documentDate';
 import styles from './DocumentList.module.css';
 export interface DocumentItemsProps {
+  readonly tags?: readonly TagDefinition[];
+  readonly onTags?: (id: string) => void;
   readonly workspace?: DocumentWorkspace;
   readonly documentDrag?: DocumentDrag;
   readonly documents: readonly DocumentSummary[];
@@ -21,6 +25,8 @@ export interface DocumentItemsProps {
 }
 export function DocumentList({
   documents,
+  tags = demoTags,
+  onTags,
   topics = [],
   folders,
   folderCounts,
@@ -150,7 +156,9 @@ export function DocumentList({
               </td>
               <td className={styles.secondary}>{formatDocumentDate(document.date)}</td>
               <td className={styles.secondary}>{document.pages}</td>
-              <td>{tagNames(document.tagIds, demoTags).join(' · ') || '—'}</td>
+              <td>
+                <TagChips ids={document.tagIds} tags={tags} />
+              </td>
               <td>
                 <TranscriptStatus document={document} />
                 {workspace?.results.get(document.id)?.hit && (
@@ -165,7 +173,7 @@ export function DocumentList({
                 </td>
               )}
               <td>
-                <DocumentActions />
+                <DocumentActions onTags={onTags ? () => onTags(document.id) : undefined} />
               </td>
             </tr>
           ))}

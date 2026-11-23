@@ -6,12 +6,14 @@ export function SelectionBar({
   onAll,
   onClear,
   onMove,
+  onTags,
 }: {
   readonly count: number;
   readonly hasDocuments: boolean;
   readonly onAll: () => void;
   readonly onClear: () => void;
   readonly onMove: () => void;
+  readonly onTags: () => void;
 }) {
   return (
     <div
@@ -29,7 +31,7 @@ export function SelectionBar({
               <Icon name="open" /> Öffnen
             </button>
           )}
-          <button disabled>
+          <button onClick={onTags}>
             <Icon name="tag" /> Tags zuweisen
           </button>
           <button onClick={onMove}>

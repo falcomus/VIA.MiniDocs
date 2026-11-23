@@ -1,3 +1,4 @@
+import { setDocumentTags } from './tagOperations';
 import { searchDocuments, sortByRelevance } from '../search/search';
 import type { SearchControlsState } from '../search/useSearchState';
 import { useReducer, useState } from 'react';
@@ -75,6 +76,25 @@ export function useDocumentWorkspace(
         visible: visibleIds,
         toggle: checkbox || !!event.ctrlKey || !!event.metaKey,
         range: !checkbox && !!event.shiftKey,
+      }),
+    setTag: (ids: readonly string[], tagId: string, on: boolean) => {
+      const allowed = ids.filter((id) => visibleIds.includes(id));
+      const changed = setDocumentTags(state.documents, allowed, tagId, on);
+      const visibleAfter = search.active
+        ? searchDocuments(changed, topics, {
+            ...search.criteria,
+            scope: search.criteria.scope === 'topic' ? { kind: 'topic', topicId } : { kind: 'all' },
+          }).map((result) => result.documentId)
+        : changed.filter((doc) => doc.topicId === topicId).map((doc) => doc.id);
+      dispatch({ type: 'tags', ids: allowed, tagId, on, visibleAfter });
+    },
+    removeTag: (tagId: string) =>
+      dispatch({
+        type: 'tags',
+        ids: state.documents.map((doc) => doc.id),
+        tagId,
+        on: false,
+        visibleAfter: state.documents.map((doc) => doc.id),
       }),
     update: (update: (documents: readonly DocumentSummary[]) => readonly DocumentSummary[]) =>
       dispatch({ type: 'update', update }),

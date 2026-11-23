@@ -1,3 +1,4 @@
+import type { TagDefinition } from './tags';
 import type { DocumentWorkspace } from './useDocumentWorkspace';
 import type { DocumentDrag } from './useDocumentDrag';
 import type { Topic, TopicId } from '../topics/topic.types';
@@ -9,12 +10,16 @@ import styles from './DocumentOverview.module.css';
 /** Both views derive their direct children from the same source; recursive counts include descendants. */
 export function DocumentOverview({
   workspace,
+  tags,
+  onTags,
   documentDrag,
   topics,
   selectedTopicId,
   view,
   onNavigate,
 }: {
+  readonly tags: readonly TagDefinition[];
+  readonly onTags: (id: string) => void;
   readonly workspace: DocumentWorkspace;
   readonly documentDrag: DocumentDrag;
   readonly topics: readonly Topic[];
@@ -51,6 +56,8 @@ export function DocumentOverview({
   const View = view === 'list' ? DocumentList : DocumentGrid;
   return (
     <View
+      tags={tags}
+      onTags={onTags}
       workspace={workspace}
       documentDrag={documentDrag}
       documents={visible}

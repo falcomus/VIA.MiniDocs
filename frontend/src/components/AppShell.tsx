@@ -1,3 +1,4 @@
+import type { TagDefinition } from '../features/documents/tags';
 import { SearchControls } from '../features/search/SearchControls';
 import type { SearchControlsState, SearchState } from '../features/search/useSearchState';
 import type { DocumentSort } from '../features/documents/documentOperations';
@@ -14,7 +15,11 @@ export function AppShell({
   modal,
   search,
   onSearchChange,
+  tags,
+  onManageTags,
 }: {
+  readonly tags: readonly TagDefinition[];
+  readonly onManageTags: () => void;
   readonly search: SearchControlsState;
   readonly onSearchChange: (state: SearchState) => void;
   readonly sidebar: ReactNode;
@@ -24,7 +29,12 @@ export function AppShell({
   return (
     <div className={styles.app}>
       <div className={styles.shell} inert={!!modal}>
-        <Header search={search} onSearchChange={onSearchChange} />
+        <Header
+          search={search}
+          onSearchChange={onSearchChange}
+          tags={tags}
+          onManageTags={onManageTags}
+        />
         <div className={styles.layout}>
           <aside className={styles.sidebar}>{sidebar}</aside>
           <main className={styles.main}>{children}</main>
@@ -38,7 +48,11 @@ export function AppShell({
 function Header({
   search,
   onSearchChange,
+  tags,
+  onManageTags,
 }: {
+  readonly tags: readonly TagDefinition[];
+  readonly onManageTags: () => void;
   readonly search: SearchControlsState;
   readonly onSearchChange: (state: SearchState) => void;
 }) {
@@ -51,7 +65,7 @@ function Header({
           <small>Prototyp · Notizen-Archiv</small>
         </div>
       </div>
-      <SearchControls search={search} onChange={onSearchChange} />
+      <SearchControls search={search} onChange={onSearchChange} tags={tags} />
       <div className={styles.actions}>
         <button className={styles.button} disabled>
           <Icon name="text" />
@@ -63,8 +77,8 @@ function Header({
         </button>
         <button
           className={`${styles.button} ${styles.iconButton}`}
-          aria-label="Einstellungen"
-          disabled
+          aria-label="Tags verwalten"
+          onClick={onManageTags}
         >
           <Icon name="gear" />
         </button>

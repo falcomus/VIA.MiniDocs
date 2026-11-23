@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Icon } from '../../components/Icon';
-import { demoTags } from '../documents/tags';
+import type { TagDefinition } from '../documents/tags';
 import { datePreset } from './search';
 import { localToday } from './useSearchState';
 import type { SearchControlsState, SearchState } from './useSearchState';
@@ -8,7 +8,9 @@ import styles from './SearchControls.module.css';
 export function SearchControls({
   search,
   onChange,
+  tags,
 }: {
+  readonly tags: readonly TagDefinition[];
   readonly search: SearchControlsState;
   readonly onChange: (next: SearchState) => void;
 }) {
@@ -138,7 +140,7 @@ export function SearchControls({
           </div>
           <fieldset className={styles.group}>
             <legend>Tags (alle müssen passen)</legend>
-            {demoTags.map((tag) => (
+            {tags.map((tag) => (
               <label key={tag.id}>
                 <input
                   type="checkbox"

@@ -1,0 +1,81 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(16, 24, 40, 0.42);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+.dialog {
+  background: var(--panel);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  width: min(700px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+  padding: 18px 22px;
+}
+.dialog h2 {
+  margin: 0;
+  font-size: 17px;
+}
+.dialog p {
+  color: #475467;
+}
+.dialog button,
+.dialog input:not([type='checkbox']) {
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--panel);
+  padding: 6px 9px;
+}
+.dialog button {
+  cursor: pointer;
+}
+.picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.picker label {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.rows {
+  display: grid;
+  gap: 8px;
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--line2);
+  padding-bottom: 8px;
+}
+.row > span:nth-child(2) {
+  flex: 1;
+}
+.form {
+  display: grid;
+  gap: 8px;
+  padding: 12px 0;
+}
+.form label {
+  display: grid;
+  gap: 4px;
+  font-weight: 600;
+}
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  border-top: 1px solid var(--line2);
+  margin-top: 14px;
+  padding-top: 12px;
+}
+.add {
+  margin-top: 12px;
+}

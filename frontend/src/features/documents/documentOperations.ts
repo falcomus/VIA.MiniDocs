@@ -1,3 +1,4 @@
+import { setDocumentTags } from './tagOperations';
 import type { DocumentSummary } from './document.types';
 import type { Topic } from '../topics/topic.types';
 export type DocumentSort = 'date-desc' | 'date-asc' | 'title';
@@ -49,7 +50,14 @@ export type DocumentAction =
       update: (documents: readonly DocumentSummary[]) => readonly DocumentSummary[];
     }
   | { type: 'move'; ids: readonly string[]; target: string; topics: readonly Topic[] }
-  | { type: 'undo'; topics: readonly Topic[] };
+  | { type: 'undo'; topics: readonly Topic[] }
+  | {
+      type: 'tags';
+      ids: readonly string[];
+      tagId: string;
+      on: boolean;
+      visibleAfter: readonly string[];
+    };
 /** Move and its per-document undo snapshot are committed atomically against current reducer data. */
 export function documentReducer(state: DocumentState, action: DocumentAction): DocumentState {
   switch (action.type) {
@@ -90,6 +98,16 @@ export function documentReducer(state: DocumentState, action: DocumentAction): D
         undo: null,
         message: '',
       };
+    case 'tags': {
+      const visible = new Set(action.visibleAfter);
+      return {
+        ...state,
+        documents: setDocumentTags(state.documents, action.ids, action.tagId, action.on),
+        selected: state.selected.filter((id) => visible.has(id)),
+        anchor: state.anchor && visible.has(state.anchor) ? state.anchor : null,
+        message: 'Tagzuordnung aktualisiert.',
+      };
+    }
     case 'move': {
       if (!canMoveDocuments(state.documents, action.topics, action.ids, action.target))
         return { ...state, message: 'Dokumente können nicht dorthin verschoben werden.' };

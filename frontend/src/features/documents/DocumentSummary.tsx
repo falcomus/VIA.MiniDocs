@@ -24,10 +24,10 @@ export function TranscriptStatus({ document }: { readonly document: DocumentSumm
     </span>
   );
 }
-export function DocumentActions() {
+export function DocumentActions({ onTags }: { readonly onTags?: () => void }) {
   return (
     <div className={styles.actions}>
-      <button disabled aria-label="Tags zuweisen">
+      <button disabled={!onTags} onClick={onTags} aria-label="Tags zuweisen">
         <Icon name="tag" />
       </button>
       <button disabled aria-label="In neuem Tab öffnen">

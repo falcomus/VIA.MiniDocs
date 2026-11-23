@@ -17,12 +17,17 @@ import { useDocumentDrag } from './features/documents/useDocumentDrag';
 import { useSearchState, emptySearch } from './features/search/useSearchState';
 import type { SearchState } from './features/search/useSearchState';
 import { SelectionBar } from './features/documents/SelectionBar';
+import { demoTags } from './features/documents/tags';
+import { TagDialog } from './features/documents/TagDialog';
+import type { TagDialogState } from './features/documents/TagDialog';
 
 export function App() {
   const [view, setView] = useState<DocumentView>('grid');
   const [topics, setTopics] = useState<readonly Topic[]>(demoTopics);
   const [selectedTopicId, setSelectedTopicId] = useState<TopicId>('unassigned');
   const search = useSearchState();
+  const [tags, setTags] = useState(demoTags);
+  const [tagDialog, setTagDialog] = useState<TagDialogState | null>(null);
   const workspace = useDocumentWorkspace(demoDocuments, topics, selectedTopicId, search);
   function changeSearch(next: SearchState) {
     workspace.clear();
@@ -56,6 +61,16 @@ export function App() {
       : new Set<TopicId>();
   const affectedDocuments = documents.filter((document) => deletedIds.has(document.topicId)).length;
 
+  function openTags(next: TagDialogState) {
+    returnFocus.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    fallbackFocus.current = selectedTopicId;
+    setTagDialog(next);
+  }
+  function closeTags() {
+    restoreFocus.current = true;
+    setTagDialog(null);
+  }
   function openDialog(next: TopicDialogState) {
     setDialogError('');
     returnFocus.current =
@@ -70,7 +85,7 @@ export function App() {
 
   // Restore only after React has committed deletion/movement and removed the inert background.
   useLayoutEffect(() => {
-    if (dialog || !restoreFocus.current) return;
+    if (dialog || tagDialog || !restoreFocus.current) return;
     restoreFocus.current = false;
     const previous = returnFocus.current;
     if (previous?.isConnected && !previous.closest('[inert]')) {
@@ -84,7 +99,7 @@ export function App() {
       target ??
       document.querySelector<HTMLButtonElement>('[aria-label="Neues Thema auf oberster Ebene"]')
     )?.focus();
-  }, [dialog, documents, workspace.selected.length]);
+  }, [dialog, tagDialog, documents, workspace.selected.length]);
 
   function rejectMove() {
     workspace.setMessage('Ein Thema kann nicht dorthin verschoben werden.');
@@ -140,7 +155,7 @@ export function App() {
     }
     closeDialog();
   }
-  const modal = dialog && (
+  const topicModal = dialog && (
     <TopicDialog
       dialog={dialog}
       topics={topics}
@@ -151,9 +166,39 @@ export function App() {
       onSubmit={submit}
     />
   );
+  const tagModal = tagDialog && (
+    <TagDialog
+      key={tagDialog.kind}
+      dialog={tagDialog}
+      tags={tags}
+      documents={documents}
+      visibleIds={workspace.visible.map((doc) => doc.id)}
+      onAssign={(ids, id, on) => workspace.setTag(ids, id, on)}
+      onSave={(tag) => {
+        setTags((previous) =>
+          previous.some((item) => item.id === tag.id)
+            ? previous.map((item) => (item.id === tag.id ? tag : item))
+            : [...previous, tag],
+        );
+        workspace.setMessage('Tag gespeichert.');
+      }}
+      onDelete={(id) => {
+        setTags((previous) => previous.filter((item) => item.id !== id));
+        workspace.removeTag(id);
+        search.setCriteria((previous) => ({
+          ...previous,
+          tagIds: previous.tagIds.filter((item) => item !== id),
+        }));
+      }}
+      onManage={() => setTagDialog({ kind: 'manage' })}
+      onClose={closeTags}
+    />
+  );
   return (
     <AppShell
-      modal={modal}
+      tags={tags}
+      onManageTags={() => openTags({ kind: 'manage' })}
+      modal={topicModal || tagModal}
       search={search}
       onSearchChange={changeSearch}
       sidebar={
@@ -212,6 +257,7 @@ export function App() {
           restoreFocus.current = true;
           workspace.clear();
         }}
+        onTags={() => openTags({ kind: 'picker', ids: workspace.selected })}
         onMove={() => openDialog({ kind: 'documents', ids: workspace.selected })}
       />
       <Content>
@@ -226,6 +272,13 @@ export function App() {
         >
           <DocumentOverview
             topics={topics}
+            tags={tags}
+            onTags={(id) =>
+              openTags({
+                kind: 'picker',
+                ids: workspace.selected.includes(id) ? workspace.selected : [id],
+              })
+            }
             workspace={workspace}
             documentDrag={documentDrag}
             selectedTopicId={selectedTopicId}
