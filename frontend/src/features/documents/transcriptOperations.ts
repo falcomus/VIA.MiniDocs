@@ -1,5 +1,5 @@
 import { normalizeSearchText } from '../search/normalize';
-import type { DocumentSummary } from '../documents/document.types';
+import type { DocumentSummary } from './document.types';
 export interface TranscriptMatch {
   readonly page: number;
   readonly start: number;

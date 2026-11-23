@@ -1,25 +1,28 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import type { DocumentSummary } from '../documents/document.types';
-import { findTranscriptMatches, countReplaceMatches } from './transcriptOperations';
-import type { TranscriptMatch, TranscriptOperation } from './transcriptOperations';
+import { findTranscriptMatches, countReplaceMatches } from '../documents/transcriptOperations';
+import type { TranscriptMatch, TranscriptOperation } from '../documents/transcriptOperations';
 import styles from './TranscriptPane.module.css';
 export function TranscriptPane({
   document,
   page,
   onPageChange,
   onEdit,
+  editorRef,
 }: {
   readonly document: DocumentSummary;
   readonly page: number;
   readonly onPageChange: (page: number) => void;
   readonly onEdit: (operation: TranscriptOperation) => void;
+  readonly editorRef?: React.RefObject<HTMLTextAreaElement | null>;
 }) {
   const [query, setQuery] = useState('');
   const [replacement, setReplacement] = useState('');
   const [cursor, setCursor] = useState(-1);
   const [selection, setSelection] = useState<TranscriptMatch | null>(null);
   const [notice, setNotice] = useState('');
-  const input = useRef<HTMLTextAreaElement>(null);
+  const fallbackInput = useRef<HTMLTextAreaElement>(null);
+  const input = editorRef ?? fallbackInput;
   const matches = findTranscriptMatches(document, query);
   const current = cursor >= 0 && cursor < matches.length ? cursor : -1;
   const value = document.transcript?.pages.find((part) => part.page === page)?.text ?? '';
@@ -28,7 +31,7 @@ export function TranscriptPane({
       input.current?.focus();
       input.current?.setSelectionRange(selection.start, selection.end);
     }
-  }, [page, selection]);
+  }, [input, page, selection]);
   function go(offset: number) {
     if (!matches.length) return;
     const index =

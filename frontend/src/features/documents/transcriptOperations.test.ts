@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
-import { demoDocuments } from '../documents/demoDocuments';
+import { demoDocuments } from './demoDocuments';
 import { demoTopics } from '../topics/demoTopics';
-import { documentReducer } from '../documents/documentOperations';
+import { documentReducer } from './documentOperations';
 import { searchDocuments } from '../search/search';
 import {
   applyTranscriptOperation,

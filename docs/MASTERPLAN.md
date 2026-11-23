@@ -13,7 +13,7 @@ Das geplante Zielbild ist **React → ASP.NET Core MiniDocs API (.NET 10) → Po
 ## Aktueller Stand und nächste Meilensteine
 
 - M1 Grundlayout und M2 Themenbaum sind technisch abgeschlossen; ihre visuellen Browserabnahmen sind offen und werden in M8 nachverfolgt.
-- Q1 verbessert die Tastaturbedienung und Dialogfokus technisch; Browser- und Screenreader-Prüfungen sind offen. M3 Listen- und Kachelansicht ist technisch umgesetzt; visuelle Abnahme offen. M4 Auswahl, Sortierung, Kachelzoom und Dokumentverschiebung mit Undo ist technisch umgesetzt; native Maus-DnD- und visuelle Abnahme offen. M5 mit Suche, Filtern und Tagverwaltung ist technisch umgesetzt; der vollständige visuelle und funktionale Vergleich bleibt offen. M6-A für Viewer und Navigation sowie M6-B für den Transkript-Editor sind technisch umgesetzt, M6-C und M7–M8 sind geplant gemäß [Ticketkatalog](TICKETS.md).
+- Q1 verbessert die Tastaturbedienung und Dialogfokus technisch; Browser- und Screenreader-Prüfungen sind offen. M3 Listen- und Kachelansicht ist technisch umgesetzt; visuelle Abnahme offen. M4 Auswahl, Sortierung, Kachelzoom und Dokumentverschiebung mit Undo ist technisch umgesetzt; native Maus-DnD- und visuelle Abnahme offen. M5 mit Suche, Filtern und Tagverwaltung ist technisch umgesetzt; der vollständige visuelle und funktionale Vergleich bleibt offen. M6-A für Viewer und Navigation sowie M6-B für den Transkript-Editor sind technisch umgesetzt, M6-C ist teilweise technisch umgesetzt; echte PDF-Abnahme und Scrollgrenzen bleiben offen, M7–M8 sind geplant gemäß [Ticketkatalog](TICKETS.md).
 - Q10 bietet das zentrale Einstellungsmenü mit Hell-, Dunkel- und Systemdarstellung; visuelle und Screenreader-Abnahme sind offen.
 - Q2 CSS-Qualitätsprüfung ist technisch umgesetzt; visuelle und Accessibility-Abnahmen bleiben offen.
 - Q3 Modulgrenzen und Testaussagen sind technisch geprüft und korrigiert; Q4 automatisiert die Frontend-Formatierung; CSS-Typautomatisierung bleibt als Q5 geplant.
@@ -28,7 +28,7 @@ Für die spätere Datenanbindung bilden API-Verträge und Datenmodell die Grundl
 
 ## Offene Entscheidungen und Risiken
 
-Zu klären sind die tatsächlichen VIA.Docs-Endpunkte, Berechtigungen und der Einladungs- und JWT-Lebenszyklus; MiniDocs-API-Verträge und Hosting; ID- und Vorschau-Mapping; Fehler- und Wiederanlaufverhalten bei Dateioperationen über zwei Systeme; Backup-/Restore-Zuständigkeiten; Suchsemantik und Indexstrategie sowie die PDF-Darstellung und Grenzen der Scrollsynchronisation. Der Datenmodell- und Suchentwurf des Begleitdokuments ist kein bestätigter API-Vertrag oder Performance-Nachweis.
+Zu klären sind die tatsächlichen VIA.Docs-Endpunkte, Berechtigungen und der Einladungs- und JWT-Lebenszyklus; MiniDocs-API-Verträge und Hosting; ID- und Vorschau-Mapping; Fehler- und Wiederanlaufverhalten bei Dateioperationen über zwei Systeme; Backup-/Restore-Zuständigkeiten; Suchsemantik und Indexstrategie sowie die Integration echter PDF-Quellen und die Grenzen der Scrollsynchronisation ([PDF-Entscheidung](architecture/M6-C-PDF-ENTSCHEIDUNG.md)). Der Datenmodell- und Suchentwurf des Begleitdokuments ist kein bestätigter API-Vertrag oder Performance-Nachweis.
 
 Die visuelle Vergleichsumgebung für M1 und M2 sowie die Browser- und Screenreader-Prüfung der Tastaturalternative zum Themenverschieben sind offen. Browserunterschiede, PDF-Viewer-Grenzen und inkonsistente Daten bei Teilausfällen bleiben relevante Risiken. Es gelten die Sicherheits- und Qualitätsanforderungen der [Definition of Done](DEFINITION-OF-DONE.md).
 

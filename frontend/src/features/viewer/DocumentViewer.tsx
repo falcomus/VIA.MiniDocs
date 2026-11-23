@@ -9,8 +9,9 @@ import { formatDocumentDate } from '../documents/documentDate';
 import { openViewerTab, startPage } from './viewerModel';
 import type { ViewerSession } from './viewerModel';
 import { TranscriptPane } from './TranscriptPane';
-import type { TranscriptOperation } from './transcriptOperations';
-import { ViewerPage } from './ViewerPage';
+import type { TranscriptOperation } from '../documents/transcriptOperations';
+import { DocumentPagePane } from './DocumentPagePane';
+import type { DocumentPageSource } from './DocumentPagePane';
 import styles from './DocumentViewer.module.css';
 export function DocumentViewer({
   session,
@@ -20,6 +21,7 @@ export function DocumentViewer({
   onClose,
   initialPage,
   onEditTranscript,
+  source = { kind: 'demo' },
 }: {
   readonly session: ViewerSession;
   readonly documents: readonly DocumentSummary[];
@@ -27,6 +29,7 @@ export function DocumentViewer({
   readonly tags: readonly TagDefinition[];
   readonly onClose?: () => void;
   readonly initialPage?: number;
+  readonly source?: DocumentPageSource;
   readonly onEditTranscript: (id: string, operation: TranscriptOperation) => void;
 }) {
   const [id, setId] = useState(session.id);
@@ -36,6 +39,10 @@ export function DocumentViewer({
   );
   const [zoom, setZoom] = useState(100);
   const [tabError, setTabError] = useState('');
+  const [split, setSplit] = useState(56);
+  const [syncScroll, setSyncScroll] = useState(true);
+  const body = useRef<HTMLDivElement>(null);
+  const editor = useRef<HTMLTextAreaElement>(null);
   const ref = useRef<HTMLDivElement>(null);
   const previousPage = useRef<HTMLButtonElement>(null);
   const nextPage = useRef<HTMLButtonElement>(null);
@@ -85,7 +92,7 @@ export function DocumentViewer({
           if (event.key === 'Tab' && onClose) {
             const controls = Array.from(
               event.currentTarget.querySelectorAll<HTMLElement>(
-                'button:not(:disabled), select:not(:disabled), input:not(:disabled), textarea:not(:disabled), a[href]',
+                'button:not(:disabled), select:not(:disabled), input:not(:disabled), textarea:not(:disabled), a[href], [role=separator][tabindex="0"]',
               ),
             );
             if (event.shiftKey && document.activeElement === controls[0]) {
@@ -97,7 +104,9 @@ export function DocumentViewer({
             }
           }
           if (
-            (event.target as HTMLElement).closest('input,select,textarea,[contenteditable="true"]')
+            (event.target as HTMLElement).closest(
+              'input,select,textarea,[role=separator],[contenteditable="true"]',
+            )
           )
             return;
           if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
@@ -191,27 +200,107 @@ export function DocumentViewer({
               >
                 Nächste Seite
               </button>
-              <label>
-                Viewer-Zoom{' '}
-                <input
-                  type="range"
-                  min="50"
-                  max="200"
-                  step="10"
-                  value={zoom}
-                  onChange={(event) => setZoom(Number(event.target.value))}
-                />{' '}
-                {zoom} %
-              </label>
+              {source.kind === 'demo' && (
+                <label>
+                  Viewer-Zoom{' '}
+                  <input
+                    type="range"
+                    min="50"
+                    max="200"
+                    step="10"
+                    value={zoom}
+                    onChange={(event) => setZoom(Number(event.target.value))}
+                  />{' '}
+                  {zoom} %
+                </label>
+              )}
+              {source.kind === 'demo' && (
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={syncScroll}
+                    onChange={(event) => setSyncScroll(event.target.checked)}
+                  />{' '}
+                  Synchron scrollen (ungefähr)
+                </label>
+              )}
             </div>
-            <div className={styles.body}>
-              <div className={styles.pages}>
-                <ViewerPage document={current} page={validPage} zoom={zoom} />
+            <div
+              ref={body}
+              className={styles.body}
+              style={{ '--split': split + '%' } as React.CSSProperties}
+            >
+              <div
+                id="viewer-document-pane"
+                className={styles.pages}
+                onScroll={(event) => {
+                  if (!syncScroll || source.kind !== 'demo' || !editor.current) return;
+                  const origin = event.currentTarget;
+                  const max = origin.scrollHeight - origin.clientHeight;
+                  const target = editor.current;
+                  if (max > 0)
+                    target.scrollTop =
+                      (origin.scrollTop / max) *
+                      Math.max(0, target.scrollHeight - target.clientHeight);
+                }}
+              >
+                <DocumentPagePane source={source} document={current} page={validPage} zoom={zoom} />
               </div>
+              <div
+                className={styles.splitter}
+                role="separator"
+                aria-label="Breite des Dokumentbereichs"
+                aria-controls="viewer-document-pane"
+                aria-orientation="vertical"
+                aria-valuemin={25}
+                aria-valuemax={75}
+                aria-valuenow={split}
+                tabIndex={0}
+                onKeyDown={(event) => {
+                  const value =
+                    event.key === 'Home'
+                      ? 25
+                      : event.key === 'End'
+                        ? 75
+                        : event.key === 'ArrowLeft'
+                          ? split - (event.shiftKey ? 10 : 1)
+                          : event.key === 'ArrowRight'
+                            ? split + (event.shiftKey ? 10 : 1)
+                            : null;
+                  if (value !== null) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    setSplit(Math.max(25, Math.min(75, value)));
+                  }
+                }}
+                onPointerDown={(event) => {
+                  if (event.button !== 0) return;
+                  event.preventDefault();
+                  event.currentTarget.focus();
+                  event.currentTarget.setPointerCapture(event.pointerId);
+                }}
+                onPointerMove={(event) => {
+                  if (!event.currentTarget.hasPointerCapture(event.pointerId) || !body.current)
+                    return;
+                  const rect = body.current.getBoundingClientRect();
+                  if (rect.width > 0)
+                    setSplit(
+                      Math.max(
+                        25,
+                        Math.min(75, Math.round(((event.clientX - rect.left) / rect.width) * 100)),
+                      ),
+                    );
+                }}
+                onPointerUp={(event) => {
+                  if (event.currentTarget.hasPointerCapture(event.pointerId))
+                    event.currentTarget.releasePointerCapture(event.pointerId);
+                }}
+              />
               <TranscriptPane
                 key={current.id}
                 document={current}
                 page={validPage}
+                editorRef={editor}
                 onPageChange={setPage}
                 onEdit={(operation) => onEditTranscript(current.id, operation)}
               />

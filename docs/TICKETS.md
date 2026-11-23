@@ -83,7 +83,7 @@ Stand: 22.11.2026. Einstieg, Phasen und kritischer Pfad: [Masterplan](MASTERPLAN
 - **Risiken:** Änderungen bestehen nur im Demo-Arbeitsspeicher; Browser-/Screenreader-, native Drag-and-drop- und visuelle Abnahmen bleiben offen. Demo-Teilstringsuche ist keine Datenbanksuche.
 
 ### M6 – Viewer und Transkript-Editor
-- **Status:** M6-A und M6-B technisch umgesetzt; M6-C geplant. M6 insgesamt bleibt offen.
+- **Status:** M6-A und M6-B technisch umgesetzt; M6-C teilweise umgesetzt und nicht vollständig abgenommen. M6 insgesamt bleibt offen.
 - **Ziel / Umfang:** Overlay/Tab, Trefferseite, Dokumentnavigation, Viewer-Metadaten und Tags, Demo-Zoom, seitenweiser Editor, Suchen/alle ersetzen, Synchronisierung und Splitter.
 - **Ausgeschlossen:** dauerhafte Speicherung und echte VIA.Docs-Verbindung; Import-/Exportabläufe aus M7.
 - **Abhängigkeiten:** M3–M5; M7 ergänzt importierte Dateien.
@@ -108,6 +108,15 @@ Stand: 22.11.2026. Einstieg, Phasen und kritischer Pfad: [Masterplan](MASTERPLAN
 - **M5-Integration:** Die bestehende Volltextsuche berücksichtigt den aktuellen Transkripttext unmittelbar. Fällt das geöffnete Dokument aus einem aktiven Filter, bleibt der Viewer darauf geöffnet; Ergebnisliste, Auswahl und Anker werden aktualisiert.
 - **Nachweise:** Fach- und Integrationstests prüfen unter anderem Seitennummern, Unicode, Suche/Ersetzung, Seiten- und Dokumentwechsel, aktive Filter, Undo, Tags und den eigenständigen Demo-Tab. Im integrierten Browser wurden Overlay, Bearbeitung, Seitenwechsel, Suche/Ersetzung, erneutes Öffnen und M5-Suche sowie Fokus an Seitengrenze und nach Ersetzen geprüft. Die Unicode-Suche wurde nach der letzten Suchlogikänderung erneut im Browser geprüft.
 - **Offen / Risiken:** Vollständige visuelle und Screenreader-Abnahme, tatsächlicher Vergleich des bearbeitenden separaten Tabs, Hell-/Dunkelmodus, schmales Fenster und 200 % Browserzoom sind nicht abgenommen. Kein PDF-Renderer, keine Persistenz oder Synchronisierung; M6-C bleibt geplant.
+
+#### M6-C – Dokumentdarstellung, Splitter und Synchronisierung
+- **Status:** Teilumsetzung; echte PDF-Darstellung und weitere Browser-/Accessibility-Abnahmen offen. M6 bleibt offen.
+- **Architektur:** [PDF-Entscheidung](architecture/M6-C-PDF-ENTSCHEIDUNG.md). Dokumentbereich unterscheidet explizit Demo und PDF-Blob; ein Adapter für M7/Backend ist noch nicht angeschlossen. Transkript-Fachoperationen liegen im Dokumentbereich statt im Viewer.
+- **Splitter:** KU-Startwert 56 %, Tastatur und Pointer, Grenzen 25–75 %, auf schmalen Viewports vertikal angeordnet. Seitenwechsel und Transkripttreffer verwenden dieselbe aktive Seitennummer.
+- **Scrollen:** Bei der Demo optionale, einseitige proportionale Kopplung vom Dokumentbereich zur Textarea der aktuellen Seite. Das ist keine abschnittsgenaue Zuordnung und weicht vom seitenankerbasierten KU-Verhalten ab. Der native PDF-Viewer erlaubt kein zuverlässiges Auslesen seiner internen Seiten- oder Scrollposition; keine native Scrollkopplung oder Anwendungskontrolle über PDF-Zoom.
+- **PDF und Ressourcen:** Bei explizitem Blob werden MIME-Typ und PDF-Signatur geprüft, nicht die gesamte Datei. Eine Objekt-URL entsteht erst nach Prüfung und wird bei Quellwechsel oder Unmount widerrufen. Der Browser kann beschädigte Dateien oder Seitenfragmente anders behandeln; sein eingebauter Viewer besitzt keine zuverlässig auslesbare Fehleranzeige für die Anwendung.
+- **Nachweise:** Mausbedienung des Splitters, Home/End und Seitenwechsel in einem echten Browser geprüft. Technische Tests decken Tastaturgrenzen, Erhalt von Dokument und Transkript, proportionale Scrollkopplung sowie Quellenwechsel und URL-Bereinigung ab.
+- **Offen / Risiken:** Keine echte PDF-Datei im laufenden Viewer getestet; keine Uploadfunktion oder Adapterintegration. Touch, Screenreader, vollständiger visueller Vergleich, Hell-/Dunkelmodus, schmale Fenster, 200 % Zoom und weitere Scrollszenarien bleiben offen.
 
 ### M7 – Upload, Downloads, Dialoge und Einstellungen
 - **Status:** geplant.

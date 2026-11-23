@@ -1,5 +1,5 @@
-import { applyTranscriptOperation } from '../viewer/transcriptOperations';
-import type { TranscriptOperation } from '../viewer/transcriptOperations';
+import { applyTranscriptOperation } from './transcriptOperations';
+import type { TranscriptOperation } from './transcriptOperations';
 import { setDocumentTags } from './tagOperations';
 import type { DocumentSummary } from './document.types';
 import type { Topic } from '../topics/topic.types';

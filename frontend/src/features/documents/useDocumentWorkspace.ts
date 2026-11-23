@@ -1,4 +1,4 @@
-import type { TranscriptOperation } from '../viewer/transcriptOperations';
+import type { TranscriptOperation } from './transcriptOperations';
 import { setDocumentTags } from './tagOperations';
 import { searchDocuments, sortByRelevance } from '../search/search';
 import type { SearchControlsState } from '../search/useSearchState';
