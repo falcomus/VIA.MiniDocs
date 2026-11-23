@@ -2,7 +2,10 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import { afterEach, expect, it, vi } from 'vitest';
 import { App } from '../../App';
 import { demoDocuments } from '../documents/demoDocuments';
+import { demoTags } from '../documents/tags';
+import { demoTopics } from '../topics/demoTopics';
 import { DocumentPagePane } from './DocumentPagePane';
+import { DocumentViewer } from './DocumentViewer';
 
 afterEach(() => {
   cleanup();
@@ -88,4 +91,87 @@ it('prüft PDF-Signatur und gibt Objekt-URLs bei Quellenwechsel und Unmount frei
   unmount();
   expect(revoke).toHaveBeenCalledWith('blob:third');
   expect(create).toHaveBeenCalledTimes(3);
+});
+
+it('ordnet Quellen beim Dokumentwechsel der aktuellen ID zu und gibt die alte URL frei', async () => {
+  const create = vi.fn().mockReturnValue('blob:document-one');
+  const revoke = vi.fn();
+  Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: create });
+  Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: revoke });
+  const blob = new Blob([], { type: 'application/pdf' });
+  vi.spyOn(blob, 'slice').mockReturnValue({
+    arrayBuffer: async () => new TextEncoder().encode('%PDF-').buffer,
+  } as Blob);
+  const getSource = vi.fn((id: string) =>
+    id === 'demo-1'
+      ? { kind: 'pdf' as const, blob }
+      : id === 'demo-2'
+        ? { kind: 'demo' as const }
+        : undefined,
+  );
+  render(
+    <DocumentViewer
+      session={{ id: 'demo-1', ids: ['demo-1', 'demo-2', 'demo-3'], hits: {} }}
+      documents={demoDocuments}
+      topics={demoTopics}
+      tags={demoTags}
+      getSource={getSource}
+      onEditTranscript={() => {}}
+      onClose={() => {}}
+    />,
+  );
+  expect(await screen.findByTitle(/PDF:/)).toHaveAttribute('src', 'blob:document-one#page=1');
+  fireEvent.click(screen.getByRole('button', { name: 'Nächstes Dokument' }));
+  expect(screen.getByText('Synthetische Demoseite – kein PDF')).toBeInTheDocument();
+  expect(revoke).toHaveBeenCalledWith('blob:document-one');
+  fireEvent.click(screen.getByRole('button', { name: 'Nächstes Dokument' }));
+  expect(screen.getByRole('alert')).toHaveTextContent('Keine PDF-Quelle vorhanden');
+  expect(screen.queryByTitle(/PDF:/)).not.toBeInTheDocument();
+  expect(screen.queryByText('Synthetische Demoseite – kein PDF')).not.toBeInTheDocument();
+  expect(getSource).toHaveBeenCalledWith('demo-3');
+  fireEvent.click(screen.getByRole('button', { name: 'Vorheriges Dokument' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Vorheriges Dokument' }));
+  expect(await screen.findByTitle(/PDF:/)).toHaveAttribute('src', 'blob:document-one#page=1');
+});
+
+it('beendet Pointer-Abbruch und Capture-Verlust und erhält die Splitterauswahl', () => {
+  const v = openViewer();
+  const splitter = v.getByRole('separator', { name: /Breite/ });
+  const parent = splitter.parentElement!;
+  vi.spyOn(parent, 'getBoundingClientRect').mockReturnValue({ left: 0, width: 1000 } as DOMRect);
+  let captured = false;
+  splitter.setPointerCapture = vi.fn(() => {
+    captured = true;
+  });
+  splitter.hasPointerCapture = vi.fn(() => captured);
+  splitter.releasePointerCapture = vi.fn(() => {
+    captured = false;
+  });
+  const pointer = (type: string, x = 0) => {
+    const event = new MouseEvent(type, { bubbles: true, button: 0, clientX: x });
+    Object.defineProperty(event, 'pointerId', { value: 1 });
+    fireEvent(splitter, event);
+  };
+  pointer('pointerdown');
+  expect(splitter).toHaveFocus();
+  pointer('pointermove', 700);
+  expect(splitter).toHaveAttribute('aria-valuenow', '70');
+  pointer('pointercancel');
+  pointer('pointermove', 400);
+  expect(splitter).toHaveAttribute('aria-valuenow', '70');
+  pointer('pointerdown');
+  pointer('lostpointercapture');
+  pointer('pointermove', 400);
+  expect(splitter).toHaveAttribute('aria-valuenow', '70');
+  fireEvent.keyDown(splitter, { key: 'ArrowRight' });
+  expect(v.getByRole('heading', { level: 1 })).toHaveTextContent(demoDocuments[0].title);
+});
+
+it('verschiebt den Fokus beim Ausblenden des Splitters auf die Seitenauswahl', () => {
+  const v = openViewer();
+  const splitter = v.getByRole('separator', { name: /Breite/ });
+  splitter.focus();
+  splitter.style.display = 'none';
+  fireEvent(window, new Event('resize'));
+  expect(v.getByRole('combobox', { name: /Seite/ })).toHaveFocus();
 });

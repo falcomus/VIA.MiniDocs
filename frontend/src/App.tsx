@@ -23,7 +23,7 @@ import { useSearchState, emptySearch } from './features/search/useSearchState';
 import type { SearchState } from './features/search/useSearchState';
 import { useOpeningMode } from './features/viewer/openingMode';
 import { DocumentViewer } from './features/viewer/DocumentViewer';
-import { openViewerTab, startPage } from './features/viewer/viewerModel';
+import { demoDocumentSource, openViewerTab, startPage } from './features/viewer/viewerModel';
 import type { ViewerSession } from './features/viewer/viewerModel';
 import { SelectionBar } from './features/documents/SelectionBar';
 import { demoTags } from './features/documents/tags';
@@ -231,6 +231,7 @@ export function App() {
         tagModal ||
         (viewer && (
           <DocumentViewer
+            getSource={demoDocumentSource}
             onEditTranscript={workspace.editTranscript}
             session={viewer}
             documents={documents}

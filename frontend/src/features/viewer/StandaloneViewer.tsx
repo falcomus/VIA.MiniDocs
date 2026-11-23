@@ -5,6 +5,7 @@ import { demoTags } from '../documents/tags';
 import { demoTopics } from '../topics/demoTopics';
 import { useTheme } from '../settings/useTheme';
 import { DocumentViewer } from './DocumentViewer';
+import { demoDocumentSource } from './viewerModel';
 export function StandaloneViewer() {
   useTheme();
   const [state, dispatch] = useReducer(documentReducer, {
@@ -36,6 +37,7 @@ export function StandaloneViewer() {
   const term = params.get('term') ?? '';
   return (
     <DocumentViewer
+      getSource={demoDocumentSource}
       session={{ id, ids: [id], hits: { [id]: { page, term } } }}
       initialPage={page}
       documents={state.documents}

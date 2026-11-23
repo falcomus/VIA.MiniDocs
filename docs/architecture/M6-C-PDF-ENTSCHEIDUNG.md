@@ -6,7 +6,7 @@ Der KU-Prototyp zeigt vorhandene PDF-Blobs mit dem nativen Browser-PDF-Viewer in
 
 ## Entscheidung
 
-MiniDocs erhält eine explizite Grenze für synthetische Demoseiten und einen tatsächlich gelieferten PDF-Blob. Eine MIME-/Signaturprüfung und eine nur während der Nutzung gültige Objekt-URL gehen der nativen iframe-Darstellung voraus. Dies ist keine vollständige PDF-Sicherheits- oder Strukturprüfung und kein Nachweis, dass der Browser jede Datei darstellen kann. Eine fehlende oder offensichtlich ungültige Quelle wird angezeigt. Demodaten bleiben als solche gekennzeichnet. Es wird weder eine PDF-Library noch ein Import- oder API-Adapter eingeführt.
+MiniDocs erhält eine explizite Grenze für synthetische Demoseiten und einen tatsächlich gelieferten PDF-Blob. Ein verpflichtender Resolver ermittelt die Quelle anhand der aktuellen Dokument-ID; eine nicht aufgelöste Quelle erscheint als Fehler, nicht als Demo. Eine MIME-/Signaturprüfung und eine nur während der Nutzung gültige Objekt-URL gehen der nativen iframe-Darstellung voraus. Dies ist keine vollständige PDF-Sicherheits- oder Strukturprüfung und kein Nachweis, dass der Browser jede Datei darstellen kann. Eine fehlende oder offensichtlich ungültige Quelle wird angezeigt. Demodaten bleiben als solche gekennzeichnet. Es wird weder eine PDF-Library noch ein Import- oder API-Adapter eingeführt.
 
 ## Konsequenzen
 
@@ -14,4 +14,6 @@ MiniDocs erhält eine explizite Grenze für synthetische Demoseiten und einen ta
 - PDF-Zoom wird vom nativen Viewer verwaltet; der bestehende Demo-Zoom gilt ausschließlich für synthetische Seiten. Lade- und Darstellungsfehler innerhalb des Browser-Plugins sind nicht vollständig kontrollierbar.
 - Die Demo verwendet mangels durchgehender Seitenanker eine optionale proportionale Scrollkopplung von der Dokumentseite zur Textarea; sie ist keine genaue inhaltliche Textzuordnung und keine native PDF-Kopplung.
 - M7 beziehungsweise das Backend müssen später eine tatsächliche, berechtigte PDF-Quelle bereitstellen und den Lebenszyklus sowie Fehlerfälle im Gesamtsystem prüfen. Für zuverlässig steuerbare bidirektionale PDF-Seiten-, Scroll- und Zoomsynchronisierung wäre ein kontrollierter PDF-Renderer erneut zu evaluieren und gesondert freizugeben.
-- Ein Browser-Smoke-Test mit einer tatsächlichen PDF-Datei sowie Screenreader-, Touch-, Zoom- und Responsive-Abnahmen stehen noch aus.
+- Ein Browser-Smoke-Test mit einer tatsächlich lokal importierten PDF-Datei erfolgt in M7; eine VIA.Docs-Ende-zu-Ende-Prüfung folgt mit der Backend-Anbindung. Screenreader-, Touch-, 200-%-Zoom- und vollständige Responsive-Abnahmen stehen noch aus.
+
+- Originaltreue Seitenanker würden durchgehend dargestellte Demoseiten und zugehörige Transkriptanker voraussetzen. Der aktuelle Viewer zeigt genau eine Seite und eine Textarea; für Ankerkopplung wäre eine größere Änderung der Viewer-Darstellung nötig. Diese bleibt offen und wird nicht als präzise Scrollsynchronisierung ausgegeben.

@@ -11,7 +11,7 @@ import type { ViewerSession } from './viewerModel';
 import { TranscriptPane } from './TranscriptPane';
 import type { TranscriptOperation } from '../documents/transcriptOperations';
 import { DocumentPagePane } from './DocumentPagePane';
-import type { DocumentPageSource } from './DocumentPagePane';
+import type { DocumentPageSourceResolver } from './DocumentPagePane';
 import styles from './DocumentViewer.module.css';
 export function DocumentViewer({
   session,
@@ -21,7 +21,7 @@ export function DocumentViewer({
   onClose,
   initialPage,
   onEditTranscript,
-  source = { kind: 'demo' },
+  getSource,
 }: {
   readonly session: ViewerSession;
   readonly documents: readonly DocumentSummary[];
@@ -29,11 +29,12 @@ export function DocumentViewer({
   readonly tags: readonly TagDefinition[];
   readonly onClose?: () => void;
   readonly initialPage?: number;
-  readonly source?: DocumentPageSource;
+  readonly getSource: DocumentPageSourceResolver;
   readonly onEditTranscript: (id: string, operation: TranscriptOperation) => void;
 }) {
   const [id, setId] = useState(session.id);
   const current = documents.find((doc) => doc.id === id);
+  const source = getSource(id) ?? { kind: 'pdf', blob: null };
   const [page, setPage] = useState(() =>
     current ? (initialPage ?? startPage(current, session.hits[id])) : 1,
   );
@@ -42,6 +43,9 @@ export function DocumentViewer({
   const [split, setSplit] = useState(56);
   const [syncScroll, setSyncScroll] = useState(true);
   const body = useRef<HTMLDivElement>(null);
+  const splitter = useRef<HTMLDivElement>(null);
+  const pageSelect = useRef<HTMLSelectElement>(null);
+  const dragPointer = useRef<number | null>(null);
   const editor = useRef<HTMLTextAreaElement>(null);
   const ref = useRef<HTMLDivElement>(null);
   const previousPage = useRef<HTMLButtonElement>(null);
@@ -51,6 +55,18 @@ export function DocumentViewer({
   const pendingFocus = useRef<React.RefObject<HTMLButtonElement | null> | null>(null);
   useEffect(() => {
     ref.current?.querySelector<HTMLButtonElement>('button:not(:disabled)')?.focus();
+  }, []);
+  useEffect(() => {
+    function handleResize() {
+      const element = splitter.current;
+      if (!element || getComputedStyle(element).display !== 'none') return;
+      if (dragPointer.current !== null && element.hasPointerCapture(dragPointer.current))
+        element.releasePointerCapture(dragPointer.current);
+      dragPointer.current = null;
+      if (document.activeElement === element) pageSelect.current?.focus();
+    }
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
   useLayoutEffect(() => {
     pendingFocus.current?.current?.focus();
@@ -181,7 +197,11 @@ export function DocumentViewer({
               </button>
               <label>
                 Seite{' '}
-                <select value={validPage} onChange={(event) => setPage(Number(event.target.value))}>
+                <select
+                  ref={pageSelect}
+                  value={validPage}
+                  onChange={(event) => setPage(Number(event.target.value))}
+                >
                   {Array.from({ length: pages }, (_, i) => (
                     <option key={i + 1} value={i + 1}>
                       {i + 1}
@@ -247,6 +267,7 @@ export function DocumentViewer({
                 <DocumentPagePane source={source} document={current} page={validPage} zoom={zoom} />
               </div>
               <div
+                ref={splitter}
                 className={styles.splitter}
                 role="separator"
                 aria-label="Breite des Dokumentbereichs"
@@ -274,13 +295,18 @@ export function DocumentViewer({
                   }
                 }}
                 onPointerDown={(event) => {
-                  if (event.button !== 0) return;
+                  if (event.button !== 0 || dragPointer.current !== null) return;
                   event.preventDefault();
                   event.currentTarget.focus();
                   event.currentTarget.setPointerCapture(event.pointerId);
+                  dragPointer.current = event.pointerId;
                 }}
                 onPointerMove={(event) => {
-                  if (!event.currentTarget.hasPointerCapture(event.pointerId) || !body.current)
+                  if (
+                    dragPointer.current !== event.pointerId ||
+                    !event.currentTarget.hasPointerCapture(event.pointerId) ||
+                    !body.current
+                  )
                     return;
                   const rect = body.current.getBoundingClientRect();
                   if (rect.width > 0)
@@ -292,8 +318,19 @@ export function DocumentViewer({
                     );
                 }}
                 onPointerUp={(event) => {
+                  if (dragPointer.current !== event.pointerId) return;
                   if (event.currentTarget.hasPointerCapture(event.pointerId))
                     event.currentTarget.releasePointerCapture(event.pointerId);
+                  dragPointer.current = null;
+                }}
+                onPointerCancel={(event) => {
+                  if (dragPointer.current !== event.pointerId) return;
+                  if (event.currentTarget.hasPointerCapture(event.pointerId))
+                    event.currentTarget.releasePointerCapture(event.pointerId);
+                  dragPointer.current = null;
+                }}
+                onLostPointerCapture={(event) => {
+                  if (dragPointer.current === event.pointerId) dragPointer.current = null;
                 }}
               />
               <TranscriptPane

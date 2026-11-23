@@ -1,4 +1,5 @@
 import type { DocumentSummary } from '../documents/document.types';
+import type { DocumentPageSourceResolver } from './DocumentPagePane';
 export type Hit = { readonly page: number; readonly term: string };
 export type ViewerSession = {
   readonly id: string;
@@ -32,3 +33,5 @@ export function openViewerTab(id: string, page: number, term?: string): boolean 
     return false;
   }
 }
+/** The current workspace and standalone tab contain synthetic demo documents only. */
+export const demoDocumentSource: DocumentPageSourceResolver = () => ({ kind: 'demo' });

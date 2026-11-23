@@ -6,6 +6,9 @@ import styles from './DocumentPagePane.module.css';
 /** PDF bytes are provided by a future adapter, not inferred from a filename. */
 export type DocumentPageSource =
   { readonly kind: 'demo' } | { readonly kind: 'pdf'; readonly blob: Blob | null };
+
+/** The caller resolves each document separately; absence is not treated as a demo. */
+export type DocumentPageSourceResolver = (documentId: string) => DocumentPageSource | undefined;
 export function DocumentPagePane({
   source,
   document,
