@@ -112,6 +112,15 @@ Stand: 22.11.2026. Einstieg, Phasen und kritischer Pfad: [Masterplan](MASTERPLAN
 - **Nachweise:** npm run check Exit 0; 131 Tests, davon 3 neue Fach-/Dialogtests, sowie Format-, TypeScript-, ESLint-, Stylelint- und Produktionsbuild-Prüfung erfolgreich. Bestehende Tests für den früheren Löschablauf wurden an die verbindliche Regel angepasst.
 - **Risiken:** Browser-/Screenreader-Verhalten und visuelle Abnahme sind nicht durch jsdom-Tests nachgewiesen.
 
+### Q10 – Premium Dark Mode und Einstellungsmenü
+- **Status:** technisch umgesetzt; visuelle, Browser- und Screenreader-Abnahmen offen.
+- **Umfang:** Zahnrad öffnet Einstellungen mit nativen Optionen Hell, Dunkel und System sowie Zugang zur bestehenden Tagverwaltung. Escape, Außenklick und Fokusrückgabe sind implementiert.
+- **Theme:** Standard Hell; ausschließlich die Präferenz wird unter via.minidocs.theme gespeichert. Systemmodus folgt Änderungen von prefers-color-scheme; Speicherfehler und ungültige Werte fallen sicher zurück. Ein frühes Bootstrap-Modul setzt data-theme vor dem React-Mount, ohne Inline-Skript; eine vollständige Flashfreiheit ist ohne Browserprüfung nicht nachgewiesen.
+- **CSS / Gestaltung:** Gemeinsame Komponenten und zentrale semantische Tokens; bestehende helle Werte bleiben erhalten, Dunkel verwendet Deep Navy mit Blau und Türkis. Papierartige Vorschauen und benutzerdefinierte Tagfarben bleiben erhalten. Der Dark Mode ist eine freigegebene Erweiterung zum KU-Original.
+- **Nachweise:** npm run check Exit 0, 141 Tests inklusive 10 neuer Theme-/Menüfälle, TypeScript, ESLint, Stylelint, Formatprüfung und Produktionsbuild erfolgreich. Rechnerische Dark-Kontraste: Haupttext/Panel 13,67:1, Sekundärtext/Panel 8,47:1, Weiß/Primärfläche 7,22:1 und Fokusakzent/Panel 7,68:1.
+- **Risiken / Abnahmen:** Vite startete lokal, der integrierte Browser meldete ERR_CONNECTION_TIMED_OUT. Reale Sicht-, Kontrast-, Zoom-, native DnD- und Screenreader-Prüfungen sowie Flashprüfung bleiben offen; rechnerische Farbpaare und jsdom ersetzen sie nicht.
+- **Abgrenzung:** Keine M6-/M7-Funktionen oder weitere Theme-Bibliothek; Q9 bleibt geplant.
+
 ### Q9 – Papierkorb und Wiederherstellung planen
 - **Status:** geplant.
 - **Ziel / Umfang:** Papierkorb und Wiederherstellung gemäß KU-Entscheidung vorsehen; Umfang, Aufbewahrung und Zusammenspiel mit der Themenlöschung fachlich klären.

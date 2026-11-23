@@ -1,3 +1,4 @@
+import { SettingsMenu } from '../features/settings/SettingsMenu';
 import type { TagDefinition } from '../features/documents/tags';
 import { SearchControls } from '../features/search/SearchControls';
 import type { SearchControlsState, SearchState } from '../features/search/useSearchState';
@@ -75,13 +76,7 @@ function Header({
           <Icon name="upload" />
           Hochladen
         </button>
-        <button
-          className={`${styles.button} ${styles.iconButton}`}
-          aria-label="Tags verwalten"
-          onClick={onManageTags}
-        >
-          <Icon name="gear" />
-        </button>
+        <SettingsMenu onManageTags={onManageTags} />
       </div>
     </header>
   );

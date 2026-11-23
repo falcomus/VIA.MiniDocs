@@ -10,9 +10,31 @@
   --accent-weak: #e4eff6;
   --sel: #d5e7f2;
   --hot: #c2410c;
+  --text-secondary: #344054;
+  --text-soft: #475467;
+  --tree-text: #2a3242;
+  --icon-muted: #7b8698;
+  --breadcrumb-icon: #a2abb8;
+  --danger: #b42318;
+  --success: #17643d;
+  --warning: #b54708;
+  --surface-header: #f8f9fb;
+  --surface-hover: #f8fafc;
+  --surface-filter: #fafbfc;
+  --preview-surface: #eceef1;
+  --folder-start: #f7f8fa;
+  --folder-end: #eef1f4;
+  --folder-icon: #9aa8b8;
+  --card-border: #aebecd;
+  --card-shadow: 0 2px 6px rgba(0, 0, 0, 0.11);
+  --card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.16);
+  --check-surface: rgba(255, 255, 255, 0.92);
+  --accent-icon: #225b79;
+  --selected-indicator: transparent;
   --r: 8px;
   --shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.08);
   --shadow-lg: 0 12px 32px rgba(16, 24, 40, 0.18), 0 2px 6px rgba(16, 24, 40, 0.08);
+  color-scheme: light;
   font:
     14px/1.45 system-ui,
     -apple-system,
@@ -24,6 +46,48 @@
   color: var(--text);
   background: var(--bg);
 }
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #101b30;
+  --panel: #17243a;
+  --line: #7189a5;
+  --line2: #263954;
+  --text: #e8f1ff;
+  --muted: #afc1d7;
+  --accent: #235896;
+  --accent-2: #84b9ff;
+  --accent-icon: #84b9ff;
+  --selected-indicator: #84b9ff;
+  --accent-weak: #243e5c;
+  --sel: #294d70;
+  --hot: #a93c19;
+  --text-secondary: #d2e2f5;
+  --text-soft: #c4d4e8;
+  --tree-text: #dce9f8;
+  --icon-muted: #a9bad0;
+  --breadcrumb-icon: #a9bad0;
+  --danger: #ffaaa3;
+  --success: #68d4ae;
+  --warning: #ffbe83;
+  --surface-header: #22324b;
+  --surface-hover: #263a54;
+  --surface-filter: #1c2d45;
+  --preview-surface: #22324b;
+  --folder-start: #273d58;
+  --folder-end: #1c3048;
+  --folder-icon: #a9bad0;
+  --card-border: #7189a5;
+  --card-shadow: 0 2px 6px rgba(0, 0, 0, 0.28);
+  --card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --check-surface: rgba(23, 36, 58, 0.96);
+  --shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+:root[data-theme='dark'] mark {
+  background: #26c5be;
+  color: #101b30;
+}
+
 * {
   box-sizing: border-box;
 }

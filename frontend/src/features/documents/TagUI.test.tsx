@@ -8,6 +8,7 @@ import { demoTopics } from '../topics/demoTopics';
 import { documentReducer } from './documentOperations';
 
 function openManage() {
+  fireEvent.click(screen.getByRole('button', { name: 'Einstellungen' }));
   fireEvent.click(screen.getByRole('button', { name: 'Tags verwalten' }));
 }
 function modal() {

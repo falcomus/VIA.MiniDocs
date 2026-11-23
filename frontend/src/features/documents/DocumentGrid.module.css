@@ -11,19 +11,19 @@
   position: relative;
   min-width: 0;
   background: var(--panel);
-  border: 1px solid #aebecd;
+  border: 1px solid var(--card-border);
   border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.11);
+  box-shadow: var(--card-shadow);
   overflow: hidden;
 }
 .tile:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
+  box-shadow: var(--card-shadow-hover);
 }
 .thumb {
   display: block;
   aspect-ratio: 210/297;
   overflow: hidden;
-  background: #eceef1;
+  background: var(--preview-surface);
   border-bottom: 1px solid var(--line2);
 }
 .meta {
@@ -61,12 +61,12 @@
 .folderThumb {
   display: grid;
   place-items: center;
-  background: linear-gradient(180deg, #f7f8fa, #eef1f4);
+  background: linear-gradient(180deg, var(--folder-start), var(--folder-end));
 }
 .folderThumb svg {
   width: 46%;
   height: 46%;
-  color: #9aa8b8;
+  color: var(--folder-icon);
   stroke-width: 1.1;
 }
 
@@ -83,12 +83,12 @@
   border-color: var(--accent-2);
   box-shadow:
     0 0 0 2px var(--accent-2),
-    0 2px 6px rgba(0, 0, 0, 0.11);
+    var(--card-shadow);
 }
 .tile.selected:hover {
   box-shadow:
     0 0 0 2px var(--accent-2),
-    0 4px 12px rgba(0, 0, 0, 0.16);
+    var(--card-shadow-hover);
 }
 .tile.drop {
   outline: 2px dashed var(--accent-2);
@@ -102,7 +102,7 @@
   width: 22px;
   height: 22px;
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--check-surface);
   display: grid;
   place-items: center;
   box-shadow: var(--shadow);

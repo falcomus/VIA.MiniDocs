@@ -100,11 +100,6 @@
   border-color: var(--accent);
   color: #fff;
 }
-.iconButton {
-  width: 34px;
-  padding: 0;
-  justify-content: center;
-}
 .layout {
   flex: 1;
   display: flex;
@@ -247,7 +242,7 @@
 .crumb svg {
   width: 14px;
   height: 14px;
-  color: #a2abb8;
+  color: var(--breadcrumb-icon);
 }
 .shell {
   flex: 1;

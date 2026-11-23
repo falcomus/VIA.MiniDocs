@@ -22,7 +22,7 @@
   padding: 0 8px 0 6px;
   gap: 6px;
   border-radius: 6px;
-  color: #2a3242;
+  color: var(--tree-text);
 }
 .itemRow:hover {
   background: var(--line2);
@@ -30,6 +30,7 @@
 .selected,
 .selected:hover {
   background: var(--sel);
+  box-shadow: inset 3px 0 var(--selected-indicator);
 }
 .itemRow.drop {
   outline: 2px dashed var(--accent-2);
@@ -85,10 +86,10 @@
 .system {
   width: 17px;
   height: 17px;
-  color: #7b8698;
+  color: var(--icon-muted);
 }
 .selected .folder {
-  color: var(--accent);
+  color: var(--accent-icon);
 }
 .system {
   color: var(--hot);
@@ -151,7 +152,7 @@
   cursor: default;
 }
 .menu .danger {
-  color: #b42318;
+  color: var(--danger);
 }
 .menuSeparator {
   height: 1px;
@@ -164,7 +165,7 @@
   color: var(--muted);
 }
 .menu button.danger svg {
-  color: #b42318;
+  color: var(--danger);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -176,8 +177,8 @@
 .completeIcon {
   width: 17px;
   height: 17px;
-  color: #17643d;
+  color: var(--success);
 }
 .completeLabel {
-  color: #17643d;
+  color: var(--success);
 }

@@ -79,7 +79,7 @@
   align-items: center;
   padding: 10px 16px 10px 260px;
   margin: -6px -16px -10px;
-  background: #fafbfc;
+  background: var(--surface-filter);
   border-top: 1px solid var(--line);
 }
 .group {

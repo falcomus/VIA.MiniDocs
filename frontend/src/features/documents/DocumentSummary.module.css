@@ -10,7 +10,7 @@
   height: 13px;
 }
 .missing {
-  color: #b54708;
+  color: var(--warning);
 }
 .actions {
   display: flex;

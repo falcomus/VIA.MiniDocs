@@ -11,7 +11,7 @@
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--panel);
-  color: #344054;
+  color: var(--text-secondary);
   font-size: 11px;
 }
 .dot {

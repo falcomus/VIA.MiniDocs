@@ -14,6 +14,7 @@ Das geplante Zielbild ist **React → ASP.NET Core MiniDocs API (.NET 10) → Po
 
 - M1 Grundlayout und M2 Themenbaum sind technisch abgeschlossen; ihre visuellen Browserabnahmen sind offen und werden in M8 nachverfolgt.
 - Q1 verbessert die Tastaturbedienung und Dialogfokus technisch; Browser- und Screenreader-Prüfungen sind offen. M3 Listen- und Kachelansicht ist technisch umgesetzt; visuelle Abnahme offen. M4 Auswahl, Sortierung, Kachelzoom und Dokumentverschiebung mit Undo ist technisch umgesetzt; native Maus-DnD- und visuelle Abnahme offen. M5 mit Suche, Filtern und Tagverwaltung ist technisch umgesetzt; der vollständige visuelle und funktionale Vergleich bleibt offen. Geplant sind M6–M8 gemäß [Ticketkatalog](TICKETS.md).
+- Q10 bietet das zentrale Einstellungsmenü mit Hell-, Dunkel- und Systemdarstellung; visuelle und Screenreader-Abnahme sind offen.
 - Q2 CSS-Qualitätsprüfung ist technisch umgesetzt; visuelle und Accessibility-Abnahmen bleiben offen.
 - Q3 Modulgrenzen und Testaussagen sind technisch geprüft und korrigiert; Q4 automatisiert die Frontend-Formatierung; CSS-Typautomatisierung bleibt als Q5 geplant.
 - Q6 sichert Dropmarkierung, interne Drag-Quellen und Wurzelablage mit gemeinsamem Sitzungsvertrag und gezielten Tests ab; Q8 setzt die Löschung ausschließlich leerer Themen technisch um; die Browser- und Sichtabnahme ist offen. Q5 bleibt separat geplant, Browser-/Screenreader-Abnahmen bleiben offen.
