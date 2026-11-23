@@ -40,3 +40,34 @@ export function canMoveTopic(
       (!!parent && !parent.systemKey && !descendantIds(topics, id).has(parentId)))
   );
 }
+
+/** Returns a user-facing reason unless the existing, non-system topic has no direct content. */
+export function topicDeleteBlockReason(
+  topics: readonly Topic[],
+  documents: readonly { readonly topicId: TopicId }[],
+  id: TopicId,
+): string | null {
+  const topic = topics.find((item) => item.id === id);
+  if (!topic) return 'Dieses Thema existiert nicht mehr.';
+  if (topic.systemKey) return 'Systemthemen können nicht gelöscht werden.';
+  const hasDocuments = documents.some((document) => document.topicId === id);
+  const hasChildren = topics.some((item) => item.parentId === id);
+  if (hasDocuments && hasChildren)
+    return 'Dieses Thema enthält Dokumente und Unterthemen. Bitte zuerst Dokumente verschieben und Unterthemen entfernen.';
+  if (hasDocuments)
+    return 'Dieses Thema enthält Dokumente. Bitte zuerst die Dokumente verschieben.';
+  if (hasChildren)
+    return 'Dieses Thema enthält Unterthemen. Bitte zuerst die Unterthemen entfernen.';
+  return null;
+}
+
+/** Rechecks current contents at mutation time and removes only the requested node. */
+export function deleteEmptyTopic(
+  topics: readonly Topic[],
+  documents: readonly { readonly topicId: TopicId }[],
+  id: TopicId,
+): readonly Topic[] {
+  return topicDeleteBlockReason(topics, documents, id)
+    ? topics
+    : topics.filter((topic) => topic.id !== id);
+}

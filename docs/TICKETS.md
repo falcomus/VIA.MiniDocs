@@ -36,7 +36,7 @@ Stand: 22.11.2026. Einstieg, Phasen und kritischer Pfad: [Masterplan](MASTERPLAN
 
 ### M2 – Themenbaum und Navigation
 - **Status:** technisch abgeschlossen, Commit `bf29b663`; visuelle Browserabnahme offen, Nachverfolgung M8.
-- **Ziel / Umfang:** Hierarchie, Auswahl, rekursive Zähler, Breadcrumb, Kontextmenü, Anlegen/Umbenennen/Löschen und Themen umhängen; Dokumente gelöschter Teilbäume nach „Nicht zugeordnet“.
+- **Ziel / Umfang:** Hierarchie, Auswahl, rekursive Zähler, Breadcrumb, Kontextmenü, Anlegen/Umbenennen/Löschen und Themen umhängen; nur Themen ohne direkt zugeordnete Dokumente und ohne Unterthemen dürfen gelöscht werden.
 - **Ausgeschlossen:** Dokument-Drag-and-drop, ZIP-Export und Datenpersistenz; Spezialansicht wartender Transkripte gehört zu M7.
 - **Abhängigkeiten:** M1, Demodaten.
 - **Akzeptanz:** Baum und Dokumentliste synchron; Systemknoten geschützt, Zyklen verhindert; Dialoge und Menü mit Escape bedienbar. Visuelle Abnahme bleibt offen.
@@ -103,12 +103,14 @@ Stand: 22.11.2026. Einstieg, Phasen und kritischer Pfad: [Masterplan](MASTERPLAN
 - **Risiken:** ZIP-Unterstützung, beschädigte Dateien, heuristische Seitenzählung und Ressourcenverbrauch.
 
 ### Q8 – Themenlöschung an KU-Regel anpassen
-- **Status:** geplant; die vorhandene M2-Löschung entspricht der neuen Vorgabe noch nicht.
-- **Ziel / Umfang:** Themen nur löschen, wenn sie leer sind; Bedeutung von „leer“ und Rückmeldung für nicht löschbare Themen vor Umsetzung fachlich präzisieren.
-- **Ausgeschlossen:** Änderung der Löschlogik im Rahmen von M5-B.
-- **Abhängigkeiten:** M2; Abstimmung zu bestehenden Unterthemen und Dokumentzuordnungen.
-- **Akzeptanz / Tests:** Leere und nicht leere Themen sowie Systemknoten und geschützte Fälle anhand der abgestimmten Regel prüfen; bestehende Daten bleiben erhalten.
-- **Risiko:** bisheriges Verhalten und neue Regel widersprechen sich bis zur Umsetzung.
+- **Status:** technisch umgesetzt; Browser-, Screenreader- und Sichtabnahmen offen.
+- **Ziel / Umfang:** Nur existierende, nicht geschützte Themen ohne direkt zugeordnete Dokumente und ohne Unterthemen löschen. Auch leere Unterthemen verhindern das Löschen ihres Elternknotens; keine Teilbaumlöschung oder Umzuordnung von Dokumenten.
+- **Ausgeschlossen:** Papierkorb, Backend und weitere Funktionen.
+- **Abhängigkeiten:** M2 und bestehende Dokumentzuordnungen.
+- **Akzeptanz:** Gemeinsame Fachprüfung für Dialog und Löschung, erneute Prüfung bei der Zustandsänderung; gesperrte Löschung mit verständlicher Begründung, Bestätigung und Fokusführung für leere Themen. Systemthemen bleiben geschützt; Abbruch und Löschung ändern keine Dokumentzuordnungen.
+- **Tests:** Fachtests für fehlende und geschützte Knoten, Dokumente, Unterthemen, beide Hindernisse, leere Knoten und nachträgliche Belegung; Dialog- und Integrationstests für Sperre, Escape, Abbruch und Fokus. Bestehende Tests zur früheren Teilbaumlöschung an die neue Regel angepasst.
+- **Nachweise:** npm run check Exit 0; 131 Tests, davon 3 neue Fach-/Dialogtests, sowie Format-, TypeScript-, ESLint-, Stylelint- und Produktionsbuild-Prüfung erfolgreich. Bestehende Tests für den früheren Löschablauf wurden an die verbindliche Regel angepasst.
+- **Risiken:** Browser-/Screenreader-Verhalten und visuelle Abnahme sind nicht durch jsdom-Tests nachgewiesen.
 
 ### Q9 – Papierkorb und Wiederherstellung planen
 - **Status:** geplant.

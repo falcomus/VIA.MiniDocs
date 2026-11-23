@@ -11,8 +11,7 @@ export type TopicDialogState =
 interface TopicDialogProps {
   readonly dialog: TopicDialogState;
   readonly topics: readonly Topic[];
-  readonly affectedDocuments: number;
-  readonly descendantCount: number;
+  readonly deleteReason: string | null;
   readonly error: string;
   readonly onCancel: () => void;
   readonly onSubmit: (value: string) => void;
@@ -21,8 +20,7 @@ interface TopicDialogProps {
 export function TopicDialog({
   dialog,
   topics,
-  affectedDocuments,
-  descendantCount,
+  deleteReason,
   error,
   onCancel,
   onSubmit,
@@ -95,12 +93,7 @@ export function TopicDialog({
       >
         <h2 id="topic-dialog-title">{title}</h2>
         {dialog.kind === 'delete' ? (
-          <p>
-            „{topic?.name}“
-            {descendantCount > 1 ? ` und ${descendantCount - 1} Unterthema/-themen` : ''} löschen?{' '}
-            {affectedDocuments > 0 &&
-              `${affectedDocuments} ${affectedDocuments === 1 ? 'Dokument wird' : 'Dokumente werden'} nach „Nicht zugeordnet“ verschoben.`}
-          </p>
+          <p>{deleteReason ?? `„${topic?.name}“ löschen?`}</p>
         ) : (
           <form
             id="topic-form"
@@ -148,7 +141,10 @@ export function TopicDialog({
             type={dialog.kind === 'delete' ? 'button' : 'submit'}
             form={dialog.kind === 'delete' ? undefined : 'topic-form'}
             onClick={dialog.kind === 'delete' ? () => onSubmit(value) : undefined}
-            disabled={(dialog.kind === 'new' || dialog.kind === 'rename') && !value.trim()}
+            disabled={
+              (dialog.kind === 'delete' && !!deleteReason) ||
+              ((dialog.kind === 'new' || dialog.kind === 'rename') && !value.trim())
+            }
           >
             {dialog.kind === 'delete'
               ? 'Löschen'

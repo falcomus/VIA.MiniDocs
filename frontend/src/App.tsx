@@ -6,7 +6,12 @@ import { TopicTree } from './features/topics/TopicTree';
 import { useTopicDrag } from './features/topics/useTopicDrag';
 import { TopicDialog } from './features/topics/TopicDialog';
 import type { TopicDialogState } from './features/topics/TopicDialog';
-import { canMoveTopic, descendantIds, topicPath } from './features/topics/topicUtils';
+import {
+  canMoveTopic,
+  deleteEmptyTopic,
+  topicDeleteBlockReason,
+  topicPath,
+} from './features/topics/topicUtils';
 import type { Topic, TopicId } from './features/topics/topic.types';
 import { demoDocuments } from './features/documents/demoDocuments';
 import { DocumentOverview } from './features/documents/DocumentOverview';
@@ -33,7 +38,7 @@ export function App() {
     workspace.clear();
     search.setCriteria(next);
   }
-  const { documents, update: setDocuments } = workspace;
+  const { documents } = workspace;
   const [dialog, setDialog] = useState<TopicDialogState | null>(null);
   const [dialogError, setDialogError] = useState('');
   const drag = useTopicDrag(topics, moveTopic, rejectMove);
@@ -55,11 +60,8 @@ export function App() {
   const path = topicPath(topics, selectedTopicId);
   const dialogTopic =
     dialog && 'id' in dialog ? topics.find((topic) => topic.id === dialog.id) : undefined;
-  const deletedIds =
-    dialog?.kind === 'delete' && dialogTopic
-      ? descendantIds(topics, dialogTopic.id)
-      : new Set<TopicId>();
-  const affectedDocuments = documents.filter((document) => deletedIds.has(document.topicId)).length;
+  const deleteReason =
+    dialog?.kind === 'delete' ? topicDeleteBlockReason(topics, documents, dialog.id) : null;
 
   function openTags(next: TagDialogState) {
     returnFocus.current =
@@ -143,15 +145,14 @@ export function App() {
       }
       fallbackFocus.current = value || 'unassigned';
     } else {
-      if (!dialogTopic || dialogTopic.systemKey) return;
+      const reason = topicDeleteBlockReason(topics, documents, dialog.id);
+      if (reason || !dialogTopic) {
+        setDialogError(reason ?? 'Dieses Thema existiert nicht mehr.');
+        return;
+      }
       fallbackFocus.current = dialogTopic.parentId ?? 'unassigned';
-      setTopics((previous) => previous.filter((topic) => !deletedIds.has(topic.id)));
-      setDocuments((previous) =>
-        previous.map((document) =>
-          deletedIds.has(document.topicId) ? { ...document, topicId: 'unassigned' } : document,
-        ),
-      );
-      if (deletedIds.has(selectedTopicId)) navigate(dialogTopic.parentId ?? 'unassigned');
+      setTopics((previous) => deleteEmptyTopic(previous, documents, dialog.id));
+      if (selectedTopicId === dialog.id) navigate(dialogTopic.parentId ?? 'unassigned');
     }
     closeDialog();
   }
@@ -159,8 +160,7 @@ export function App() {
     <TopicDialog
       dialog={dialog}
       topics={topics}
-      affectedDocuments={affectedDocuments}
-      descendantCount={deletedIds.size}
+      deleteReason={deleteReason}
       error={dialogError}
       onCancel={closeDialog}
       onSubmit={submit}

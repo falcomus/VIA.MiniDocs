@@ -78,7 +78,7 @@ it('benennt ein Thema um und verhindert leere Namen', async () => {
   expect(screen.getByRole('button', { name: 'Kunde Gamma' })).toBeInTheDocument();
 });
 
-it('löscht Teilbäume und ordnet ihre Dokumente dem Systemknoten zu', async () => {
+it('verhindert das Löschen eines Teilbaums und erhält seine Dokumente', async () => {
   const user = userEvent.setup();
   render(<App />);
   fireEvent.click(screen.getByRole('button', { name: 'Listenansicht' }));
@@ -90,16 +90,18 @@ it('löscht Teilbäume und ordnet ihre Dokumente dem Systemknoten zu', async () 
     keys: '[MouseRight]',
   });
   await user.click(screen.getByRole('menuitem', { name: 'Löschen' }));
-  expect(screen.getByRole('dialog')).toHaveTextContent(
-    '2 Dokumente werden nach „Nicht zugeordnet“ verschoben',
-  );
-  await user.click(screen.getByRole('button', { name: 'Löschen' }));
-  expect(screen.queryByRole('button', { name: 'Kunde Alpha' })).not.toBeInTheDocument();
-  expect(screen.getByRole('heading', { level: 1, name: 'Kunden' })).toBeInTheDocument();
-  await user.click(screen.getByRole('button', { name: 'Nicht zugeordnet' }));
+  expect(screen.getByRole('dialog')).toHaveTextContent('Unterthemen');
+  expect(screen.getByRole('button', { name: 'Löschen' })).toBeDisabled();
+  await user.click(screen.getByRole('button', { name: 'Abbrechen' }));
+  expect(
+    within(screen.getByRole('navigation', { name: 'Themen' })).getByRole('button', {
+      name: 'Kunde Alpha',
+    }),
+  ).toBeInTheDocument();
   expect(
     screen.getByText('Lenkungskreis – Planungsstand', { selector: 'strong' }),
   ).toBeInTheDocument();
+  await user.click(screen.getByRole('button', { name: 'Projektplanung' }));
   expect(
     screen.getByText('Projektrahmen – Diskussion', { selector: 'strong' }),
   ).toBeInTheDocument();
@@ -164,19 +166,29 @@ it('bricht das Verschieben ohne Änderung ab und gibt den Fokus zurück', async 
   expect(beta.closest('ul')?.closest('li')).toHaveTextContent('Kunden');
 });
 
-it('stellt nach dem Löschen den Fokus auf ein bestehendes Elternthema', async () => {
+it('stellt nach dem Löschen eines leeren Unterthemas den Fokus auf sein Elternthema', async () => {
   const user = userEvent.setup();
   render(<App />);
-  const alpha = screen.getByRole('button', { name: 'Kunde Alpha' });
-  alpha.focus();
+  const parent = screen.getByRole('button', { name: 'Kunde Alpha' });
+  parent.focus();
+  await user.keyboard('{Shift>}{F10}{/Shift}');
+  await user.click(screen.getByRole('menuitem', { name: 'Neues Unterthema' }));
+  await user.type(screen.getByLabelText('Name'), 'Leeres Kind');
+  await user.keyboard('{Enter}');
+  const child = screen.getByRole('button', { name: 'Leeres Kind' });
+  child.focus();
   await user.keyboard('{Shift>}{F10}{/Shift}');
   await user.click(screen.getByRole('menuitem', { name: 'Löschen' }));
   expect(screen.getByRole('button', { name: 'Abbrechen' })).toHaveFocus();
   await user.tab({ shift: true });
   expect(screen.getByRole('button', { name: 'Löschen' })).toHaveFocus();
   await user.click(screen.getByRole('button', { name: 'Löschen' }));
-  expect(screen.getByRole('button', { name: 'Kunden' })).toHaveFocus();
-  expect(alpha.isConnected).toBe(false);
+  expect(parent).toHaveFocus();
+  expect(child.isConnected).toBe(false);
+  await user.click(screen.getByRole('button', { name: 'Lenkungskreis' }));
+  expect(
+    screen.getByRole('checkbox', { name: 'Lenkungskreis – Planungsstand auswählen' }),
+  ).toBeInTheDocument();
 });
 
 it('bietet im Systemknoten ein fokussierbares Schließen und keine Änderungsaktionen', async () => {
@@ -207,7 +219,10 @@ it('stellt nach dem Löschen eines Wurzelthemas den Fokus auf Nicht zugeordnet',
   const user = userEvent.setup();
   render(<App />);
 
-  const root = screen.getByRole('button', { name: 'Eigene Notizen' });
+  await user.click(screen.getByRole('button', { name: 'Neues Thema auf oberster Ebene' }));
+  await user.type(screen.getByLabelText('Name'), 'Leere Wurzel');
+  await user.keyboard('{Enter}');
+  const root = screen.getByRole('button', { name: 'Leere Wurzel' });
   await user.click(root);
   await user.keyboard('{Shift>}{F10}{/Shift}');
   await user.click(screen.getByRole('menuitem', { name: 'Löschen' }));

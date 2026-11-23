@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { demoTopics } from './demoTopics';
-import { canMoveTopic, descendantIds, topicPath } from './topicUtils';
+import {
+  canMoveTopic,
+  deleteEmptyTopic,
+  descendantIds,
+  topicDeleteBlockReason,
+  topicPath,
+} from './topicUtils';
 
 describe('Themenhierarchie', () => {
   it('ermittelt Pfad und tief verschachtelte Nachfahren', () => {
@@ -19,4 +25,28 @@ describe('Themenhierarchie', () => {
     expect(canMoveTopic(demoTopics, 'alpha', 'missing')).toBe(false);
     expect(canMoveTopic(demoTopics, 'alpha', null)).toBe(true);
   });
+});
+
+it('erlaubt nur existierende, nicht geschützte Themen ohne direkte Dokumente und Unterthemen', () => {
+  const documents = [{ topicId: 'alpha-steering' }, { topicId: 'alpha' }];
+  expect(topicDeleteBlockReason(demoTopics, documents, 'missing')).toContain('existiert nicht');
+  expect(topicDeleteBlockReason(demoTopics, documents, 'unassigned')).toContain('Systemthemen');
+  expect(topicDeleteBlockReason(demoTopics, documents, 'alpha-steering')).toContain('Dokumente');
+  expect(topicDeleteBlockReason(demoTopics, [], 'alpha')).toContain('Unterthemen');
+  expect(topicDeleteBlockReason(demoTopics, documents, 'alpha')).toContain(
+    'Dokumente und Unterthemen',
+  );
+  expect(topicDeleteBlockReason(demoTopics, [], 'alpha-steering')).toBeNull();
+});
+it('prüft bei Ausführung erneut und bewahrt Themen sowie Zuordnungen bei inzwischen belegtem Thema', () => {
+  const docs: { topicId: string }[] = [];
+  expect(topicDeleteBlockReason(demoTopics, docs, 'alpha-steering')).toBeNull();
+  const later = [{ topicId: 'alpha-steering' }];
+  expect(deleteEmptyTopic(demoTopics, later, 'alpha-steering')).toBe(demoTopics);
+  expect(later).toEqual([{ topicId: 'alpha-steering' }]);
+  const withChild = [...demoTopics, { id: 'new', parentId: 'alpha-steering', name: 'Neu' }];
+  expect(deleteEmptyTopic(withChild, docs, 'alpha-steering')).toBe(withChild);
+  const deleted = deleteEmptyTopic(demoTopics, docs, 'alpha-steering');
+  expect(deleted).toHaveLength(demoTopics.length - 1);
+  expect(deleted.some((topic) => topic.id === 'alpha-steering')).toBe(false);
 });

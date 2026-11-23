@@ -531,7 +531,7 @@ it('nimmt Dokument-Drop auf Alle zugeordnet an und kehrt beim Undo zum positiven
   );
   expect(screen.getByRole('heading', { name: 'Alle zugeordnet' })).toBeInTheDocument();
 });
-it('kehrt nach Themenlöschung mit Dokumenten automatisch zu Nicht zugeordnet zurück', async () => {
+it('verhindert das Löschen eines Themas mit Dokumenten und erhält den positiven Systemstatus', async () => {
   const user = userEvent.setup();
   render(<App />);
   const tree = within(screen.getByRole('navigation', { name: 'Themen' }));
@@ -545,15 +545,15 @@ it('kehrt nach Themenlöschung mit Dokumenten automatisch zu Nicht zugeordnet zu
     keys: '[MouseRight]',
   });
   await user.click(screen.getByRole('menuitem', { name: 'Löschen' }));
-  await user.click(screen.getByRole('button', { name: 'Löschen' }));
-  expect(tree.getByRole('button', { name: 'Nicht zugeordnet' })).toHaveAttribute(
-    'aria-description',
-    '3 Dokumente einschließlich Unterthemen',
-  );
-  await user.click(tree.getByRole('button', { name: 'Nicht zugeordnet' }));
-  expect(screen.getByRole('heading', { name: 'Nicht zugeordnet' })).toBeInTheDocument();
+  expect(screen.getByRole('dialog')).toHaveTextContent('enthält Dokumente');
+  expect(screen.getByRole('button', { name: 'Löschen' })).toBeDisabled();
+  await user.click(screen.getByRole('button', { name: 'Abbrechen' }));
+  expect(tree.getByRole('button', { name: 'Alle zugeordnet' })).toBeInTheDocument();
+  await user.click(tree.getByRole('button', { name: 'Kunde Beta' }));
+  expect(screen.getByRole('heading', { name: 'Kunde Beta' })).toBeInTheDocument();
   expect(checkbox()).toBeInTheDocument();
 });
+
 it('öffnet nach Drop-Navigation und manuellem Einklappen ein neu angelegtes Unterthema dauerhaft sichtbar', async () => {
   const user = userEvent.setup();
   render(<App />);
