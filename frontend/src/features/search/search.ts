@@ -1,3 +1,5 @@
+import { normalizeSearchText } from './normalize';
+export { normalizeSearchText } from './normalize';
 import type { DocumentSummary } from '../documents/document.types';
 import type { TagId } from '../documents/tags';
 import { calendarValue } from '../documents/documentOperations';
@@ -22,12 +24,6 @@ export interface SearchResult {
 export interface DateRange {
   readonly from: string;
   readonly to: string;
-}
-export function normalizeSearchText(value: string): string {
-  return value
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '');
 }
 /** Mirrors KU parsing: double-quoted phrases or non-whitespace terms. */
 export function parseSearchQuery(query: string): string[] {

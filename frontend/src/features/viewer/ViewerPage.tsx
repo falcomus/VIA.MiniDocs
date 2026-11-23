@@ -9,7 +9,7 @@ export function ViewerPage({
   readonly page: number;
   readonly zoom: number;
 }) {
-  const transcript = document.transcript?.pages.find((item) => item.page === page);
+  const lines = page === 1 ? document.demoPreview?.lines : undefined;
   return (
     <div
       className={styles.page}
@@ -25,11 +25,12 @@ export function ViewerPage({
       <p>
         Seite {page} von {document.pages}
       </p>
-      {transcript ? (
-        <pre>{transcript.text}</pre>
+      {lines ? (
+        <pre>{lines.join('\n')}</pre>
       ) : (
         <p>Für diese Seite sind keine Demo-Textdaten vorhanden.</p>
       )}
+      <p>Die synthetische Seite ist unabhängig vom bearbeitbaren Transkript.</p>
     </div>
   );
 }

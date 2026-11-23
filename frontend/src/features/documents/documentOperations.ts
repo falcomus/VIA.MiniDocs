@@ -1,3 +1,5 @@
+import { applyTranscriptOperation } from '../viewer/transcriptOperations';
+import type { TranscriptOperation } from '../viewer/transcriptOperations';
 import { setDocumentTags } from './tagOperations';
 import type { DocumentSummary } from './document.types';
 import type { Topic } from '../topics/topic.types';
@@ -41,6 +43,12 @@ export interface DocumentState {
   readonly message: string;
 }
 export type DocumentAction =
+  | {
+      type: 'transcript';
+      id: string;
+      operation: TranscriptOperation;
+      visibleIds: (documents: readonly DocumentSummary[]) => readonly string[];
+    }
   | { type: 'select'; id: string; visible: readonly string[]; toggle: boolean; range: boolean }
   | { type: 'all'; ids: readonly string[] }
   | { type: 'clear' }
@@ -98,6 +106,23 @@ export function documentReducer(state: DocumentState, action: DocumentAction): D
         undo: null,
         message: '',
       };
+    case 'transcript': {
+      let changed = false;
+      const documents = state.documents.map((doc) => {
+        if (doc.id !== action.id) return doc;
+        const next = applyTranscriptOperation(doc, action.operation);
+        changed = changed || next !== doc;
+        return next;
+      });
+      if (!changed) return state;
+      const visible = new Set(action.visibleIds(documents));
+      return {
+        ...state,
+        documents,
+        selected: state.selected.filter((id) => visible.has(id)),
+        anchor: state.anchor && visible.has(state.anchor) ? state.anchor : null,
+      };
+    }
     case 'tags': {
       const visible = new Set(action.visibleAfter);
       return {

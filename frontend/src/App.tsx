@@ -231,6 +231,7 @@ export function App() {
         tagModal ||
         (viewer && (
           <DocumentViewer
+            onEditTranscript={workspace.editTranscript}
             session={viewer}
             documents={documents}
             topics={topics}

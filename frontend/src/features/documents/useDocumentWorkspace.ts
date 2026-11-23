@@ -1,3 +1,4 @@
+import type { TranscriptOperation } from '../viewer/transcriptOperations';
 import { setDocumentTags } from './tagOperations';
 import { searchDocuments, sortByRelevance } from '../search/search';
 import type { SearchControlsState } from '../search/useSearchState';
@@ -76,6 +77,22 @@ export function useDocumentWorkspace(
         visible: visibleIds,
         toggle: checkbox || !!event.ctrlKey || !!event.metaKey,
         range: !checkbox && !!event.shiftKey,
+      }),
+    editTranscript: (id: string, operation: TranscriptOperation) =>
+      dispatch({
+        type: 'transcript',
+        id,
+        operation,
+        visibleIds: (documents) =>
+          search.active
+            ? searchDocuments(documents, topics, {
+                ...search.criteria,
+                scope:
+                  search.criteria.scope === 'topic' ? { kind: 'topic', topicId } : { kind: 'all' },
+              }).map((result) => result.documentId)
+            : documents
+                .filter((document) => document.topicId === topicId)
+                .map((document) => document.id),
       }),
     setTag: (ids: readonly string[], tagId: string, on: boolean) => {
       const allowed = ids.filter((id) => visibleIds.includes(id));

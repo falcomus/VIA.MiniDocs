@@ -83,7 +83,7 @@ Stand: 22.11.2026. Einstieg, Phasen und kritischer Pfad: [Masterplan](MASTERPLAN
 - **Risiken:** Änderungen bestehen nur im Demo-Arbeitsspeicher; Browser-/Screenreader-, native Drag-and-drop- und visuelle Abnahmen bleiben offen. Demo-Teilstringsuche ist keine Datenbanksuche.
 
 ### M6 – Viewer und Transkript-Editor
-- **Status:** M6-A technisch umgesetzt; M6-B und M6-C geplant. M6 insgesamt bleibt offen.
+- **Status:** M6-A und M6-B technisch umgesetzt; M6-C geplant. M6 insgesamt bleibt offen.
 - **Ziel / Umfang:** Overlay/Tab, Trefferseite, Dokumentnavigation, Viewer-Metadaten und Tags, Demo-Zoom, seitenweiser Editor, Suchen/alle ersetzen, Synchronisierung und Splitter.
 - **Ausgeschlossen:** dauerhafte Speicherung und echte VIA.Docs-Verbindung; Import-/Exportabläufe aus M7.
 - **Abhängigkeiten:** M3–M5; M7 ergänzt importierte Dateien.
@@ -96,9 +96,18 @@ Stand: 22.11.2026. Einstieg, Phasen und kritischer Pfad: [Masterplan](MASTERPLAN
 - **Status:** technisch umgesetzt; vollständige Sicht-, Screenreader- und Zoomabnahme offen.
 - **Umfang:** Doppelklick, Enter, Einzelaktion und konfigurierbarer Öffnungsmodus; Overlay mit Metadaten, Tags, Seiten- und Dokumentnavigation, Suchtrefferseite und unabhängigem Demozoom. Modifizierter Doppelklick, Mittelklick und Symbol öffnen einen neuen Tab.
 - **Architektur:** Viewer speichert ID, Seitenzahl und bei Öffnung gültigen sortierten ID-/Trefferkontext; Dokumentdaten bleiben im bestehenden Zustand. Eigenständige Tab-URL: ?viewer=tab&document=<ID>&page=<Seite>, optional term. Zugriff anhand stabiler ID; Eingaben werden geprüft.
-- **Grenzen:** Tab nutzt initiale Demodaten und synchronisiert Änderungen oder Ergebnisreihenfolge nicht zwischen Tabs. Synthetische Seiten sind keine PDF-Dateien. Popup-Blockaden sind wegen noopener nicht zuverlässig erkennbar. Echter PDF-Renderer und Synchronisierung bleiben M6-C; Transkripteditor bleibt M6-B.
+- **Grenzen:** Tab nutzt initiale Demodaten und synchronisiert Änderungen oder Ergebnisreihenfolge nicht zwischen Tabs. Synthetische Seiten sind keine PDF-Dateien. Popup-Blockaden sind wegen noopener nicht zuverlässig erkennbar. Echter PDF-Renderer und Synchronisierung bleiben M6-C.
 - **Browsernachweis:** Integrierter Browser mit lokalem Vite-Server: Overlay per Doppelklick geöffnet, auf Seite 2 gewechselt und per Aktion echten neuen Tab mit dokumentierter URL und Seite 2 geöffnet. Keine vollständige visuelle oder Screenreader-Abnahme.
 - **Tests / Nachweise:** npm run check Exit 0, 156 Tests einschließlich 13 neuer Viewer-Fälle; Fokus, Tastatur, Öffnungsmodi, Persistenz, sichere URLs, Trefferseiten, Navigation, Seiten, Zoom, Auswahl und Speicherfehler sowie Produktionsbuild geprüft. Viewer-Zoom nutzt einen Slider; Strg-Mausrad ist nicht implementiert.
+
+#### M6-B – Seitenweiser Transkript-Editor
+- **Status:** technisch umgesetzt; M6 insgesamt und M6-C bleiben offen.
+- **Umfang und Datenmodell:** Bearbeitbarer mehrzeiliger Text je gültiger Dokumentseitennummer; fehlende Seiten werden bei Eingabe ergänzt. Das bestehende optionale Transkript mit Seiten und edited bleibt maßgeblich; leere Eingaben löschen keine Seite stillschweigend. Die synthetische Dokumentseite ist vom Transkript unabhängig.
+- **Speicher und State:** Änderungen werden sofort im bestehenden Dokument-Reducer im jeweiligen Browser-Arbeitsspeicher übernommen. Ein gezielter Transkriptvorgang erhält Tags und Verschiebe-Undo; Undo stellt die Themenzuordnung wieder her und behält Textänderungen. Der separate Tab nutzt dieselbe Fachlogik, aber eigene Demodaten ohne Tab-Synchronisierung; Neuladen verwirft Änderungen.
+- **Suche und Ersetzen:** Dokumentweite, nicht überlappende Teilstringsuche ohne Beachtung von Groß-/Kleinschreibung oder Akzenten; Trefferpositionen beziehen sich auf den Originaltext. Treffer lassen sich seitenübergreifend ansteuern und einzeln ersetzen. Wie im Original ersetzt „Alle ersetzen“ dokumentweit wörtlich und ohne Beachtung der Groß-/Kleinschreibung, jedoch mit Beachtung von Akzenten; eine leere Ersetzung ist zulässig.
+- **M5-Integration:** Die bestehende Volltextsuche berücksichtigt den aktuellen Transkripttext unmittelbar. Fällt das geöffnete Dokument aus einem aktiven Filter, bleibt der Viewer darauf geöffnet; Ergebnisliste, Auswahl und Anker werden aktualisiert.
+- **Nachweise:** Fach- und Integrationstests prüfen unter anderem Seitennummern, Unicode, Suche/Ersetzung, Seiten- und Dokumentwechsel, aktive Filter, Undo, Tags und den eigenständigen Demo-Tab. Im integrierten Browser wurden Overlay, Bearbeitung, Seitenwechsel, Suche/Ersetzung, erneutes Öffnen und M5-Suche sowie Fokus an Seitengrenze und nach Ersetzen geprüft. Die Unicode-Suche wurde nach der letzten Suchlogikänderung erneut im Browser geprüft.
+- **Offen / Risiken:** Vollständige visuelle und Screenreader-Abnahme, tatsächlicher Vergleich des bearbeitenden separaten Tabs, Hell-/Dunkelmodus, schmales Fenster und 200 % Browserzoom sind nicht abgenommen. Kein PDF-Renderer, keine Persistenz oder Synchronisierung; M6-C bleibt geplant.
 
 ### M7 – Upload, Downloads, Dialoge und Einstellungen
 - **Status:** geplant.

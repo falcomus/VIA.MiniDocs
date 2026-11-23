@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { DocumentSummary } from '../documents/document.types';
 import type { Topic } from '../topics/topic.types';
 import { topicPath } from '../topics/topicUtils';
@@ -8,6 +8,8 @@ import { TranscriptStatus } from '../documents/DocumentSummary';
 import { formatDocumentDate } from '../documents/documentDate';
 import { openViewerTab, startPage } from './viewerModel';
 import type { ViewerSession } from './viewerModel';
+import { TranscriptPane } from './TranscriptPane';
+import type { TranscriptOperation } from './transcriptOperations';
 import { ViewerPage } from './ViewerPage';
 import styles from './DocumentViewer.module.css';
 export function DocumentViewer({
@@ -17,6 +19,7 @@ export function DocumentViewer({
   tags,
   onClose,
   initialPage,
+  onEditTranscript,
 }: {
   readonly session: ViewerSession;
   readonly documents: readonly DocumentSummary[];
@@ -24,6 +27,7 @@ export function DocumentViewer({
   readonly tags: readonly TagDefinition[];
   readonly onClose?: () => void;
   readonly initialPage?: number;
+  readonly onEditTranscript: (id: string, operation: TranscriptOperation) => void;
 }) {
   const [id, setId] = useState(session.id);
   const current = documents.find((doc) => doc.id === id);
@@ -33,14 +37,31 @@ export function DocumentViewer({
   const [zoom, setZoom] = useState(100);
   const [tabError, setTabError] = useState('');
   const ref = useRef<HTMLDivElement>(null);
+  const previousPage = useRef<HTMLButtonElement>(null);
+  const nextPage = useRef<HTMLButtonElement>(null);
+  const previousDocument = useRef<HTMLButtonElement>(null);
+  const nextDocument = useRef<HTMLButtonElement>(null);
+  const pendingFocus = useRef<React.RefObject<HTMLButtonElement | null> | null>(null);
   useEffect(() => {
     ref.current?.querySelector<HTMLButtonElement>('button:not(:disabled)')?.focus();
   }, []);
+  useLayoutEffect(() => {
+    pendingFocus.current?.current?.focus();
+    pendingFocus.current = null;
+  }, [page, id]);
   const ids = session.ids.filter((item) => documents.some((doc) => doc.id === item));
   const index = ids.indexOf(id);
   const step = (offset: number) => {
     const next = documents.find((doc) => doc.id === ids[index + offset]);
     if (next) {
+      if (
+        offset > 0 &&
+        index + offset === ids.length - 1 &&
+        document.activeElement === nextDocument.current
+      )
+        pendingFocus.current = previousDocument;
+      if (offset < 0 && index + offset === 0 && document.activeElement === previousDocument.current)
+        pendingFocus.current = nextDocument;
       setId(next.id);
       setPage(startPage(next, session.hits[next.id]));
     }
@@ -64,7 +85,7 @@ export function DocumentViewer({
           if (event.key === 'Tab' && onClose) {
             const controls = Array.from(
               event.currentTarget.querySelectorAll<HTMLElement>(
-                'button:not(:disabled), select:not(:disabled), input:not(:disabled), a[href]',
+                'button:not(:disabled), select:not(:disabled), input:not(:disabled), textarea:not(:disabled), a[href]',
               ),
             );
             if (event.shiftKey && document.activeElement === controls[0]) {
@@ -89,10 +110,14 @@ export function DocumentViewer({
         <header className={styles.header}>
           <h1 id="viewer-title">{current?.title ?? 'Dokument nicht gefunden'}</h1>
           <div className={styles.controls}>
-            <button disabled={index <= 0} onClick={() => step(-1)}>
+            <button ref={previousDocument} disabled={index <= 0} onClick={() => step(-1)}>
               Vorheriges Dokument
             </button>
-            <button disabled={index < 0 || index >= ids.length - 1} onClick={() => step(1)}>
+            <button
+              ref={nextDocument}
+              disabled={index < 0 || index >= ids.length - 1}
+              onClick={() => step(1)}
+            >
               Nächstes Dokument
             </button>
             {current && onClose && (
@@ -135,7 +160,14 @@ export function DocumentViewer({
               )}
             </div>
             <div className={styles.controls}>
-              <button disabled={validPage <= 1} onClick={() => setPage(validPage - 1)}>
+              <button
+                ref={previousPage}
+                disabled={validPage <= 1}
+                onClick={() => {
+                  if (validPage === 2) pendingFocus.current = nextPage;
+                  setPage(validPage - 1);
+                }}
+              >
                 Vorherige Seite
               </button>
               <label>
@@ -149,7 +181,14 @@ export function DocumentViewer({
                 </select>{' '}
                 von {pages}
               </label>
-              <button disabled={validPage >= pages} onClick={() => setPage(validPage + 1)}>
+              <button
+                ref={nextPage}
+                disabled={validPage >= pages}
+                onClick={() => {
+                  if (validPage + 1 === pages) pendingFocus.current = previousPage;
+                  setPage(validPage + 1);
+                }}
+              >
                 Nächste Seite
               </button>
               <label>
@@ -165,8 +204,17 @@ export function DocumentViewer({
                 {zoom} %
               </label>
             </div>
-            <div className={styles.pages}>
-              <ViewerPage document={current} page={validPage} zoom={zoom} />
+            <div className={styles.body}>
+              <div className={styles.pages}>
+                <ViewerPage document={current} page={validPage} zoom={zoom} />
+              </div>
+              <TranscriptPane
+                key={current.id}
+                document={current}
+                page={validPage}
+                onPageChange={setPage}
+                onEdit={(operation) => onEditTranscript(current.id, operation)}
+              />
             </div>
           </>
         ) : (
