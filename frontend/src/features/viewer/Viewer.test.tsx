@@ -8,6 +8,16 @@ import { StandaloneViewer } from './StandaloneViewer';
 const row = (id: string) => document.querySelector<HTMLElement>(`[data-document-id="${id}"]`)!;
 const viewer = () =>
   within(screen.getByRole('dialog', { name: /Besprechungsnotizen|Offene Punkte|Lenkungskreis/ }));
+/** Checks actual navigation and matching transcript/SVG page, not removed HTML helper text. */
+function expectDemoPage(page: number, count: number) {
+  const pageSelect = screen.getByRole('combobox', { name: /^Seite/ });
+  expect(pageSelect).toHaveValue(String(page));
+  expect(within(pageSelect).getAllByRole('option')).toHaveLength(count);
+  expect(screen.getByRole('heading', { name: `Transkript · Seite ${page}` })).toBeInTheDocument();
+  expect(screen.getByRole('img', { name: 'Synthetische Demoseite – kein PDF' })).toHaveTextContent(
+    `S. ${page}`,
+  );
+}
 beforeEach(() => {
   localStorage.removeItem('via.minidocs.opening-mode');
   window.history.replaceState({}, '', '/');
@@ -26,11 +36,13 @@ it.each(['Kachelansicht', 'Listenansicht'])(
     row('demo-1').focus();
     fireEvent.doubleClick(row('demo-1'));
     expect(viewer().getByText(/Demo-Notizen-1.pdf/)).toBeInTheDocument();
-    expect(viewer().getByText('Synthetische Demoseite – kein PDF')).toBeInTheDocument();
+    expect(
+      viewer().getByRole('img', { name: 'Synthetische Demoseite – kein PDF' }),
+    ).toBeInTheDocument();
     expect(viewer().getByRole('combobox', { name: /Seite/ })).toHaveValue('1');
     expect(viewer().getByRole('button', { name: 'Vorherige Seite' })).toBeDisabled();
     fireEvent.click(viewer().getByRole('button', { name: 'Nächste Seite' }));
-    expect(viewer().getByText('Seite 2 von 2')).toBeInTheDocument();
+    expectDemoPage(2, 2);
     expect(viewer().getByRole('button', { name: 'Nächste Seite' })).toBeDisabled();
     fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
     expect(row('demo-1')).toHaveFocus();
@@ -44,7 +56,7 @@ it('erhält Einzel-/Mehrfachauswahl und öffnet die Auswahl über die Aktionslei
   expect(screen.getByText('2 Dokumente ausgewählt')).toBeInTheDocument();
   fireEvent.click(row('demo-1'));
   fireEvent.click(screen.getByRole('button', { name: 'Öffnen' }));
-  expect(viewer().getByText('Seite 1 von 2')).toBeInTheDocument();
+  expectDemoPage(1, 2);
   fireEvent.click(viewer().getByRole('button', { name: 'Schließen' }));
   expect(screen.getByText('1 Dokument ausgewählt')).toBeInTheDocument();
 });
@@ -54,7 +66,9 @@ it('öffnet per Enter, Leertaste bleibt Auswahl, ohne Transkript sind Seiten bed
   fireEvent.keyDown(row('demo-2'), { key: ' ' });
   expect(screen.getByText('1 Dokument ausgewählt')).toBeInTheDocument();
   fireEvent.keyDown(row('demo-2'), { key: 'Enter' });
-  expect(viewer().getByText(/keine Demo-Textdaten/)).toBeInTheDocument();
+  expect(
+    viewer().getByRole('img', { name: 'Synthetische Demoseite – kein PDF' }),
+  ).toBeInTheDocument();
   expect(viewer().getByRole('button', { name: 'Nächste Seite' })).toBeDisabled();
 });
 it('verwendet Trefferseite und die sortierte themenübergreifende Suchreihenfolge', () => {
@@ -64,14 +78,27 @@ it('verwendet Trefferseite und die sortierte themenübergreifende Suchreihenfolg
     target: { value: 'date-asc' },
   });
   fireEvent.doubleClick(row('demo-3'));
-  expect(viewer().getByText('Seite 2 von 4')).toBeInTheDocument();
+  expectDemoPage(2, 4);
   expect(viewer().getByText(/Suchtreffer: schritte/)).toBeInTheDocument();
   expect(viewer().getByRole('button', { name: 'Vorheriges Dokument' })).toBeDisabled();
   fireEvent.click(viewer().getByRole('button', { name: 'Nächstes Dokument' }));
-  expect(viewer().getByText('Seite 1 von 2')).toBeInTheDocument();
+  expectDemoPage(1, 2);
   expect(viewer().getByRole('button', { name: 'Nächstes Dokument' })).toBeDisabled();
   fireEvent.keyDown(screen.getByRole('dialog'), { key: 'ArrowLeft' });
-  expect(viewer().getByText('Seite 2 von 4')).toBeInTheDocument();
+  expectDemoPage(2, 4);
+});
+it('zeigt die KU-orientierte Werkzeugleiste im Dokumentbereich und erhält die Navigation', () => {
+  render(<App />);
+  fireEvent.doubleClick(row('demo-1'));
+  const pane = screen.getByRole('toolbar', { name: 'Dokumentansicht' });
+  expect(document.querySelector('#viewer-document-pane')).toContainElement(pane);
+  expect(within(pane).getByRole('slider', { name: 'Viewer-Zoom' })).toHaveValue('100');
+  fireEvent.click(within(pane).getByRole('button', { name: 'Vergrößern' }));
+  expect(within(pane).getByRole('slider', { name: 'Viewer-Zoom' })).toHaveValue('110');
+  fireEvent.click(within(pane).getByRole('button', { name: 'Nächste Seite' }));
+  expectDemoPage(2, 2);
+  expect(within(pane).getByRole('button', { name: 'Nächste Seite' })).toBeDisabled();
+  expect(viewer().getByRole('button', { name: 'Schließen' })).toBeInTheDocument();
 });
 it('prüft Trefferseiten und erzeugt stabile sichere Tab-URLs', () => {
   const doc = demoDocuments[0];
@@ -118,7 +145,7 @@ it('persistiert Öffnungsmodus und fällt bei ungültigem Wert auf Overlay zurü
 it('validiert eigenständige Tab-URLs und öffnet eine angegebene Demoseite', () => {
   window.history.replaceState({}, '', '/?viewer=tab&document=demo-1&page=2');
   const { unmount } = render(<StandaloneViewer />);
-  expect(screen.getByText('Seite 2 von 2')).toBeInTheDocument();
+  expectDemoPage(2, 2);
   unmount();
   window.history.replaceState({}, '', '/?viewer=tab&document=demo-1&page=99');
   render(<StandaloneViewer />);
@@ -133,7 +160,7 @@ it('begrenzt Viewer-Zoom unabhängig vom Kachelzoom und schützt den Hintergrund
   fireEvent.change(slider, { target: { value: '200' } });
   expect(slider).toHaveValue('200');
   fireEvent.keyDown(slider, { key: 'ArrowRight' });
-  expect(viewer().getByText('Seite 1 von 2')).toBeInTheDocument();
+  expectDemoPage(1, 2);
   fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
   expect(screen.getByRole('slider', { name: 'Zoom' })).toHaveValue('190');
   expect(screen.getByText('1 Dokument ausgewählt')).toBeInTheDocument();

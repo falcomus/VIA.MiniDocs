@@ -47,6 +47,21 @@
   width: 100%;
   height: 100%;
 }
+.pdfPreview {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  font-size: 11px;
+  text-align: center;
+}
+.pdfPreview img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
 
 .paper {
   fill: var(--demo-paper);

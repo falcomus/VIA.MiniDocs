@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { AppShell, Content, Sidebar, Toolbar } from './components/AppShell';
 import { demoTopics } from './features/topics/demoTopics';
 import { topicDisplayName } from './features/topics/topicDisplayName';
@@ -23,7 +23,10 @@ import { useSearchState, emptySearch } from './features/search/useSearchState';
 import type { SearchState } from './features/search/useSearchState';
 import { useOpeningMode } from './features/viewer/openingMode';
 import { DocumentViewer } from './features/viewer/DocumentViewer';
-import { demoDocumentSource, openViewerTab, startPage } from './features/viewer/viewerModel';
+import { openViewerTab, startPage } from './features/viewer/viewerModel';
+import { importPdfs } from './features/documents/pdfImport';
+import { channelName, isRequest, isTranscriptUpdate } from './features/viewer/pdfTransfer';
+import type { PdfRequest } from './features/viewer/pdfTransfer';
 import type { ViewerSession } from './features/viewer/viewerModel';
 import { SelectionBar } from './features/documents/SelectionBar';
 import { demoTags } from './features/documents/tags';
@@ -40,11 +43,113 @@ export function App() {
   const [tags, setTags] = useState(demoTags);
   const [tagDialog, setTagDialog] = useState<TagDialogState | null>(null);
   const workspace = useDocumentWorkspace(demoDocuments, topics, selectedTopicId, search);
+  const [owner] = useState(() => crypto.randomUUID());
+  const pendingAcks = useRef<string[]>([]);
+  const pendingRequests = useRef<PdfRequest[]>([]);
+  const transferChannel = useRef<BroadcastChannel | null>(null);
+  const [ackSequence, setAckSequence] = useState(0);
+  const editTranscript = useRef(workspace.editTranscript);
+  useEffect(() => {
+    editTranscript.current = workspace.editTranscript;
+  }, [workspace.editTranscript]);
   function changeSearch(next: SearchState) {
     workspace.clear();
     search.setCriteria(next);
   }
   const { documents } = workspace;
+  const transferData = useRef({ documents, topics, tags });
+  useEffect(() => {
+    transferData.current = { documents, topics, tags };
+    for (const requestId of pendingAcks.current.splice(0))
+      transferChannel.current?.postMessage({ kind: 'transcript-ack', owner, requestId });
+    for (const request of pendingRequests.current.splice(0)) {
+      const document = documents.find((item) => item.id === request.documentId);
+      if (document && (request.owner || document.source))
+        transferChannel.current?.postMessage({
+          kind: 'response',
+          requestId: request.requestId,
+          documentId: document.id,
+          document,
+          topics,
+          tags,
+        });
+    }
+  }, [documents, topics, tags, ackSequence, owner]);
+  useEffect(() => {
+    if (typeof BroadcastChannel === 'undefined') return;
+    const channel = new BroadcastChannel(channelName);
+    transferChannel.current = channel;
+    channel.onmessage = (event: MessageEvent<unknown>) => {
+      if (isTranscriptUpdate(event.data)) {
+        const update = event.data;
+        if (
+          update.owner !== owner ||
+          !transferData.current.documents.some((doc) => doc.id === update.documentId)
+        )
+          return;
+        editTranscript.current(update.documentId, update.operation);
+        pendingAcks.current.push(update.requestId);
+        setAckSequence((value) => value + 1);
+        return;
+      }
+      if (!isRequest(event.data)) return;
+      const request = event.data;
+      if (request.owner && request.owner !== owner) return;
+      if (pendingAcks.current.length) {
+        pendingRequests.current.push(request);
+        return;
+      }
+      const document = transferData.current.documents.find(
+        (item) => item.id === request.documentId,
+      );
+      if (!document || (!request.owner && !document.source)) return;
+      channel.postMessage({
+        kind: 'response',
+        requestId: request.requestId,
+        documentId: document.id,
+        document,
+        topics: transferData.current.topics,
+        tags: transferData.current.tags,
+      });
+    };
+    return () => {
+      transferChannel.current = null;
+      channel.close();
+    };
+  }, [owner]);
+  const importRef = useRef<(files: File[]) => void>(() => {});
+  useEffect(() => {
+    importRef.current = (files) => {
+      void importPdfs(files).then(({ documents: imported, errors }) => {
+        if (imported.length) {
+          workspace.importDocuments(imported);
+          setSelectedTopicId('unassigned');
+          search.setCriteria({ ...emptySearch, mode: search.criteria.mode });
+        }
+        workspace.setMessage([`${imported.length} PDF importiert.`, ...errors].join(' '));
+      });
+    };
+  });
+  useEffect(() => {
+    function isFiles(event: DragEvent) {
+      return Array.from(event.dataTransfer?.types ?? []).includes('Files');
+    }
+    function over(event: DragEvent) {
+      if (isFiles(event)) event.preventDefault();
+    }
+    function drop(event: DragEvent) {
+      if (!isFiles(event)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      importRef.current(Array.from(event.dataTransfer?.files ?? []));
+    }
+    window.addEventListener('dragover', over, true);
+    window.addEventListener('drop', drop, true);
+    return () => {
+      window.removeEventListener('dragover', over, true);
+      window.removeEventListener('drop', drop, true);
+    };
+  }, []);
   const [dialog, setDialog] = useState<TopicDialogState | null>(null);
   const [dialogError, setDialogError] = useState('');
   const drag = useTopicDrag(topics, moveTopic, rejectMove);
@@ -77,7 +182,7 @@ export function App() {
     );
     const hit = hits[id];
     if (forceTab || opening.mode === 'tab') {
-      if (!openViewerTab(id, startPage(doc, hit), hit?.term))
+      if (!openViewerTab(id, startPage(doc, hit), hit?.term, owner))
         workspace.setMessage('Der Dokument-Tab konnte nicht geöffnet werden.');
       return;
     }
@@ -224,6 +329,7 @@ export function App() {
   );
   return (
     <AppShell
+      onImport={(files) => importRef.current(Array.from(files))}
       tags={tags}
       onManageTags={() => openTags({ kind: 'manage' })}
       modal={
@@ -231,7 +337,12 @@ export function App() {
         tagModal ||
         (viewer && (
           <DocumentViewer
-            getSource={demoDocumentSource}
+            owner={owner}
+            onPdfPages={workspace.setPdfPages}
+            getSource={(id) => {
+              const doc = documents.find((item) => item.id === id);
+              return doc ? (doc.source ?? { kind: 'demo' }) : undefined;
+            }}
             onEditTranscript={workspace.editTranscript}
             session={viewer}
             documents={documents}
@@ -251,7 +362,8 @@ export function App() {
       sidebar={
         <Sidebar
           documentCount={documents.length}
-          pageCount={documents.reduce((sum, document) => sum + document.pages, 0)}
+          pageCount={documents.reduce((sum, document) => sum + (document.pages ?? 0), 0)}
+          unknownPageCount={documents.filter((document) => document.pages === null).length}
           onAdd={() => openDialog({ kind: 'new', parentId: null })}
           drag={drag}
         >
@@ -310,6 +422,23 @@ export function App() {
         onTags={() => openTags({ kind: 'picker', ids: workspace.selected })}
         onMove={() => openDialog({ kind: 'documents', ids: workspace.selected })}
       />
+      <div className={styles.statusBar}>
+        <span role="status" aria-label="Statusmeldung" className={styles.notice}>
+          {workspace.message}
+        </span>
+        {workspace.undo && (
+          <button
+            onClick={() => {
+              returnFocus.current = null;
+              fallbackFocus.current = selectedTopicId;
+              restoreFocus.current = true;
+              workspace.undoMove();
+            }}
+          >
+            Rückgängig
+          </button>
+        )}
+      </div>
       <Content>
         <section
           aria-label="Dokumentübersicht"
@@ -337,24 +466,6 @@ export function App() {
             onNavigate={navigate}
           />
         </section>
-        <span role="status" aria-label="Statusmeldung" className={styles.notice}>
-          {workspace.message}
-        </span>
-        {workspace.undo && (
-          <div className={styles.toast}>
-            {workspace.message && <span>{workspace.message}</span>}
-            <button
-              onClick={() => {
-                returnFocus.current = null;
-                fallbackFocus.current = selectedTopicId;
-                restoreFocus.current = true;
-                workspace.undoMove();
-              }}
-            >
-              Rückgängig
-            </button>
-          </div>
-        )}
       </Content>
     </AppShell>
   );

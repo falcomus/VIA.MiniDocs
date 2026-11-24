@@ -5,12 +5,42 @@ import { App } from '../../App';
 import { DocumentList } from './DocumentList';
 import { demoDocuments } from './demoDocuments';
 import { formatDocumentDate } from './documentDate';
+import { TagChips } from './TagChips';
 it.each([null, '', 'bad', '2026-02-30', '2026-13-01'])(
   'zeigt für ungültiges Datum %s einen Platzhalter',
   (date) => expect(formatDocumentDate(date)).toBe('ohne Datum'),
 );
 it('zeigt gültige Kalenderdaten deutsch an', () =>
   expect(formatDocumentDate('2024-02-29')).toBe('29.02.2024'));
+it('trennt Kachelsteuerung und Vorschau und erhält Checkboxauswahl und Öffnen', async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  const checkbox = screen.getByRole('checkbox', {
+    name: 'Besprechungsnotizen – Eingang auswählen',
+  });
+  const card = checkbox.closest('li')!;
+  const actionRow = checkbox.closest('label')!.parentElement!;
+  expect(actionRow).toContainElement(within(card).getByRole('button', { name: 'Tags zuweisen' }));
+  expect(actionRow).toContainElement(
+    within(card).getByRole('button', { name: 'In neuem Tab öffnen' }),
+  );
+  expect(actionRow).not.toContainElement(
+    within(card).getByRole('img', { name: 'Synthetische Demovorschau' }),
+  );
+  await user.click(checkbox.closest('label')!);
+  expect(checkbox).toBeChecked();
+  await user.dblClick(within(card).getByTitle('Besprechungsnotizen – Eingang'));
+  expect(screen.getByRole('dialog')).toBeInTheDocument();
+});
+it('zeigt Tagfarbe nur am Punkt und behält lange Bezeichnungen', () => {
+  const tags = [
+    { id: 'long', name: 'Sehr lange Tagbezeichnung', color: '#ff0000', description: '' },
+  ];
+  render(<TagChips ids={['long']} tags={tags} />);
+  const chip = screen.getByText('Sehr lange Tagbezeichnung');
+  expect(chip.style.borderColor).toBe('');
+  expect(chip.firstElementChild).toHaveStyle({ backgroundColor: '#ff0000' });
+});
 it('zeigt Dateiname, Typ, Tags und bearbeiteten Transkriptstatus in Originalspalten', () => {
   render(
     <DocumentList

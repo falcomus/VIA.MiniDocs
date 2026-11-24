@@ -20,7 +20,12 @@ export function findTranscriptMatches(doc: DocumentSummary, query: string): Tran
   if (!needle) return [];
   const matches: TranscriptMatch[] = [];
   for (const part of [...(doc.transcript?.pages ?? [])]
-    .filter((item) => Number.isInteger(item.page) && item.page >= 1 && item.page <= doc.pages)
+    .filter(
+      (item) =>
+        Number.isInteger(item.page) &&
+        item.page >= 1 &&
+        (doc.pages === null || item.page <= doc.pages),
+    )
     .sort((a, b) => a.page - b.page)) {
     const normalized = normalizeSearchText(part.text);
     const starts: number[] = [],
@@ -53,7 +58,8 @@ export function applyTranscriptOperation(
 ): DocumentSummary {
   const pages = doc.transcript?.pages ?? [];
   const setPage = (page: number, text: string): DocumentSummary => {
-    if (!Number.isInteger(page) || page < 1 || page > doc.pages) return doc;
+    if (!Number.isInteger(page) || page < 1 || (doc.pages === null ? page !== 1 : page > doc.pages))
+      return doc;
     const existing = pages.find((part) => part.page === page);
     if ((existing?.text ?? '') === text) return doc;
     return {

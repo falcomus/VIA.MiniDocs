@@ -1,0 +1,30 @@
+.pane {
+  min-width: 0;
+  width: 100%;
+}
+.pane :global(.react-pdf__Document) {
+  width: max-content;
+  margin: 0 auto;
+}
+.pane canvas {
+  background: white;
+}
+.layers {
+  position: relative;
+  width: max-content;
+}
+.pending {
+  position: absolute;
+  inset: 0 auto auto 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.continuousPage {
+  margin: 0 auto 18px;
+  background: white;
+}
+.placeholder {
+  display: inline-block;
+  padding: 12px;
+  color: #475467;
+}

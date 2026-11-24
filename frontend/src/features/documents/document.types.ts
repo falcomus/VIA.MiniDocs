@@ -6,7 +6,8 @@ export interface DocumentSummary {
   readonly title: string;
   readonly topicId: TopicId;
   readonly date: string | null;
-  readonly pages: number;
+  readonly pages: number | null;
+  readonly source?: { readonly kind: 'pdf'; readonly blob: Blob };
   readonly kind: 'Besprechung' | 'Notiz';
   readonly fileName?: string;
   readonly tagIds?: readonly TagId[];
@@ -15,4 +16,9 @@ export interface DocumentSummary {
     readonly edited: boolean;
   } | null;
   readonly demoPreview?: { readonly lines: readonly string[] };
+  /** Immutable demo ink, separate from the editable transcript, matching KU's source model. */
+  readonly demoInk?: {
+    readonly head: string;
+    readonly pages: readonly (readonly string[])[];
+  };
 }

@@ -43,6 +43,8 @@ export interface DocumentState {
   readonly message: string;
 }
 export type DocumentAction =
+  | { type: 'import'; documents: readonly DocumentSummary[] }
+  | { type: 'pdf-pages'; id: string; blob: Blob; pages: number }
   | {
       type: 'transcript';
       id: string;
@@ -69,6 +71,19 @@ export type DocumentAction =
 /** Move and its per-document undo snapshot are committed atomically against current reducer data. */
 export function documentReducer(state: DocumentState, action: DocumentAction): DocumentState {
   switch (action.type) {
+    case 'import':
+      return { ...state, documents: [...state.documents, ...action.documents] };
+    case 'pdf-pages': {
+      if (!Number.isSafeInteger(action.pages) || action.pages < 1) return state;
+      const doc = state.documents.find((item) => item.id === action.id);
+      if (!doc || doc.source?.blob !== action.blob || doc.pages === action.pages) return state;
+      return {
+        ...state,
+        documents: state.documents.map((item) =>
+          item === doc ? { ...item, pages: action.pages } : item,
+        ),
+      };
+    }
     case 'message':
       return { ...state, message: action.value };
     case 'clear':

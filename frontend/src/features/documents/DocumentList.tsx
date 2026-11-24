@@ -10,6 +10,7 @@ import type { Topic, TopicId } from '../topics/topic.types';
 import type { DocumentSummary } from './document.types';
 import { Icon } from '../../components/Icon';
 import { DemoPreview, DocumentActions, TranscriptStatus } from './DocumentSummary';
+import { hasRedundantPdfFilename } from './documentDisplay';
 import { formatDocumentDate } from './documentDate';
 import styles from './DocumentList.module.css';
 export interface DocumentItemsProps {
@@ -148,16 +149,21 @@ export function DocumentList({
                     terms={workspace?.results.get(document.id)?.terms ?? []}
                   />
                 </strong>
-                <span className={styles.kind}>
-                  <Highlight
-                    text={document.fileName ?? '—'}
-                    terms={workspace?.results.get(document.id)?.terms ?? []}
-                  />{' '}
-                  · {document.kind}
+                <span className={styles.kind} title={document.fileName ?? undefined}>
+                  {(!hasRedundantPdfFilename(document) || workspace?.searchActive) && (
+                    <>
+                      <Highlight
+                        text={document.fileName ?? '—'}
+                        terms={workspace?.results.get(document.id)?.terms ?? []}
+                      />{' '}
+                      ·{' '}
+                    </>
+                  )}
+                  {document.kind}
                 </span>
               </td>
               <td className={styles.secondary}>{formatDocumentDate(document.date)}</td>
-              <td className={styles.secondary}>{document.pages}</td>
+              <td className={styles.secondary}>{document.pages ?? 'Unbekannt'}</td>
               <td>
                 <TagChips ids={document.tagIds} tags={tags} />
               </td>

@@ -1,31 +1,25 @@
-.notice {
-  display: block;
-  color: var(--muted);
-}
-
-.toast {
-  position: fixed;
-  left: 50%;
-  bottom: 22px;
-  transform: translateX(-50%);
-  z-index: 100;
-  background: #1f2937;
-  color: #fff;
-  border-radius: 8px;
-  padding: 10px 14px;
-  box-shadow: var(--shadow-lg);
+.statusBar {
   display: flex;
-  gap: 14px;
+  gap: 12px;
   align-items: center;
-  font-size: 13.5px;
+  margin: 0 20px;
+  color: var(--muted);
+  font-size: 12px;
 }
-.toast button {
+.statusBar:has(.notice:empty):not(:has(button)) {
+  display: none;
+}
+.notice {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.statusBar button {
   background: transparent;
   border: 0;
-  color: #9cd3f0;
+  color: var(--accent-icon);
   font-weight: 600;
   cursor: pointer;
-  padding: 0;
+  padding: 4px;
 }
 
 .searchResults {

@@ -21,7 +21,10 @@ export function DocumentViewer({
   onClose,
   initialPage,
   onEditTranscript,
+  onPdfPages,
   getSource,
+  owner,
+  onReturnOverview,
 }: {
   readonly session: ViewerSession;
   readonly documents: readonly DocumentSummary[];
@@ -30,7 +33,10 @@ export function DocumentViewer({
   readonly onClose?: () => void;
   readonly initialPage?: number;
   readonly getSource: DocumentPageSourceResolver;
+  readonly owner?: string;
+  readonly onReturnOverview?: () => void;
   readonly onEditTranscript: (id: string, operation: TranscriptOperation) => void;
+  readonly onPdfPages?: (id: string, blob: Blob, pages: number) => void;
 }) {
   const [id, setId] = useState(session.id);
   const current = documents.find((doc) => doc.id === id);
@@ -39,6 +45,11 @@ export function DocumentViewer({
     current ? (initialPage ?? startPage(current, session.hits[id])) : 1,
   );
   const [zoom, setZoom] = useState(100);
+  const [navigation, setNavigation] = useState(0);
+  const navigateToPage = (next: number) => {
+    setPage(next);
+    setNavigation((value) => value + 1);
+  };
   const [tabError, setTabError] = useState('');
   const [split, setSplit] = useState(56);
   const [syncScroll, setSyncScroll] = useState(true);
@@ -86,11 +97,17 @@ export function DocumentViewer({
       if (offset < 0 && index + offset === 0 && document.activeElement === previousDocument.current)
         pendingFocus.current = nextDocument;
       setId(next.id);
-      setPage(startPage(next, session.hits[next.id]));
+      navigateToPage(startPage(next, session.hits[next.id]));
     }
   };
-  const pages = current && Number.isInteger(current.pages) && current.pages > 0 ? current.pages : 1;
+  const pages =
+    current?.pages && Number.isInteger(current.pages) && current.pages > 0 ? current.pages : 1;
   const validPage = Math.max(1, Math.min(page, pages));
+  const fileDetails = current
+    ? `${current.fileName ?? '—'} · ${current.kind} · ${
+        current.pages === null ? 'Seitenzahl unbekannt' : `${current.pages} Seiten`
+      }`
+    : '';
   return (
     <div className={onClose ? styles.backdrop : styles.standalone}>
       <div
@@ -133,32 +150,73 @@ export function DocumentViewer({
         }}
       >
         <header className={styles.header}>
-          <h1 id="viewer-title">{current?.title ?? 'Dokument nicht gefunden'}</h1>
-          <div className={styles.controls}>
-            <button ref={previousDocument} disabled={index <= 0} onClick={() => step(-1)}>
-              Vorheriges Dokument
+          <nav className={styles.documentNavigation} aria-label="Dokumentnavigation">
+            <button
+              ref={previousDocument}
+              className={styles.iconButton}
+              type="button"
+              aria-label="Vorheriges Dokument"
+              title="Vorheriges Dokument"
+              disabled={index <= 0}
+              onClick={() => step(-1)}
+            >
+              <span aria-hidden="true">‹</span>
             </button>
             <button
               ref={nextDocument}
+              className={styles.iconButton}
+              type="button"
+              aria-label="Nächstes Dokument"
+              title="Nächstes Dokument"
               disabled={index < 0 || index >= ids.length - 1}
               onClick={() => step(1)}
             >
-              Nächstes Dokument
+              <span aria-hidden="true">›</span>
             </button>
+          </nav>
+          <h1 id="viewer-title" title={current?.title}>
+            {current?.title ?? 'Dokument nicht gefunden'}
+          </h1>
+          <div className={styles.headerActions}>
+            {index >= 0 && ids.length > 1 && (
+              <span
+                className={styles.documentCounter}
+                aria-label={`Dokument ${index + 1} von ${ids.length}`}
+              >
+                {index + 1} / {ids.length}
+              </span>
+            )}
             {current && onClose && (
               <button
+                className={styles.actionButton}
+                type="button"
+                aria-label="In neuem Tab öffnen"
                 onClick={() => {
-                  if (!openViewerTab(current.id, validPage))
+                  if (!openViewerTab(current.id, validPage, undefined, owner))
                     setTabError('Der Dokument-Tab konnte nicht geöffnet werden.');
                 }}
               >
-                In neuem Tab öffnen
+                <span aria-hidden="true">↗</span> Neuer Tab
               </button>
             )}
             {onClose ? (
-              <button onClick={onClose}>Schließen</button>
+              <button
+                className={styles.iconButton}
+                type="button"
+                aria-label="Schließen"
+                title="Schließen (Esc)"
+                onClick={onClose}
+              >
+                <span aria-hidden="true">×</span>
+              </button>
+            ) : onReturnOverview ? (
+              <button className={styles.actionButton} type="button" onClick={onReturnOverview}>
+                Zur Dokumentübersicht
+              </button>
             ) : (
-              <a href={window.location.pathname}>Zur Dokumentübersicht</a>
+              <a className={styles.actionButton} href={window.location.pathname}>
+                Zur Dokumentübersicht
+              </a>
             )}
           </div>
         </header>
@@ -166,83 +224,29 @@ export function DocumentViewer({
         {current ? (
           <>
             <div className={styles.meta}>
-              {!onClose && (
-                <span>Demodaten: Änderungen aus anderen Tabs werden nicht übernommen.</span>
-              )}
-              <span>
-                {current.fileName ?? '—'} · {formatDocumentDate(current.date)} · {current.kind} ·{' '}
-                {current.pages} Seiten
-              </span>
-              <span>
+              <span className={styles.metaLabel}>Datum</span>
+              <span className={styles.metaValue}>{formatDocumentDate(current.date)}</span>
+              <span className={styles.metaLabel}>Thema</span>
+              <span className={styles.topicName}>
                 {topicPath(topics, current.topicId)
                   .map((topic) => topic.name)
                   .join(' / ') || 'Unbekanntes Thema'}
               </span>
-              <TranscriptStatus document={current} />
+              <span className={styles.metaLabel}>Tags</span>
               <TagChips ids={current.tagIds} tags={tags} />
+              <TranscriptStatus document={current} />
               {session.hits[id]?.term && startPage(current, session.hits[id]) === validPage && (
-                <span>Suchtreffer: {session.hits[id]?.term}</span>
+                <span className={styles.searchHit}>Suchtreffer: {session.hits[id]?.term}</span>
               )}
-            </div>
-            <div className={styles.controls}>
-              <button
-                ref={previousPage}
-                disabled={validPage <= 1}
-                onClick={() => {
-                  if (validPage === 2) pendingFocus.current = nextPage;
-                  setPage(validPage - 1);
-                }}
-              >
-                Vorherige Seite
-              </button>
-              <label>
-                Seite{' '}
-                <select
-                  ref={pageSelect}
-                  value={validPage}
-                  onChange={(event) => setPage(Number(event.target.value))}
-                >
-                  {Array.from({ length: pages }, (_, i) => (
-                    <option key={i + 1} value={i + 1}>
-                      {i + 1}
-                    </option>
-                  ))}
-                </select>{' '}
-                von {pages}
-              </label>
-              <button
-                ref={nextPage}
-                disabled={validPage >= pages}
-                onClick={() => {
-                  if (validPage + 1 === pages) pendingFocus.current = previousPage;
-                  setPage(validPage + 1);
-                }}
-              >
-                Nächste Seite
-              </button>
-              {source.kind === 'demo' && (
-                <label>
-                  Viewer-Zoom{' '}
-                  <input
-                    type="range"
-                    min="50"
-                    max="200"
-                    step="10"
-                    value={zoom}
-                    onChange={(event) => setZoom(Number(event.target.value))}
-                  />{' '}
-                  {zoom} %
-                </label>
-              )}
-              {source.kind === 'demo' && (
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={syncScroll}
-                    onChange={(event) => setSyncScroll(event.target.checked)}
-                  />{' '}
-                  Synchron scrollen (ungefähr)
-                </label>
+              <span className={styles.fileInfo} title={fileDetails}>
+                {fileDetails}
+              </span>
+              {!onClose && (
+                <span className={styles.tabNotice}>
+                  {owner
+                    ? 'Änderungen werden an die offene Dokumentübersicht übertragen; sie sind nicht dauerhaft gespeichert.'
+                    : 'Änderungen aus anderen Tabs werden nicht übernommen und sind nicht dauerhaft gespeichert.'}
+                </span>
               )}
             </div>
             <div
@@ -253,6 +257,8 @@ export function DocumentViewer({
               <div
                 id="viewer-document-pane"
                 className={styles.pages}
+                tabIndex={0}
+                aria-label="Dokumentbereich"
                 onScroll={(event) => {
                   if (!syncScroll || source.kind !== 'demo' || !editor.current) return;
                   const origin = event.currentTarget;
@@ -264,7 +270,119 @@ export function DocumentViewer({
                       Math.max(0, target.scrollHeight - target.clientHeight);
                 }}
               >
-                <DocumentPagePane source={source} document={current} page={validPage} zoom={zoom} />
+                <div className={styles.pageControls} role="toolbar" aria-label="Dokumentansicht">
+                  {(source.kind === 'demo' || source.blob) && (
+                    <div className={styles.zoomControls}>
+                      <button
+                        className={styles.toolbarButton}
+                        type="button"
+                        aria-label="Verkleinern"
+                        title="Verkleinern"
+                        disabled={zoom <= 50}
+                        onClick={() => setZoom((value) => Math.max(50, value - 10))}
+                      >
+                        −
+                      </button>
+                      <input
+                        className={styles.zoomSlider}
+                        type="range"
+                        aria-label="Viewer-Zoom"
+                        min="50"
+                        max="200"
+                        step="10"
+                        value={zoom}
+                        onChange={(event) => setZoom(Number(event.target.value))}
+                      />
+                      <button
+                        className={styles.toolbarButton}
+                        type="button"
+                        aria-label="Vergrößern"
+                        title="Vergrößern"
+                        disabled={zoom >= 200}
+                        onClick={() => setZoom((value) => Math.min(200, value + 10))}
+                      >
+                        +
+                      </button>
+                      <span className={styles.zoomValue}>{zoom} %</span>
+                    </div>
+                  )}
+                  {current.pages === null ? (
+                    <span className={styles.pageLoading}>
+                      PDF wird geladen; die Seitenzahl ist noch unbekannt.
+                    </span>
+                  ) : (
+                    <div className={styles.pageNavigation}>
+                      <button
+                        ref={previousPage}
+                        className={styles.toolbarButton}
+                        type="button"
+                        aria-label="Vorherige Seite"
+                        title="Vorherige Seite"
+                        disabled={validPage <= 1}
+                        onClick={() => {
+                          if (validPage === 2) pendingFocus.current = nextPage;
+                          navigateToPage(validPage - 1);
+                        }}
+                      >
+                        ‹
+                      </button>
+                      <label className={styles.pagePicker}>
+                        Seite
+                        <select
+                          ref={pageSelect}
+                          aria-label="Seite"
+                          value={validPage}
+                          onChange={(event) => navigateToPage(Number(event.target.value))}
+                        >
+                          {Array.from({ length: pages }, (_, i) => (
+                            <option key={i + 1} value={i + 1}>
+                              {i + 1}
+                            </option>
+                          ))}
+                        </select>
+                        / {pages}
+                      </label>
+                      <button
+                        ref={nextPage}
+                        className={styles.toolbarButton}
+                        type="button"
+                        aria-label="Nächste Seite"
+                        title="Nächste Seite"
+                        disabled={validPage >= pages}
+                        onClick={() => {
+                          if (validPage + 1 === pages) pendingFocus.current = previousPage;
+                          navigateToPage(validPage + 1);
+                        }}
+                      >
+                        ›
+                      </button>
+                    </div>
+                  )}
+                  {(source.kind === 'demo' || source.blob) && (
+                    <label className={styles.syncScroll}>
+                      <input
+                        type="checkbox"
+                        checked={syncScroll}
+                        onChange={(event) => setSyncScroll(event.target.checked)}
+                      />
+                      Synchron scrollen {source.kind === 'demo' ? '(ungefähr)' : '(seitenweise)'}
+                    </label>
+                  )}
+                </div>
+                <div className={styles.pageViewport}>
+                  <DocumentPagePane
+                    source={source}
+                    document={current}
+                    page={validPage}
+                    zoom={zoom}
+                    navigation={navigation}
+                    onVisiblePage={setPage}
+                    onPdfLoaded={(blob, count) => {
+                      onPdfPages?.(current.id, blob, count);
+                      setPage((previous) => Math.max(1, Math.min(previous, count)));
+                    }}
+                  />
+                </div>
               </div>
               <div
                 ref={splitter}
@@ -338,7 +456,8 @@ export function DocumentViewer({
                 document={current}
                 page={validPage}
                 editorRef={editor}
-                onPageChange={setPage}
+                onPageChange={navigateToPage}
+                followPage={source.kind === 'demo' || syncScroll}
                 onEdit={(operation) => onEditTranscript(current.id, operation)}
               />
             </div>

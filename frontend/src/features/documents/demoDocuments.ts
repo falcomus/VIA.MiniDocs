@@ -4,6 +4,13 @@ import type { DocumentSummary } from './document.types';
 export const demoDocuments: readonly DocumentSummary[] = [
   {
     id: 'demo-1',
+    demoInk: {
+      head: 'Besprechung',
+      pages: [
+        ['Besprechungsnotizen – Eingang', 'Projektstart: Nächste Schritte festlegen.'],
+        ['Frühjahr: Lösung prüfen und Aufgaben sammeln.'],
+      ],
+    },
     fileName: 'Demo-Notizen-1.pdf',
     title: 'Besprechungsnotizen – Eingang',
     topicId: 'unassigned',
@@ -21,6 +28,10 @@ export const demoDocuments: readonly DocumentSummary[] = [
   },
   {
     id: 'demo-2',
+    demoInk: {
+      head: 'Offene Punkte',
+      pages: [['Offene Punkte – Entwurf', 'Demo-Notizen', 'Besprechung und nächste Schritte']],
+    },
     fileName: 'Demo-Notizen-2.pdf',
     title: 'Offene Punkte – Entwurf',
     topicId: 'unassigned',
@@ -40,6 +51,15 @@ export const demoDocuments: readonly DocumentSummary[] = [
       ],
     },
     id: 'demo-3',
+    demoInk: {
+      head: 'Lenkungskreis',
+      pages: [
+        ['Lenkungskreis – Planungsstand', 'Planung für den Lenkungskreis.'],
+        ['Aufgaben und nächste Schritte.'],
+        [],
+        [],
+      ],
+    },
     fileName: 'Demo-Notizen-3.pdf',
     title: 'Lenkungskreis – Planungsstand',
     topicId: 'alpha-steering',
@@ -49,6 +69,14 @@ export const demoDocuments: readonly DocumentSummary[] = [
   },
   {
     id: 'demo-4',
+    demoInk: {
+      head: 'Projektrahmen',
+      pages: [
+        ['Projektrahmen – Diskussion', 'Demo-Notizen', 'Besprechung und nächste Schritte'],
+        [],
+        [],
+      ],
+    },
     fileName: 'Demo-Notizen-4.pdf',
     title: 'Projektrahmen – Diskussion',
     topicId: 'alpha-project',
@@ -60,6 +88,10 @@ export const demoDocuments: readonly DocumentSummary[] = [
     tagIds: ['aufgabe'],
     transcript: { edited: false, pages: [{ page: 1, text: 'Zusammenarbeit und Rückmeldung.' }] },
     id: 'demo-5',
+    demoInk: {
+      head: 'Notizen',
+      pages: [['Notizen zur Zusammenarbeit', 'Zusammenarbeit und Rückmeldung.']],
+    },
     fileName: 'Demo-Notizen-5.pdf',
     title: 'Notizen zur Zusammenarbeit',
     topicId: 'beta',
@@ -69,6 +101,13 @@ export const demoDocuments: readonly DocumentSummary[] = [
   },
   {
     id: 'demo-6',
+    demoInk: {
+      head: 'Ideen',
+      pages: [
+        ['Ideen für die nächste Version', 'Demo-Notizen', 'Besprechung und nächste Schritte'],
+        [],
+      ],
+    },
     fileName: 'Demo-Notizen-6.pdf',
     title: 'Ideen für die nächste Version',
     topicId: 'ideas',

@@ -1,5 +1,6 @@
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import { afterEach, expect, it, vi } from 'vitest';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { afterEach, beforeEach, expect, it, vi } from 'vitest';
+import { StrictMode } from 'react';
 import { App } from '../../App';
 import { demoDocuments } from '../documents/demoDocuments';
 import { demoTags } from '../documents/tags';
@@ -7,6 +8,9 @@ import { demoTopics } from '../topics/demoTopics';
 import { DocumentPagePane } from './DocumentPagePane';
 import { DocumentViewer } from './DocumentViewer';
 
+beforeEach(() => {
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(640);
+});
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
@@ -57,47 +61,73 @@ it('unterscheidet Demo und fehlende PDF-Quelle', () => {
   expect(screen.getByText('Synthetische Demoseite – kein PDF')).toBeInTheDocument();
   rerender(<DocumentPagePane {...props} source={{ kind: 'pdf', blob: null }} />);
   expect(screen.getByRole('alert')).toHaveTextContent('Keine PDF-Quelle');
-  expect(screen.queryByTitle(/PDF:/)).not.toBeInTheDocument();
+  expect(screen.queryByRole('region', { name: 'PDF-Darstellung' })).not.toBeInTheDocument();
 });
-it('prüft PDF-Signatur und gibt Objekt-URLs bei Quellenwechsel und Unmount frei', async () => {
-  const create = vi.fn().mockReturnValueOnce('blob:first').mockReturnValueOnce('blob:second');
+it('übergibt Blob-Quellen ohne Objekt-URL und zeigt Ladefehler', async () => {
+  const create = vi.fn();
+  Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: create });
+  const props = { document: demoDocuments[0], page: 1, zoom: 100 };
+  const first = new Blob(['one'], { type: 'application/pdf' });
+  const second = new Blob(['two'], { type: 'application/pdf' });
+  const invalid = new Blob(['not pdf'], { type: 'text/plain' });
+  const onPdfLoaded = vi.fn();
+  const { rerender } = render(
+    <DocumentPagePane {...props} source={{ kind: 'pdf', blob: first }} onPdfLoaded={onPdfLoaded} />,
+  );
+  expect(await screen.findByRole('img', { name: 'PDF-Seite 1' })).toBeInTheDocument();
+  expect(onPdfLoaded).toHaveBeenCalledWith(first, 7);
+  rerender(
+    <DocumentPagePane
+      {...props}
+      page={2}
+      source={{ kind: 'pdf', blob: second }}
+      onPdfLoaded={onPdfLoaded}
+    />,
+  );
+  expect(await screen.findByRole('img', { name: 'PDF-Seite 2' })).toBeInTheDocument();
+  expect(onPdfLoaded).toHaveBeenCalledWith(second, 7);
+  rerender(<DocumentPagePane {...props} source={{ kind: 'pdf', blob: invalid }} />);
+  expect(screen.getByRole('alert')).toHaveTextContent('PDF konnte nicht geladen werden');
+  expect(create).not.toHaveBeenCalled();
+});
+it('hält die PDF-Quelle im StrictMode bei Seitenwechsel und gibt keine Objekt-URL aus', async () => {
+  const create = vi.fn();
   const revoke = vi.fn();
   Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: create });
   Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: revoke });
-  function pdf(header: string) {
-    const blob = new Blob([], { type: 'application/pdf' });
-    vi.spyOn(blob, 'slice').mockReturnValue({
-      arrayBuffer: async () => new TextEncoder().encode(header).buffer,
-    } as Blob);
-    return blob;
-  }
-  const props = { document: demoDocuments[0], page: 1, zoom: 100 };
-  const first = pdf('%PDF-');
-  const second = pdf('%PDF-');
-  const invalid = pdf('wrong');
+  const blob = new Blob(['test'], { type: 'application/pdf' });
+  const loaded = vi.fn();
   const { rerender, unmount } = render(
-    <DocumentPagePane {...props} source={{ kind: 'pdf', blob: first }} />,
+    <StrictMode>
+      <DocumentPagePane
+        source={{ kind: 'pdf', blob }}
+        document={demoDocuments[0]}
+        page={1}
+        zoom={100}
+        onPdfLoaded={loaded}
+      />
+    </StrictMode>,
   );
-  expect(await screen.findByTitle(/PDF:/)).toHaveAttribute('src', 'blob:first#page=1');
-  rerender(<DocumentPagePane {...props} page={2} source={{ kind: 'pdf', blob: second }} />);
-  expect(await screen.findByTitle(/PDF:/)).toHaveAttribute('src', 'blob:second#page=2');
-  expect(revoke).toHaveBeenCalledWith('blob:first');
-  rerender(<DocumentPagePane {...props} source={{ kind: 'pdf', blob: invalid }} />);
-  await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('ungültig'));
-  expect(revoke).toHaveBeenCalledWith('blob:second');
-  create.mockReturnValueOnce('blob:third');
-  rerender(<DocumentPagePane {...props} source={{ kind: 'pdf', blob: first }} />);
-  expect(await screen.findByTitle(/PDF:/)).toHaveAttribute('src', 'blob:third#page=1');
+  expect(await screen.findByRole('img', { name: 'PDF-Seite 1' })).toBeInTheDocument();
+  rerender(
+    <StrictMode>
+      <DocumentPagePane
+        source={{ kind: 'pdf', blob }}
+        document={demoDocuments[0]}
+        page={2}
+        zoom={100}
+        onPdfLoaded={loaded}
+      />
+    </StrictMode>,
+  );
+  expect(screen.getByRole('img', { name: 'PDF-Seite 2' })).toBeInTheDocument();
+  expect(loaded).toHaveBeenCalledWith(blob, 7);
   unmount();
-  expect(revoke).toHaveBeenCalledWith('blob:third');
-  expect(create).toHaveBeenCalledTimes(3);
+  expect(create).not.toHaveBeenCalled();
+  expect(revoke).not.toHaveBeenCalled();
 });
 
-it('ordnet Quellen beim Dokumentwechsel der aktuellen ID zu und gibt die alte URL frei', async () => {
-  const create = vi.fn().mockReturnValue('blob:document-one');
-  const revoke = vi.fn();
-  Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: create });
-  Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: revoke });
+it('ordnet Quellen beim Dokumentwechsel der aktuellen ID zu und entfernt die alte Darstellung', async () => {
   const blob = new Blob([], { type: 'application/pdf' });
   vi.spyOn(blob, 'slice').mockReturnValue({
     arrayBuffer: async () => new TextEncoder().encode('%PDF-').buffer,
@@ -120,10 +150,10 @@ it('ordnet Quellen beim Dokumentwechsel der aktuellen ID zu und gibt die alte UR
       onClose={() => {}}
     />,
   );
-  expect(await screen.findByTitle(/PDF:/)).toHaveAttribute('src', 'blob:document-one#page=1');
+  expect(await screen.findByRole('region', { name: 'PDF-Darstellung' })).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: 'Nächstes Dokument' }));
   expect(screen.getByText('Synthetische Demoseite – kein PDF')).toBeInTheDocument();
-  expect(revoke).toHaveBeenCalledWith('blob:document-one');
+  expect(screen.queryByRole('region', { name: 'PDF-Darstellung' })).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: 'Nächstes Dokument' }));
   expect(screen.getByRole('alert')).toHaveTextContent('Keine PDF-Quelle vorhanden');
   expect(screen.queryByTitle(/PDF:/)).not.toBeInTheDocument();
@@ -131,7 +161,7 @@ it('ordnet Quellen beim Dokumentwechsel der aktuellen ID zu und gibt die alte UR
   expect(getSource).toHaveBeenCalledWith('demo-3');
   fireEvent.click(screen.getByRole('button', { name: 'Vorheriges Dokument' }));
   fireEvent.click(screen.getByRole('button', { name: 'Vorheriges Dokument' }));
-  expect(await screen.findByTitle(/PDF:/)).toHaveAttribute('src', 'blob:document-one#page=1');
+  expect(await screen.findByRole('region', { name: 'PDF-Darstellung' })).toBeInTheDocument();
 });
 
 it('beendet Pointer-Abbruch und Capture-Verlust und erhält die Splitterauswahl', () => {

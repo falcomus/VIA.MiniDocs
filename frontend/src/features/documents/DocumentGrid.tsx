@@ -6,6 +6,7 @@ import { documentSelectionProps } from './documentInteractions';
 import { Icon } from '../../components/Icon';
 import type { DocumentItemsProps } from './DocumentList';
 import { DemoPreview, DocumentActions, TranscriptStatus } from './DocumentSummary';
+import { hasRedundantPdfFilename } from './documentDisplay';
 import { formatDocumentDate } from './documentDate';
 import styles from './DocumentGrid.module.css';
 export function DocumentGrid({
@@ -65,16 +66,16 @@ export function DocumentGrid({
             ? documentSelectionProps(document.id, workspace, documentDrag, onOpen)
             : {})}
         >
-          <label className={styles.check}>
-            <input
-              type="checkbox"
-              aria-label={`${document.title} auswählen`}
-              checked={workspace?.selected.includes(document.id) ?? false}
-              disabled={!workspace}
-              onChange={() => workspace?.select(document.id, {}, true)}
-            />
-          </label>
-          <div className={styles.actions}>
+          <div className={styles.actionRow}>
+            <label className={styles.check}>
+              <input
+                type="checkbox"
+                aria-label={`${document.title} auswählen`}
+                checked={workspace?.selected.includes(document.id) ?? false}
+                disabled={!workspace}
+                onChange={() => workspace?.select(document.id, {}, true)}
+              />
+            </label>
             <DocumentActions
               onTags={onTags ? () => onTags(document.id) : undefined}
               onOpenTab={onOpen ? () => onOpen(document.id, true) : undefined}
@@ -91,18 +92,25 @@ export function DocumentGrid({
               />
             </div>
             <div className={styles.sub}>
-              {formatDocumentDate(document.date)} · {document.pages} S.{' '}
+              {formatDocumentDate(document.date)} ·{' '}
+              {document.pages === null ? 'Seitenzahl unbekannt' : `${document.pages} S.`}{' '}
               <TranscriptStatus document={document} />
               {workspace?.results.get(document.id)?.hit && (
                 <span>Treffer S. {workspace.results.get(document.id)?.hit?.page}</span>
               )}
             </div>
             <div className={styles.sub}>
-              {document.kind} ·{' '}
-              <Highlight
-                text={document.fileName ?? '—'}
-                terms={workspace?.results.get(document.id)?.terms ?? []}
-              />
+              {document.kind}
+              {(!hasRedundantPdfFilename(document) || workspace?.searchActive) && (
+                <>
+                  {' '}
+                  ·{' '}
+                  <Highlight
+                    text={document.fileName ?? '—'}
+                    terms={workspace?.results.get(document.id)?.terms ?? []}
+                  />
+                </>
+              )}
             </div>
             {workspace?.searchActive && (
               <div className={styles.sub}>

@@ -64,6 +64,10 @@ export function useDocumentWorkspace(
     zoom,
     setZoom: (value: number) => setZoom(Math.max(110, Math.min(380, Math.round(value / 10) * 10))),
     setMessage: (value: string) => dispatch({ type: 'message', value }),
+    importDocuments: (documents: readonly DocumentSummary[]) =>
+      dispatch({ type: 'import', documents }),
+    setPdfPages: (id: string, blob: Blob, pages: number) =>
+      dispatch({ type: 'pdf-pages', id, blob, pages }),
     clear: () => dispatch({ type: 'clear' }),
     all: (checked: boolean) => dispatch({ type: 'all', ids: checked ? visibleIds : [] }),
     select: (

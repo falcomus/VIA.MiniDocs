@@ -11,12 +11,7 @@ export function TagChips({
   return assigned.length ? (
     <span className={styles.chips}>
       {assigned.map((tag) => (
-        <span
-          className={styles.chip}
-          key={tag.id}
-          title={tag.description}
-          style={{ borderColor: tag.color }}
-        >
+        <span className={styles.chip} key={tag.id} title={tag.description}>
           <span className={styles.dot} style={{ backgroundColor: tag.color }} />
           {tag.name}
         </span>

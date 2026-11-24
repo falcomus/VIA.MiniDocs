@@ -5,6 +5,7 @@ import { SearchControls } from '../features/search/SearchControls';
 import type { SearchControlsState, SearchState } from '../features/search/useSearchState';
 import type { DocumentSort } from '../features/documents/documentOperations';
 import type { DocumentView } from '../features/documents/document.types';
+import { useRef } from 'react';
 import type { ReactNode } from 'react';
 import type { Topic, TopicId } from '../features/topics/topic.types';
 import type { TopicDrag } from '../features/topics/useTopicDrag';
@@ -21,7 +22,9 @@ export function AppShell({
   onManageTags,
   openingMode,
   onOpeningModeChange,
+  onImport,
 }: {
+  readonly onImport: (files: FileList) => void;
   readonly tags: readonly TagDefinition[];
   readonly onManageTags: () => void;
   readonly openingMode: OpeningMode;
@@ -42,6 +45,7 @@ export function AppShell({
           onManageTags={onManageTags}
           openingMode={openingMode}
           onOpeningModeChange={onOpeningModeChange}
+          onImport={onImport}
         />
         <div className={styles.layout}>
           <aside className={styles.sidebar}>{sidebar}</aside>
@@ -60,7 +64,9 @@ function Header({
   onManageTags,
   openingMode,
   onOpeningModeChange,
+  onImport,
 }: {
+  readonly onImport: (files: FileList) => void;
   readonly openingMode: OpeningMode;
   readonly onOpeningModeChange: (mode: OpeningMode) => void;
   readonly tags: readonly TagDefinition[];
@@ -68,6 +74,7 @@ function Header({
   readonly search: SearchControlsState;
   readonly onSearchChange: (state: SearchState) => void;
 }) {
+  const fileInput = useRef<HTMLInputElement>(null);
   return (
     <header className={styles.topbar}>
       <div className={styles.brand}>
@@ -83,10 +90,26 @@ function Header({
           <Icon name="text" />
           Transkripte importieren
         </button>
-        <button className={`${styles.button} ${styles.primary}`} disabled>
+        <button
+          type="button"
+          className={`${styles.button} ${styles.primary}`}
+          onClick={() => fileInput.current?.click()}
+        >
           <Icon name="upload" />
           Hochladen
         </button>
+        <input
+          ref={fileInput}
+          type="file"
+          accept=".pdf,application/pdf"
+          multiple
+          aria-label="PDF-Dateien hochladen"
+          hidden
+          onChange={(event) => {
+            if (event.target.files?.length) onImport(event.target.files);
+            event.target.value = '';
+          }}
+        />
         <SettingsMenu
           onManageTags={onManageTags}
           openingMode={openingMode}
@@ -101,12 +124,14 @@ export function Sidebar({
   children,
   documentCount,
   pageCount,
+  unknownPageCount,
   onAdd,
   drag,
 }: {
   readonly children: ReactNode;
   readonly documentCount: number;
   readonly pageCount: number;
+  readonly unknownPageCount: number;
   readonly onAdd: () => void;
   readonly drag: TopicDrag;
 }) {
@@ -142,7 +167,9 @@ export function Sidebar({
       </div>
       <div className={styles.tree}>{children}</div>
       <div className={styles.sidebarFoot}>
-        <b>{documentCount}</b> Dokumente · <b>{pageCount}</b> Seiten
+        <b>{documentCount}</b> Dokumente · <b>{pageCount}</b>{' '}
+        {unknownPageCount ? 'bekannte Seiten' : 'Seiten'}{' '}
+        {unknownPageCount > 0 && <span>· {unknownPageCount} unbekannt</span>}
         <br />
         <span>Prototyp – Daten nur im Browser, Reload setzt zurück</span>
       </div>

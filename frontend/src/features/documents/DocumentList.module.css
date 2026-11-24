@@ -45,6 +45,7 @@
 }
 .kind {
   display: block;
+  overflow-wrap: anywhere;
 }
 
 .mini {

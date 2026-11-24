@@ -1,6 +1,8 @@
 import { Icon } from '../../components/Icon';
 import type { DocumentSummary } from './document.types';
 import styles from './DocumentSummary.module.css';
+import { PdfThumbnail } from './PdfThumbnail';
+import { DemoInkPage } from './DemoInkPage';
 export function TranscriptStatus({ document }: { readonly document: DocumentSummary }) {
   const status = !document.transcript
     ? 'missing'
@@ -47,28 +49,8 @@ export function DocumentActions({
 }
 /** Synthetic demo ink only: no URL, file access or implied real PDF preview. */
 export function DemoPreview({ document }: { readonly document: DocumentSummary }) {
-  return (
-    <svg
-      className={styles.preview}
-      viewBox="0 0 210 297"
-      role="img"
-      aria-label="Synthetische Demovorschau"
-    >
-      <rect className={styles.paper} width="210" height="297" />
-      <text className={styles.paperLabel} x="18" y="25" fontSize="9">
-        DEMO · {document.kind}
-      </text>
-      {(
-        document.demoPreview?.lines ?? [
-          document.title,
-          'Demo-Notizen',
-          'Besprechung und nächste Schritte',
-        ]
-      ).map((line, index) => (
-        <text key={index} x="18" y={55 + index * 22} fontSize="8" fill="#344054">
-          {line.slice(0, 36)}
-        </text>
-      ))}
-    </svg>
-  );
+  if (document.source?.kind === 'pdf') {
+    return <PdfThumbnail blob={document.source.blob} />;
+  }
+  return <DemoInkPage document={document} page={1} label="Synthetische Demovorschau" />;
 }
