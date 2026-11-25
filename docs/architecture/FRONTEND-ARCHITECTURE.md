@@ -1,5 +1,7 @@
 # Frontend-Architektur für die KU-Demo
 
+> Historischer Frontend-Vorbereitungsvorschlag; der aktuelle Stand steht im [Masterplan](../MASTERPLAN.md). Backendentscheidungen und ihr Freigabestatus stehen in der [Architektur](../ARCHITECTURE.md) und den [ADRs](../DECISIONS.md); ältere Aussagen dieses Vorschlags sind keine Backendfreigabe.
+
 ## Ausgangspunkt und Ziel
 
 Die bestehende Vite-Anwendung mit React 19, TypeScript strict, CSS Modules, Vitest und React Testing Library bleibt erhalten. `App` verbindet derzeit die Demo-Arrays mit `TopicTree` und `DocumentList`; Auswahl und aufgeklappte Themen liegen in React-State. Die Testbasis ist bewusst kleiner und visuell nicht die KU-Referenz. Keine Backend- oder Datenbankimplementierung in dieser Vorbereitungsphase.
@@ -18,7 +20,7 @@ Nach Bedarf bestehende Typen erweitern: `Topic { id, parentId, name, systemKey? 
 
 Reine Funktionen für Baumoperationen, Sortierung, Suchnormalisierung, Auswahlbereiche, Importparser und Konfliktregeln; Hooks wie `useSelection`, `useSearch`, `useDragDrop` und `useKeyboardShortcuts` nach Bedarf. Browser-Dateiobjekte und Objekt-URLs hinter Import-/Preview-/Download-Services kapseln und beim Ersatz bzw. Unmount freigeben. React verwaltet UI; imperative Browser-APIs nur über Refs/Effekte, nicht als Ersatz fürs Rendering. Demo-Repository mit klarer In-Memory-Lebensdauer; kein vorgetäuschtes dauerhaftes Speichern. Seed und synthetische Vorschau nachvollziehbar aus Originalverhalten ableiten.
 
-Spätere Grenze: `React/TypeScript → ASP.NET Core MiniDocs API (.NET 10) → PostgreSQL` für Themen, Tags, Transkripte, Dokumentmetadaten und Suche; die API bindet zusätzlich `VIA.Docs V1.2 REST API` für Originaldateien, Abruf und Vorschaubilder an. VIA.Docs verwendet Application-Authentifizierung, JWT und vorhandene Registrierung mittels Einladung. Zugangsdaten bleiben serverseitig; keine direkten VIA.Docs-Secrets im Frontend. Details zu Tokens, Verträgen, Hosting und Fehlerfällen erst gegen echte Schnittstellen und gesonderten Testauftrag klären. Der Entwurf im Begleitdokument ist keine bestätigte API-Spezifikation.
+Die frühere Backendgrenze war ein Vorbereitungsvorschlag. Der heute freigegebene Planungsstand und die noch offenen Entscheidungen stehen im [ADR-Register](../DECISIONS.md); der [VIA.Docs-Quellstand](../VIA-DOCS-API.md) unterscheidet bestätigten Commit, uncommittierten Einladungsentwurf und nicht verifiziertes Deployment.
 
 ## Fehler und Tests
 

@@ -1,52 +1,26 @@
-# VIA.MiniDocs – React-Testbasis
+# VIA.MiniDocs
 
-**Status:** frühes, bewusst begrenztes Testprojekt für die Zusammenarbeit über Chat ABC. **Kein produktives MiniDoc.**
+React-/TypeScript-Demo zur Verwaltung von Notizen und lokalen PDFs. Daten und Dateien liegen bislang im Arbeitsspeicher; Backend, PostgreSQL und VIA.Docs-Anbindung sind nicht implementiert. Die KU-Gesamtabnahme ist offen.
 
-## Was enthalten ist
+## Lokal starten
 
-- React + TypeScript (`strict`) mit Vite
-- eine lesende Themenhierarchie mit lokal hinterlegten **Demodaten**
-- eine Liste von **Beispieldokumenten** für das ausgewählte Thema
-- CSS Modules ohne zusätzliche UI-Bibliothek
-- Vitest + React Testing Library und ESLint
-- Draft-Dokumente zu Umfang und offenen Architekturentscheidungen
+Node.js 22.12+ oder eine kompatible Node-20-Version ab 20.19; im Verzeichnis `frontend`:
 
-**Nicht enthalten:** MiniDoc-API, PostgreSQL, VIA.Docs-Anbindung, echtes Speichern, PDF-Upload, Suche, Authentifizierung, Router, State-Management-Bibliothek. Es wurden keinerlei Projektdaten importiert.
+```powershell
+npm install
+npm run check
+npm run dev
+```
 
-## Einrichtung unter Windows
+Vite zeigt die lokale Adresse; `Strg+C` beendet den Server. `npm run check` prüft Formatierung, TypeScript, ESLint, Stylelint, Vitest und Build.
 
-1. ZIP-Inhalt **direkt** nach `C:\VIA_DEVELOPMENT\PROJECTS\VIA.MiniDocs` entpacken. Dort sollten danach `frontend`, `docs` und diese `README.md` liegen.
-2. In einem Terminal im Projektverzeichnis:
+## Dokumentationswegweiser
 
-   ```powershell
-   cd frontend
-   npm install
-   npm run check
-   npm run dev
-   ```
+- [AGENTS.md](AGENTS.md): verbindliche Arbeitsregeln.
+- [Masterplan](docs/MASTERPLAN.md) und [Tickets](docs/TICKETS.md): aktueller Stand, Planung und offene Abnahmen.
+- [Engineering-Standards](docs/ENGINEERING-STANDARDS.md) und [Definition of Done](docs/DEFINITION-OF-DONE.md): Qualitäts- und Abnahmeregeln.
+- [Architektur](docs/ARCHITECTURE.md): Frontend-Bestand, Backend-Zielbild, Sicherheit und Datenmodell.
+- [Entscheidungen](docs/DECISIONS.md): maßgebliche ADRs und Freigabestatus.
+- [VIA.Docs-API](docs/VIA-DOCS-API.md): statischer Quellstand und nicht verifiziertes Deployment.
 
-3. Die von Vite im Terminal angezeigte lokale Adresse im Browser öffnen (gewöhnlich `http://localhost:5173`).
-4. Zur Beendigung des Entwicklungsservers `Strg+C` drücken.
-
-Voraussetzung: **Node.js 22.12+** oder eine kompatible Node-20-Version (20.19+). Die Node-Version muss zur installierten Vite-Version passen.
-
-Die vorhandene `package-lock.json` hält die aufgelösten Abhängigkeiten fest. `node_modules` und `dist` werden nicht versioniert.
-
-## Einzelne Prüfungen
-
-Alle Prüfungen über `npm run check`: **TypeScript → ESLint → Vitest → Produktionsbuild**. Individuell möglich: `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`. Playwright ist **noch nicht eingerichtet**.
-
-## Chat ABC
-
-Der Chat-ABC-Workspace wurde zuvor als `ABC-D2FA39C3` / `VIA.MiniDocs` bestätigt. **In einem neuen Chat** oder bei unklarem Zustand zuerst `PROJECT-OVERVIEW` durchführen; ältere Projektinformationen ersetzen keine frische Prüfung. Vor einer Änderung den passenden Operation Contract und aktuelle Originaldateien abrufen. Chat ABC ist eine **separate Windows-Anwendung**, die Kommunikation erfolgt manuell über die Zwischenablage. Dieses ZIP wird **nicht automatisch** durch Chat ABC eingespielt.
-
-Prüffragen für Chat ABC:
-
-1. Werden die neuen React-/TypeScript-Dateien in der Projektübersicht erkannt?
-2. Kann `READ_CODE` die vollständigen Dateien korrekt ausgeben?
-3. Kann eine kleine, freigegebene Änderung über `CHANGE_PACKAGE` sicher vorbereitet, angewendet und geprüft werden?
-4. Werden TypeScript-, Lint-, Test- und Vite-Build-Ergebnisse sichtbar und getrennt ausgewiesen? Ein .NET-zentrierter `FULL`-Check allein ersetzt diese Prüfungen nicht.
-
-## Nächste Architekturentscheidung
-
-Das Inventar und die vorbereitenden Architektur- und Migrationspläne stehen unter `docs/architecture/`. Vor dem Anschluss an VIA.Docs und PostgreSQL sind die Schnittstellen und offenen fachlichen Punkte abzustimmen. Eine Backend-Implementierung ist nicht enthalten.
+Die früheren Architekturdateien unter `docs/architecture/` sind historische Ausgangsfassungen beziehungsweise Nachweise. Der [historische Ticketkatalog](docs/TICKETS-ARCHIV.md) bewahrt frühere Detailnachweise; aktuelle Aufgaben stehen in `TICKETS.md`. Die [PDF-Entscheidung](docs/architecture/M6-C-PDF-ENTSCHEIDUNG.md) bleibt als fachlicher Nachweis für Abgrenzung und Abnahme erhalten. Die lokale KU-Originalreferenz wird nicht veröffentlicht.

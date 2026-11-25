@@ -1,5 +1,7 @@
 # KU-Prototyp: UI- und Funktionsinventar
 
+> Historisches Originalinventar und Bestandsaufnahme vom 21.11.2026, keine aktuelle Implementierungs- oder Abnahmeliste. Insbesondere beschreibt die Zeile zur Themenlöschung das KU-Original; für die abweichende aktuelle Regel siehe [Q8](../TICKETS.md#q8--themenlöschung-an-ku-regel-anpassen).
+
 Stand: 21.11.2026. Referenz ist `.local-reference/MiniDoc_Prototyp.html` (HTML/CSS/JavaScript, Zeilennummern der lokalen Datei); das Begleitdokument `MiniDoc - Anfrage und Antwort - 17nov26.docx`, insbesondere Fragestellung und Anhang A/B, ergänzt die Absicht. Seine Feature-Ideen sind keine bereits implementierten Funktionen. Die Dateien bleiben lokal und sind nicht Teil des Repositorys. P1 = Grundfunktion, P2 = Ergänzung/Detail, P3 = Abschlussvergleich. Komponenten sind Vorschläge, keine bereits erstellten Dateien.
 
 | Original-UI-Element | Originalfunktion | Quellcode-Referenz (HTML, Zeilen) | Vorgeschlagene React-Komponente | Vorhandener MiniDocs-Bestand | Noch fehlende Funktion | Priorität |

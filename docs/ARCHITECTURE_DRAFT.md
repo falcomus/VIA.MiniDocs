@@ -1,6 +1,6 @@
 # Architektur – vorläufiger Entwurf
 
-> Historischer Entwurf der Testbasis. Aktueller Vorbereitungsvorschlag und Referenzinventar: `architecture/FRONTEND-ARCHITECTURE.md` und `architecture/KU-UI-INVENTORY.md`.
+> Historischer Entwurf der Testbasis, nicht maßgeblich für aktuelle Funktionen oder Backendentscheidungen. Aktueller Stand: [Masterplan](MASTERPLAN.md); verbindliche Architekturentscheidungen: [ADR-Register](DECISIONS.md).
 
 ## Bewusste Entscheidungen dieser Testbasis
 

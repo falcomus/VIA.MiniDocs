@@ -20,6 +20,7 @@ Gilt für neue Tickets im [Ticketkatalog](TICKETS.md); siehe auch [Masterplan](M
 
 - Versionierter, überprüfter Vertrag inklusive Eingaben, Ausgaben, Statuscodes und Fehlerfällen; Authentifizierung und Autorisierung für betroffene Endpunkte geklärt und getestet.
 - Integrations-, Negativ- und Fehlerfalltests gegen kontrollierte Stubs bzw. freigegebene Testdienste, ohne produktive Daten; Timeouts und Fehlermeldungen geprüft. Keine produktiven VIA.Docs-Zugriffe ohne gesonderten Testauftrag.
+- Für betroffene Backend-Tickets die freigegebenen [ADRs](DECISIONS.md) und einschlägigen [SEC-01–SEC-15-Anforderungen](ARCHITECTURE.md) nachweisen; sicherheitskritische Persistenz- und Isolationstests mit echtem PostgreSQL durchführen. Diese Anforderungen sind noch keine bestandenen Tests.
 
 ## Datenbank zusätzlich
 

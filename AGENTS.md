@@ -14,3 +14,7 @@
 Bei jeder Implementierung [Engineering-Standards](docs/ENGINEERING-STANDARDS.md) berücksichtigen: bestehende Architektur respektieren, CSS-Struktur sauber halten, vermeidbare doppelte Styles vermeiden und Design-Tokens konsistent verwenden. Libraries nach nachgewiesenem Nutzen auswählen, Accessibility beachten, Änderungen auf Senior-Niveau prüfen und keine neuen vermeidbaren technischen Schulden einführen. Kommentierung und Dokumentation nach den dortigen Regeln pflegen.
 
 Die dortigen Regeln zu CSS-Modulzuständigkeit, überprüfbaren Testaussagen, Lesbarkeit und fachlicher Kommentierung sind verbindlicher Bestandteil jeder Implementierungsprüfung. Offene manuelle Abnahmen dürfen nicht durch grüne Tests ersetzt werden.
+
+Für Backendplanung und spätere Umsetzung gelten die [Backend-Architektur](docs/ARCHITECTURE.md), die [Architekturentscheidungen und ihr Freigabestatus](docs/DECISIONS.md) und die dort verlinkten Sicherheits- und Integrationsdokumente. Planung ist keine Implementierungsfreigabe.
+
+Der [Dokumentationswegweiser](README.md#dokumentationswegweiser) unterscheidet aktuelle Regeln, offene Aufgaben und historische Nachweise. Historische Originalbeschreibungen überschreiben keine später bestätigten Entscheidungen oder den aktuellen Implementierungsstand.

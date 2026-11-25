@@ -1,5 +1,7 @@
 # M4 – Quellenvergleich und offene Abnahme
 
+> Historischer M4-Quellenvergleich; seitdem implementierte Änderungen und offene Abnahmen stehen in den [Tickets](../TICKETS.md). Insbesondere ist die damalige Dokument-Neuzuordnung beim Löschen eines Themas durch die heutige Q8-Regel ersetzt: Themen mit Dokumenten oder Unterthemen dürfen nicht gelöscht werden.
+
 Referenz: lokale KU-HTML-Datei. Geprüft wurden Auswahlleiste (CSS 95–100, `renderBulk`), Dokumentmarkierungen/Checkboxen (107–155), Sortierung/Toolbar (728–754), `moveDocs`/Zielwahl/Undo (864–895) und Ereignisverträge (1335–1421). Keine Originalreferenz wird veröffentlicht.
 
 ## Übernommene Werte und Abläufe

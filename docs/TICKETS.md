@@ -1,6 +1,6 @@
 # Ticketkatalog
 
-Stand: 22.11.2026. Einstieg, Phasen und kritischer Pfad: [Masterplan](MASTERPLAN.md). Für jedes Ticket gelten zusätzlich die [allgemeinen und einschlägigen speziellen DoDs](DEFINITION-OF-DONE.md). Abhängigkeiten bezeichnen fachliche Voraussetzungen, keine Genehmigung für spätere produktive Zugriffe. **Technisch abgeschlossen** bedeutet bei M1/M2 ausdrücklich nicht, dass deren visuelle Abnahme bereits erfolgt ist. Die Meilensteine M1–M8 entsprechen dem [KU-Migrationsplan](architecture/KU-MIGRATION-PLAN.md); D-Tickets betreffen ausschließlich die später gesondert beauftragte Datenanbindung.
+Aktuelle Aufgaben und offene Abnahmen; frühere Detailnachweise stehen im [Ticketarchiv](TICKETS-ARCHIV.md). Einstieg, Phasen und kritischer Pfad: [Masterplan](MASTERPLAN.md). Für jedes Ticket gelten zusätzlich die [allgemeinen und einschlägigen speziellen DoDs](DEFINITION-OF-DONE.md). Abhängigkeiten bezeichnen fachliche Voraussetzungen, keine Genehmigung für spätere produktive Zugriffe. **Technisch abgeschlossen** bedeutet bei M1/M2 ausdrücklich nicht, dass deren visuelle Abnahme bereits erfolgt ist. Die Meilensteine M1–M8 entsprechen dem [KU-Migrationsplan](architecture/KU-MIGRATION-PLAN.md); D-Tickets betreffen ausschließlich die später gesondert beauftragte Datenanbindung.
 
 ## Q1 – Accessibility und Themeninteraktion
 
@@ -134,7 +134,7 @@ Stand: 22.11.2026. Einstieg, Phasen und kritischer Pfad: [Masterplan](MASTERPLAN
 - **M7-A-FIX – Themenauswahl:** Beim KU-Vergleich fehlte im React-Viewer die hierarchische Auswahl neben „Thema“. Das native Auswahlfeld bietet sortierte, eingerückte Themen und „Nicht zugeordnet“. Die bestehende Dokumentverschiebung aktualisiert die Übersicht; verbundene Viewer-Tabs übertragen Änderungen über den bestehenden BroadcastChannel mit Bestätigung. Die Demo speichert Änderungen weiterhin nicht dauerhaft.
 - **M7-A-FIX – Browserabnahme vom 25.11.2026:** Der Projektverantwortliche bestätigt 5/5 Prüfungen: Hierarchie, Vorauswahl und Einrückung; Verschieben und Rückkehr zu „Nicht zugeordnet“; Erhalt von PDF-Seite, Zoom, Scrollposition und Transkriptbearbeitung; Themenwechsel zwischen Übersicht und separatem Tab in beiden Richtungen; Tastaturbedienung, Fokusdarstellung und Screenreader-Beschriftung. Die Prüfung wurde vom Projektverantwortlichen durchgeführt, nicht von Codex. Angaben zu Browser und Screenreader-Umgebung liegen nicht vor.
 - **M7-A-FIX – Grenzen:** Änderungen bleiben sitzungsgebunden; gleichzeitige Änderungen sind nicht konfliktfrei. Wird ein Zielthema zwischen Auswahl und Verarbeitung entfernt, bleibt die Bestätigung aus und der Viewer meldet dies nach Ablauf der Wartezeit. Eine systematische Prüfung konkurrierender Themenwechsel ist nicht dokumentiert.
-- **KU-Vergleich:** Laut Projektverantwortlichem wurde die fehlende Themenauswahl beim Vergleich von vier Screenshots der Übersicht und des Viewers erkannt; deren Korrektur wurde wie oben abgenommen. Gleiche dokumentierte Viewportgrößen und vollständige Hover-, Fokus-, Auswahl- und Scrollzustände sind damit nicht nachgewiesen. Der vollständige Vergleich von Bedienverhalten, Farben, Typografie, Icons und Abständen sowie die zuständige visuelle Gesamtfreigabe bleiben gemäß UI-DoD offen. Freigegebener UI-Feinschliff und die PDF-Architekturentscheidung sind unten beziehungsweise in der PDF-Entscheidung dokumentiert.
+- **KU-Vergleich:** Laut Projektverantwortlichem wurde die fehlende Themenauswahl beim Vergleich von vier Screenshots der Übersicht und des Viewers erkannt; deren Korrektur wurde wie oben abgenommen. Gleiche dokumentierte Viewportgrößen und vollständige Hover-, Fokus-, Auswahl- und Scrollzustände sind damit nicht nachgewiesen. Der vollständige Vergleich von Bedienverhalten, Farben, Typografie, Icons und Abständen sowie die zuständige visuelle Gesamtfreigabe bleiben gemäß UI-DoD offen. Freigegebener UI-Feinschliff steht im [Ticketarchiv](TICKETS-ARCHIV.md), die PDF-Architekturentscheidung im verlinkten PDF-Dokument.
 - **Umfang:** Lokaler Einzel-/Mehrfachimport per Dateiauswahl oder Datei-Drop in den bestehenden Dokumentzustand; eindeutige IDs und neutrale PDF-Vorschau auch bei identischen Dateinamen. Typ, PDF-Kopf und Dateiende werden auf Plaausibilität geprüft; dies ist keine vollständige Struktur- oder Sicherheitsprüfung.
 - **Datenfluss:** PDF-Blobs verbleiben im Arbeitsspeicher. PDF.js ermittelt beim Import die Seitenzahl. React-PDF 10.5.0 rendert die gewählte Seite mit lokalem PDF.js-Worker. Die erste Seite wird bei Sichtbarkeit mit begrenzter Auflösung und maximal zwei parallelen Aufgaben als Miniatur erzeugt; der Blob-identische Speicher-Cache ist sitzungsgebunden. Der separate Tab fordert einen aktuellen Snapshot beim zugehörigen Übersichtstab an und sendet Transkriptoperationen mit Bestätigung zurück. Ohne Quelle nach Neuladen wird ein Fehler gezeigt. Keine dauerhafte Persistenz.
 - **Nachweise:** Der Projektverantwortliche bestätigt PDF-Import, Seitenzahl und Miniatur, separaten Viewer-Tab, Seitenkopplung, Zoom und Splitter ohne Flackern, Transkriptbearbeitung über Dokumentwechsel, Suche/Ersetzen, 200 % Browserzoom, schmale Fenster, Tastatur einschließlich Splitter, Hell-/Dunkelmodus und Viewer-Neuladen mit F5. Echte lokale PDFs wurden auch exemplarisch im Overlay angezeigt; eine ungültige Datei wurde beim Import abgewiesen. Dies ist keine vollständige PDF-Abnahme.
@@ -193,9 +193,18 @@ Stand: 22.11.2026. Einstieg, Phasen und kritischer Pfad: [Masterplan](MASTERPLAN
 
 ## Phase B – Spätere Datenanbindung und Betrieb
 
+### B0-DOC – Backend-Architektur dokumentieren
+
+- **Status:** Dokumentation zur Prüfung durch den Projektverantwortlichen erstellt; keine Implementierungsfreigabe.
+- **Umfang:** [Backend-Architektur](ARCHITECTURE.md), [ADR-Register](DECISIONS.md), Identität, Sicherheit, VIA.Docs, Datenmodell und Deployment. Quellcodeanalyse ist keine Deployment-Abnahme.
+- **Planungsstand:** B0.1 MiniDocs-Bestandsaufnahme abgeschlossen; B0.2 VIA.Docs-Quellcodeanalyse abgeschlossen, Abweichung zwischen Commit und uncommittetem Einladungsentwurf dokumentiert; B0.3 Benutzer, Workspaces und Provisionierung freigegeben; B0.4 Sicherheitsarchitektur freigegeben, Hostingdetails offen; B0.5 Solution- und Projektarchitektur vorgeschlagen, Freigabe offen; B0.6 PostgreSQL-Datenmodell offen; B0.7 REST-Verträge offen; B0.8 Hosting und Deployment-Verifikation offen; B0.9 abschließende Dokumentation und Implementierungstickets offen.
+- **Abnahme:** fachliche Prüfung und Freigabe des Dokumentationsstands durch den Projektverantwortlichen offen. D1–D8 bleiben geplante Implementierungstickets und benötigen gesonderte Freigabe.
+- **Technischer Nachweis:** Frontend-Regressionsprüfung `npm run check` Exit 0, 219 Tests und Produktionsbuild erfolgreich; Build-Warnung für ein JavaScript-Chunk über 500 kB. Keine Backend-, Datenbank-, Deployment- oder produktiven Integrationstests im Dokumentationsauftrag. Der Git-Abschluss bleibt gemäß allgemeiner DoD bis zu gesonderter Freigabe offen.
+
 ### D1 – MiniDocs-API und Verträge
+- **Planungsergänzung:** Backend-Grundstruktur und API-Verträge nach B0.5/B0.7; ADR-014 bis ADR-016 sind noch nicht freigegeben. Akzeptanz vorläufig, Implementierung gesondert beauftragen.
 - **Status:** geplant, gesonderter Auftrag erforderlich.
-- **Ziel / Umfang:** ASP.NET Core (.NET 10) API-Grundlage, dokumentierte Verträge und Fehlerantworten für die MiniDocs-Schicht; Dienste und Datenzugriff trennen.
+- **Ziel / Umfang:** ASP.NET-Core-API-Grundlage, dokumentierte Verträge und Fehlerantworten für die MiniDocs-Schicht; Dienste und Datenzugriff trennen. .NET 10 bleibt gemäß ADR-016 vorgeschlagen.
 - **Ausgeschlossen:** Änderung von VIA.Docs, produktiver Zugriff und unbestätigte Endpunkte als Tatsachen festschreiben.
 - **Abhängigkeiten:** Architektur- und Sicherheitsentscheidungen; Abstimmung mit D2–D4.
 - **Akzeptanz:** Verträge für die benötigten Funktionen prüfbar; Eingaben, Ausgaben, Fehler und Authentifizierungsgrenzen dokumentiert.
@@ -204,6 +213,7 @@ Stand: 22.11.2026. Einstieg, Phasen und kritischer Pfad: [Masterplan](MASTERPLAN
 - **Risiken:** tatsächliche API-Verträge und Hosting noch offen.
 
 ### D2 – PostgreSQL-Modell und Migrationen
+- **Planungsergänzung:** B0.6 klärt das physische Modell; verbindliche Workspace-Isolation und zusammengesetzte Fremdschlüssel nach ADR-011, Tests gegen echtes PostgreSQL. Akzeptanz vorläufig.
 - **Status:** geplant, gesonderter Auftrag erforderlich.
 - **Ziel / Umfang:** Themen, Dokumentmetadaten, Tags und seitenweise Transkripte samt Relationen und versionierten Migrationen nach abgestimmtem Modell.
 - **Ausgeschlossen:** Änderungen an bestehenden Datenbanken; unbestätigte Tabellenentwürfe ungeprüft übernehmen.
@@ -214,6 +224,7 @@ Stand: 22.11.2026. Einstieg, Phasen und kritischer Pfad: [Masterplan](MASTERPLAN
 - **Risiken:** Datenverlust bei Migration, Dateinamenkollisionen und noch offene Suchstrategie.
 
 ### D3 – VIA.Docs-V1.2-Client
+- **Planungsergänzung:** Typisierter serverseitiger Client; Commit und uncommittierter Einladungsentwurf sowie Deployment-Verifikation gemäß [Integration](VIA-DOCS-API.md) getrennt behandeln. Akzeptanz vorläufig.
 - **Status:** geplant, gesonderter Auftrag erforderlich.
 - **Ziel / Umfang:** serverseitige, typisierte VIA.Docs-Clientgrenze für später benötigte Datei-/Vorschauoperationen nach verifiziertem Vertrag.
 - **Ausgeschlossen:** Änderungen am VIA.Docs-Server; produktiver Zugriff ohne gesonderten Testauftrag.
@@ -224,8 +235,9 @@ Stand: 22.11.2026. Einstieg, Phasen und kritischer Pfad: [Masterplan](MASTERPLAN
 - **Risiken:** unbekannte API-Details, Previewgrößen und Ablauf bei Nichtverfügbarkeit.
 
 ### D4 – Anwendungskonto, Einladung und JWT
+- **Planungsergänzung:** MiniDocs Identity, Benutzereinladungen, getrennte technische Einladung, wiederanlauffähige Provisionierung, Secret-Schutz und getrennte JWTs nach ADR-001 bis ADR-012; Hosting/Schlüsselbestand und Sitzungsvalidierung konkretisieren. Akzeptanz vorläufig.
 - **Status:** geplant, gesonderter Auftrag erforderlich.
-- **Ziel / Umfang:** bestehendes VIA.Docs-Einladungs-/Application-Verfahren für die MiniDocs-Serverintegration verifizieren; JWT-Bezug, sichere Konfiguration und Erneuerung nach tatsächlichem Vertrag.
+- **Ziel / Umfang:** das nur im lokalen VIA.Docs-Arbeitsbaum vorgefundene Einladungs-/Application-Verfahren für die MiniDocs-Serverintegration verifizieren; JWT-Bezug, sichere Konfiguration und Erneuerung nach tatsächlichem Vertrag.
 - **Ausgeschlossen:** neue VIA.Docs-Registrierung erfinden, Zugangsdaten ins Frontend legen oder produktive Konten ohne Auftrag verwenden.
 - **Abhängigkeiten:** D1, D3-Vertragsklärung; freigegebene Testidentität und Geheimnisverwaltung.
 - **Akzeptanz:** nachvollziehbarer Einladungs- und Tokenablauf mit minimalen Rechten; keine Secrets in Logs, Git oder Frontend.
@@ -234,6 +246,7 @@ Stand: 22.11.2026. Einstieg, Phasen und kritischer Pfad: [Masterplan](MASTERPLAN
 - **Risiken:** reale Rollen, Tokenlebensdauer und Registrierung noch ungeklärt.
 
 ### D5 – PDF-Upload, Download und Vorschau
+- **Planungsergänzung:** Autorisiertes Streaming ohne vollständige `byte[]`-Pufferung; unterstützte Range-Requests, Status 200/206/304/416, Header, Cancellation und Speicherverbrauch gemäß [Integration](VIA-DOCS-API.md) nachweisen. Akzeptanz vorläufig.
 - **Status:** geplant, gesonderter Auftrag erforderlich.
 - **Ziel / Umfang:** MiniDocs-API verbindet PDF-Upload, Dateiabruf und Vorschauen mit VIA.Docs und speichert zugehörige Referenzen/Metadaten.
 - **Ausgeschlossen:** Änderung von VIA.Docs, produktive Dateien oder neue Viewer-Funktionen außerhalb des vereinbarten Umfangs.
@@ -244,6 +257,7 @@ Stand: 22.11.2026. Einstieg, Phasen und kritischer Pfad: [Masterplan](MASTERPLAN
 - **Risiken:** inkonsistente Metadaten und Dateien bei Teilausfällen, Größen- und Vorschaugrenzen.
 
 ### D6 – Themen-, Tag- und Metadatenpersistenz
+- **Planungsergänzung:** workspace-bezogene Themen-, Tag- und Dokumentmetadaten mit Integritäts- und Isolationsregeln; B0.6/B0.7 offen. Akzeptanz vorläufig.
 - **Status:** geplant, gesonderter Auftrag erforderlich.
 - **Ziel / Umfang:** dauerhafte Themenhierarchie, Tagzuordnung und Dokumentmetadaten über MiniDocs-API und PostgreSQL; Frontend an die vereinbarten Grenzen anschließen.
 - **Ausgeschlossen:** VIA.Docs-Serveränderungen, Suchindex und Transkriptbearbeitung aus D7.
@@ -251,9 +265,10 @@ Stand: 22.11.2026. Einstieg, Phasen und kritischer Pfad: [Masterplan](MASTERPLAN
 - **Akzeptanz:** Ändern, Neuladen und erneutes Lesen erhalten Daten; Systemknoten, Lösch- und Zuordnungsregeln bleiben gewahrt.
 - **Technische DoD:** API- und Datenbank-DoD, relevante Verträge und Fehlerzustände dokumentiert.
 - **Tests:** CRUD und Integrität, Reload, Systemschutz, Konflikte und API-/DB-Integration.
-- **Risiken:** konkurrierende Änderungen und Atomarität; tatsächlicher Einzelnutzerumfang klären.
+- **Risiken:** konkurrierende Änderungen und Atomarität; Konfliktbehandlung für mehrere Sitzungen konkretisieren. Das private 1:1-Workspace-Modell ist in ADR-003 freigegeben.
 
 ### D7 – Transkripte und Volltextsuche
+- **Planungsergänzung:** Transkriptseiten, Konflikt- und Nebenläufigkeitskontrolle sowie Suchsemantik; wartende Transkripte sind geplanter Importumfang, kein bereits implementiertes Frontend-Modell. Akzeptanz vorläufig.
 - **Status:** geplant, gesonderter Auftrag erforderlich.
 - **Ziel / Umfang:** seitenweise Transkriptpersistenz, Zuordnung per Dateiname einschließlich wartender Transkripte, Suche und Filter über die MiniDocs-API; Suchverhalten gegen M5 abgleichen.
 - **Ausgeschlossen:** KI-Transkription, semantische Suche, automatische Scan-Zerlegung und ungeprüfte Performanceversprechen.
@@ -264,6 +279,7 @@ Stand: 22.11.2026. Einstieg, Phasen und kritischer Pfad: [Masterplan](MASTERPLAN
 - **Risiken:** Abweichung zwischen Original-Teilstringsuche und Datenbanksuche; Dateinamenkollisionen.
 
 ### D8 – Integrations-, Sicherheits- und Betriebstests
+- **Planungsergänzung:** SEC-01 bis SEC-15, Deployment-Verifikation, Wiederanlauf, Schlüsselrotation und Backup/Restore nach [Sicherheit](ARCHITECTURE.md) und [Deployment](ARCHITECTURE.md). Akzeptanz vorläufig; keine Test- oder Produktivfreigabe.
 - **KU-Vorgabe:** sicheren Zugriff von unterwegs vorsehen; Authentifizierung, Betriebsmodell und Absicherung vor Umsetzung konkretisieren.
 - **Status:** geplant, gesonderter Auftrag erforderlich.
 - **Ziel / Umfang:** integrierte Testumgebung, Sicherheits- und Fehlerfallprüfung, Betriebsdokumentation, Backup/Restore, Monitoring und Wiederanlauf für die beteiligten Systeme.
@@ -285,12 +301,7 @@ Stand: 22.11.2026. Einstieg, Phasen und kritischer Pfad: [Masterplan](MASTERPLAN
 
 ## Q4 – Einheitliche Frontend-Formatierung
 
-- **Status:** technisch abgeschlossen; Einführung durch aktuellen Auftrag freigegeben.
-- **Ziel/Umfang:** Prettier 3.10.1, definierter Frontendumfang, einmalige Formatierung und verpflichtendes `format:check` in `npm run check`.
-- **Ausgeschlossen:** fachliche Änderungen, Refactorings, typisierte CSS Modules, M3 und Formatierung lokaler Originalreferenzen/generierter Dateien.
-- **Abhängigkeiten:** Engineering-Standards, `.editorconfig` und vorhandene ESLint-/Stylelint-Prüfungen.
-- **Akzeptanz/DoD:** Konfiguration und Ignorierregeln dokumentiert; Formatcheck, CSS-Lint, bestehende Tests und Build erfolgreich; Quellcode-Diff ausschließlich durch Prettier erzeugt.
-- **Tests/Risiken:** 21 bestehende Tests; Abgleich der 18 geänderten Quellcode-/Bestandskonfigurationsdateien mit Prettier-Ausgabe des vorherigen Git-Stands. Formatter ersetzt keine fachliche, visuelle oder Accessibility-Abnahme.
+- **Status:** technisch abgeschlossen; Einzelheiten und Nachweise im [Ticketarchiv](TICKETS-ARCHIV.md#q4--einheitliche-frontend-formatierung). Die Formatprüfung bleibt Bestandteil von `npm run check`.
 
 ## Q5 – Typisierte CSS Modules für npm run check evaluieren
 

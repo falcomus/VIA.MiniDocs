@@ -1,5 +1,7 @@
 # React-, TypeScript- und CSS-Qualitätsaudit
 
+> Historischer Auditstand vom 22.11.2026; spätere Umsetzungen und offene Punkte stehen im [Ticketkatalog](../TICKETS.md). Bestands- und Planungsaussagen dieses Audits sind keine aktuelle Featureliste oder neue Freigabe.
+
 Stand: 22.11.2026. Grundlage: bestehende Anwendung, Konfiguration und Tests, [Masterplan](../MASTERPLAN.md), [Tickets](../TICKETS.md), [DoD](../DEFINITION-OF-DONE.md), [Architektur](FRONTEND-ARCHITECTURE.md), [Inventar](KU-UI-INVENTORY.md), [Migrationsplan](KU-MIGRATION-PLAN.md), M1-/M2-Designvergleiche sowie lokales Original-HTML. Quellenvergleich ersetzt keine Browser-/Assistive-Technologie-Abnahme; M1/M2 bleiben visuell offen. Keine Komponenten oder Styles wurden im Audit geändert und keine Packages installiert.
 
 ## Ergebnis und Ist-Architektur

@@ -1,6 +1,6 @@
 # VIA.MiniDocs – Masterplan
 
-Dieser Masterplan ist der zentrale Einstieg für den aktuellen Projektstand und die gültige Planung. Es gelten die [Entwicklungsregeln](../AGENTS.md), die [Engineering-Standards](ENGINEERING-STANDARDS.md), die [Frontend-Architektur](architecture/FRONTEND-ARCHITECTURE.md), das [UI-Inventar](architecture/KU-UI-INVENTORY.md) und der [KU-Migrationsplan](architecture/KU-MIGRATION-PLAN.md). Die lokale Original-HTML-Datei unter `.local-reference/` ist die verbindliche Design- und Verhaltensreferenz; sie wird nicht versioniert.
+Dieser Masterplan ist der zentrale Einstieg für den aktuellen Projektstand und die gültige Planung. Es gelten die [Entwicklungsregeln](../AGENTS.md), [Engineering-Standards](ENGINEERING-STANDARDS.md) und [Definition of Done](DEFINITION-OF-DONE.md). Historische Vorbereitungs- und Vergleichsdokumente sind im [Dokumentationswegweiser](../README.md#dokumentationswegweiser) eingeordnet. Die lokale Original-HTML-Datei unter `.local-reference/` ist die verbindliche Design- und Verhaltensreferenz; sie wird nicht versioniert.
 
 ## Projektziel und Architektur
 
@@ -8,7 +8,7 @@ MiniDoc soll handschriftliche Besprechungs- und persönliche Notizen als PDFs mi
 
 Das Frontend verwendet React, TypeScript strict, Vite und CSS Modules. Kleine Komponenten trennen Darstellung, Fachlogik, Zustand und Datenzugriff. Die Demo verwendet Daten im Arbeitsspeicher. Weitere Abhängigkeiten, insbesondere State-Management-Bibliotheken, werden nur bei nachgewiesenem Bedarf eingeführt.
 
-Das geplante Zielbild ist **React → ASP.NET Core MiniDocs API (.NET 10) → PostgreSQL** für Themen, Tags, Transkripte, Metadaten und Suche. Die MiniDocs-API bindet zusätzlich **VIA.Docs V1.2 REST** für Originaldateien, Dateiabruf und Vorschaubilder an. VIA.Docs verwendet Application-Authentifizierung, JWT und die vorhandene Registrierung per Einladung. Geheimnisse bleiben serverseitig; produktive VIA.Docs-Zugriffe benötigen einen gesonderten Testauftrag. VIA.Docs selbst und bestehende Datenbanken werden nicht verändert.
+Das geplante Zielbild ist **React → ASP.NET Core MiniDocs API → eigene PostgreSQL-Datenbank** für Fachdaten; die API bindet VIA.Docs V1.2 serverseitig über REST für Dateien und Vorschauen an. Einladungsbasierte Benutzerregistrierung, private Workspaces, technische VIA.Docs-Identitäten und Same-Origin-Authentifizierung sind fachlich entschieden. .NET 10 und weitere technische Grundlagen bleiben vorgeschlagen. [Backend-Architektur](ARCHITECTURE.md) und [ADR-Status](DECISIONS.md) sind maßgeblich. Der technische VIA.Docs-Einladungsweg ist im geprüften lokalen Arbeitsbaum, nicht im angegebenen Commit bestätigt; das Deployment ist ungeprüft. Keine produktiven Zugriffe ohne gesonderten Testauftrag.
 
 ## Aktueller Stand und nächste Meilensteine
 
@@ -20,6 +20,7 @@ Das geplante Zielbild ist **React → ASP.NET Core MiniDocs API (.NET 10) → Po
 - Q3 Modulgrenzen und Testaussagen sind technisch geprüft und korrigiert; Q4 automatisiert die Frontend-Formatierung; CSS-Typautomatisierung bleibt als Q5 geplant.
 - Q6 sichert Dropmarkierung, interne Drag-Quellen und Wurzelablage mit gemeinsamem Sitzungsvertrag und gezielten Tests ab; Q8 setzt die Löschung ausschließlich leerer Themen technisch um; die Browser- und Sichtabnahme ist offen. Q5 bleibt separat geplant, Browser-/Screenreader-Abnahmen bleiben offen.
 - Die fortlaufende PDF-Darstellung mit seitenweiser Transkript-Nachführung ist als M7-B-PDF technisch umgesetzt und auf `main` integriert; die beauftragte Browserabnahme ist bestätigt. Der vollständige KU-Vergleich bleibt offen; eine manuelle Touch-Prüfung ist ausdrücklich aus dem aktuellen Abnahmeumfang ausgenommen. Der separate Transkriptdateiimport M7-B-TRANSKRIPT, Papierkorb und sicherer Zugriff von unterwegs sind Folgearbeiten. Die Datenanbindung D1–D8 ist geplant. Backend, PostgreSQL-Anbindung und VIA.Docs-Verbindung sind noch nicht implementiert.
+- B0-DOC dokumentiert die freigegebenen Entscheidungen und den Planungsstand; die Freigabe des Dokumentationsstands steht aus. B0.5 bis B0.9 und D1–D8 bleiben offen beziehungsweise geplant; keine Implementierungsfreigabe.
 
 ## Abhängigkeiten
 
@@ -29,7 +30,7 @@ Für die spätere Datenanbindung bilden API-Verträge und Datenmodell die Grundl
 
 ## Offene Entscheidungen und Risiken
 
-Zu klären sind die tatsächlichen VIA.Docs-Endpunkte, Berechtigungen und der Einladungs- und JWT-Lebenszyklus; MiniDocs-API-Verträge und Hosting; ID- und Vorschau-Mapping; Fehler- und Wiederanlaufverhalten bei Dateioperationen über zwei Systeme; Backup-/Restore-Zuständigkeiten; Suchsemantik und Indexstrategie sowie die spätere Integration von VIA.Docs-PDF-Quellen. Die fachliche Abgrenzung der Scrollsynchronisation für M6-C/M7-A ist in der [PDF-Entscheidung](architecture/M6-C-PDF-ENTSCHEIDUNG.md) festgelegt. Der Datenmodell- und Suchentwurf des Begleitdokuments ist kein bestätigter API-Vertrag oder Performance-Nachweis.
+Zu klären sind insbesondere Deployment und tatsächlicher VIA.Docs-Vertrag einschließlich des nur im Arbeitsbaum vorgefundenen Einladungswegs, Hosting, MiniDocs-API-Verträge, physisches Datenmodell, Fehler- und Wiederanlaufverhalten, Backup-/Restore-Zuständigkeiten, Suchsemantik und Indexstrategie. Die fachliche Abgrenzung der Scrollsynchronisation für M6-C/M7-A ist in der [PDF-Entscheidung](architecture/M6-C-PDF-ENTSCHEIDUNG.md) festgelegt. Der Datenmodell- und Suchentwurf ist kein bestätigter API-Vertrag oder Performance-Nachweis.
 
 Die visuelle Vergleichsumgebung für M1 und M2 sowie die Browser- und Screenreader-Prüfung der Tastaturalternative zum Themenverschieben sind offen. Browserunterschiede, PDF-Viewer-Grenzen und inkonsistente Daten bei Teilausfällen bleiben relevante Risiken. Es gelten die Sicherheits- und Qualitätsanforderungen der [Definition of Done](DEFINITION-OF-DONE.md).
 
@@ -40,4 +41,4 @@ Die visuelle Vergleichsumgebung für M1 und M2 sowie die Browser- und Screenread
 - **DEFINITION-OF-DONE.md:** verbindliche Qualitätskriterien.
 - **Git:** technische Änderungshistorie.
 
-Keine parallelen Projektchroniken führen. Die bestehenden Detailpläne bleiben als fachliche und technische Referenzen gültig.
+Keine parallelen Projektchroniken führen. Historische Detailpläne und Vergleiche dienen als Nachweise und Originalreferenz, nicht als aktueller Projektstand.

@@ -1,5 +1,7 @@
 # KU-Migrationsplan
 
+> Historischer Migrationsplan und Referenz für den ursprünglichen Umfang. Für aktuellen Stand, gültige Aufgaben und freigegebene Abweichungen gelten [Masterplan](../MASTERPLAN.md) und [Tickets](../TICKETS.md). Insbesondere wurde die ursprüngliche Löschregel durch Q8 ersetzt; der KU-Prototyp bleibt als Vergleichsgegenstand erhalten.
+
 Vorbereitung abgeschlossen bedeutet nicht, dass die UI migriert ist. Pakete aufeinander aufbauen, bestehende Funktionen erhalten und jeweils gegen die lokale HTML-Referenz und das Inventar prüfen. Dateinamen sind Vorschläge; fachliche Logik bleibt bei den jeweiligen Features. Demo-Zustand bleibt flüchtig. Tests bezeichnen bei Bedarf zusätzlich zur bestehenden `npm run check`-Prüfung erforderliche Interaktions- bzw. Browserprüfungen.
 
 ## M1 – Grundlayout, Design-Tokens und Icons
@@ -12,7 +14,7 @@ Vorbereitung abgeschlossen bedeutet nicht, dass die UI migriert ist. Pakete aufe
 ## M2 – Themenbaum und Navigation
 - Dateien: `features/topics/TopicTree*`, `topic.types.ts`, Baumfunktionen, `Breadcrumbs`, Dialog/Popover.
 - Abhängigkeiten: M1, Demodaten und gemeinsame Zustandsaktionen.
-- Abnahme: Hierarchie, rekursive Zähler, Pfad, Kontextmenü, Erstellen/Umbenennen/Löschen und Systemknoten; Löschen verschiebt Dokumente nach „Nicht zugeordnet“; Themen umhängen inkl. Zyklenschutz.
+- Ursprüngliche Referenz: Hierarchie, rekursive Zähler, Pfad, Kontextmenü, Erstellen/Umbenennen/Löschen und Systemknoten; im KU-Prototyp verschiebt Löschen Dokumente nach „Nicht zugeordnet“. Der aktuelle Stand gemäß [Q8](../TICKETS.md#q8--themenlöschung-an-ku-regel-anpassen) erlaubt nur das Löschen leerer Themen ohne Unterthemen; Themen umhängen einschließlich Zyklenschutz.
 - Tests: Baumoperationen, Auswahl, Auf-/Zuklappen, Kontextmenü, Systemschutz und Umhängen.
 - Risiken: zirkuläre Hierarchie, Auswahl nach Löschung, Tastaturzugang zum Kontextmenü.
 

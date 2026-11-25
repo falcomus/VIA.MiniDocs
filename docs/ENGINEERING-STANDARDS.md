@@ -1,6 +1,6 @@
 # Engineering-Standards
 
-Diese Standards ergänzen [AGENTS.md](../AGENTS.md), die [Frontend-Architektur](architecture/FRONTEND-ARCHITECTURE.md) und die [Definition of Done](DEFINITION-OF-DONE.md). Der [Qualitätsaudit](architecture/REACT-QUALITY-REVIEW.md) beschreibt den aktuellen Bestand und freizugebende Vorschläge. Das lokale KU-Original bleibt für Funktion, Bedienkonzept und Grundlayout verbindlich. Gezielt freigegebene Verbesserungen von Kontrast, Tiefe, Lesbarkeit und visueller Qualität sind zulässig; Abweichungen sind zu dokumentieren.
+Diese Standards ergänzen [AGENTS.md](../AGENTS.md), die [Architektur](ARCHITECTURE.md) und die [Definition of Done](DEFINITION-OF-DONE.md). Der [Qualitätsaudit](architecture/REACT-QUALITY-REVIEW.md) dokumentiert historische Befunde und Vorschläge; aktuelle Aufgaben stehen in den Tickets. Das lokale KU-Original bleibt für Funktion, Bedienkonzept und Grundlayout verbindlich. Gezielt freigegebene Verbesserungen von Kontrast, Tiefe, Lesbarkeit und visueller Qualität sind zulässig; Abweichungen sind zu dokumentieren.
 
 ## React-Architektur und Zustand
 
@@ -36,6 +36,7 @@ Diese Standards ergänzen [AGENTS.md](../AGENTS.md), die [Frontend-Architektur](
 
 - React spricht künftig die MiniDocs-API an; VIA.Docs-Credentials bleiben serverseitig. Keine produktiven VIA.Docs-Zugriffe ohne gesonderten Testauftrag. Verträge, Autorisierung, Fehlerfälle und Timeouts an der Servicegrenze prüfen; keine Secrets oder lokale Referenzen in Git oder Logs.
 - Testdaten und freigegebene Testumgebungen verwenden. Persistenz-/Importvorgänge über mehrere Systeme benötigen definierte Teilfehler- und Wiederanlaufregeln.
+- Für spätere Backend-Arbeit sind die freigegebenen [ADRs](DECISIONS.md) verbindlich: Identity mit Cookie und Antiforgery, serverseitige Workspace-Autorisierung in mehreren Ebenen, getrennte technische Identitäten und geschützte Schlüsselverwaltung. Vorgeschlagene Technologien bleiben bis zu ihrer Freigabe unverbindlich. Sicherheitsnachweise und Testanforderungen stehen in der [Sicherheitsarchitektur](ARCHITECTURE.md).
 
 ## Code-Kommentierung und Dokumentation
 
