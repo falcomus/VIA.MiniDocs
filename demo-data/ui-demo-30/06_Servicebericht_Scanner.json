@@ -1,0 +1,17 @@
+{
+  "fileName": "06_Servicebericht_Scanner.pdf",
+  "pages": [
+    {
+      "page": 1,
+      "text": "Moorfeder Prüftechnik (fiktiv)\nServicebericht – Scannerstation Q7\nSV-Q7-061  |  07.10.2026  |  FIKTIVES DEMODOKUMENT\nAuftrag und Fehlerbild\nFiktive Scannerstation Q7, Standort Musterwerkstatt. Meldung: gelegentlich schräger\nPapiereinzug bei dünnen Vorlagen.\nGerätedaten\nMerkmal\nWert\nInventarnummer\nDEMO-Q7-004\nAuflösung\n300 dpi\nEinzug\nAutomatisch, Duplex\nAuftrag\nWartung und Funktionsprüfung\nBefund\nDie Einzugsrollen waren ungleichmäßig verschmutzt. Das Fehlerbild trat besonders bei Papier\nunter 80 g/m² auf. Der Test erfolgte ausschließlich mit Musterblättern.\nDurchgeführte Arbeiten\nEinzugsrollen gereinigt.\nPapierführung nachgestellt.\nKalibrierung und Testscan durchgeführt.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 1 von 3"
+    },
+    {
+      "page": 2,
+      "text": "Moorfeder Prüftechnik (fiktiv)\nServicebericht – Scannerstation Q7\nSV-Q7-061  |  07.10.2026  |  FIKTIVES DEMODOKUMENT\nMesswerte vor und nach der Wartung\nJeweils 50 simulierte Testläufe mit identischem Papierstapel.\nErgebnisse\nMessgröße\nVorher\nNachher\nSchräg eingezogen\n8\n1\nDoppeleinzug\n2\n0\nUnleserliche Seiten\n3\n0\nFehler pro 50 Testläufe\nEinheit: Anzahl\nSchräglauf vorher\n8\nSchräglauf nachher\n1\nDoppeleinzug vorher\n2\nDoppeleinzug nachher\n0\nBewertung\nDer verbleibende Schräglauf lag innerhalb der für diesen Test definierten Toleranz. Eine\nerneute Stichprobe ist nach 500 Seiten vorgesehen.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 2 von 3"
+    },
+    {
+      "page": 3,
+      "text": "Moorfeder Prüftechnik (fiktiv)\nServicebericht – Scannerstation Q7\nSV-Q7-061  |  07.10.2026  |  FIKTIVES DEMODOKUMENT\nÜbergabe und Wartungsempfehlung\nDie Musterstation ist für weitere Digitalisierungsversuche freigegeben.\nEmpfehlungen\nPapierführungen bei jedem Formatwechsel einstellen.\nReinigung nach sichtbarer Verschmutzung dokumentieren.\nBei wiederholtem Doppeleinzug den Auftrag unterbrechen.\nOCR-Transkripte stichprobenartig mit Originalseiten abgleichen.\nWartungsplan\nTätigkeit\nIntervall\nSichtkontrolle\nTäglich\nTestscan\nWöchentlich\nRollenprüfung\nNach 500 Seiten\nAbschlussstatus\nFreigabe für die fiktive Testumgebung erteilt. Keine Aussage über reale Geräte.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 3 von 3"
+    }
+  ]
+}

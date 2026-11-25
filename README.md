@@ -14,6 +14,10 @@ npm run dev
 
 Vite zeigt die lokale Adresse; `Strg+C` beendet den Server. `npm run check` prüft Formatierung, TypeScript, ESLint, Stylelint, Vitest und Build.
 
+## Lokaler Demo-Datenbestand
+
+`demo-data/ui-demo-30/` enthält den fiktiven 30-Dokumente-Bestand samt Original-PDFs, Transkripten, Übersicht und Prüfbericht aus `VIA.MiniDocs_Demo-Datenbestand_30.zip` (SHA-256 `3D57E8D93B16ED2C08FEA1F97283E28BECD1D1A54161E75AB7CA423CE834845F`). Der Vite-Entwicklungsserver liest Metadaten und Transkripte aus der Übersicht und liefert Original-PDFs auf Anfrage; die Ressourcen werden nicht in den Produktionsbuild übernommen. Das Verzeichnis ist zur Versionierung vorgesehen und darf keine produktiven Nutzerdaten enthalten.
+
 ## Dokumentationswegweiser
 
 - [AGENTS.md](AGENTS.md): verbindliche Arbeitsregeln.

@@ -1,0 +1,444 @@
+[
+  {
+    "dateiName": "01_Rechnung_Nordlicht.pdf",
+    "titel": "Rechnung NL-2026-041",
+    "seitenzahl": 1,
+    "datum": "2026-10-19",
+    "empfohlenesThema": "Finanzen / Rechnungen",
+    "tags": [
+      "Rechnung",
+      "Nordlicht",
+      "Digitalisierung",
+      "Schulung",
+      "Archivierung"
+    ],
+    "textart": "Durchsuchbarer PDF-Text"
+  },
+  {
+    "dateiName": "02_Memo_Dokumentenfreigabe.pdf",
+    "titel": "Interne Mitteilung: Dokumentenfreigabe",
+    "seitenzahl": 1,
+    "datum": "2026-09-08",
+    "empfohlenesThema": "Verwaltung / Mitteilungen",
+    "tags": [
+      "Freigabe",
+      "Qualitätssicherung",
+      "Datenschutz",
+      "Versionierung",
+      "Nordlicht"
+    ],
+    "textart": "Durchsuchbarer PDF-Text"
+  },
+  {
+    "dateiName": "03_Notizbuch_Werkstatt.pdf",
+    "titel": "Werkstattnotizen – Nordlicht",
+    "seitenzahl": 2,
+    "datum": "2026-10-06",
+    "empfohlenesThema": "Projekte / Nordlicht / Notizen",
+    "tags": [
+      "Handschrift",
+      "Notiz",
+      "Scanner",
+      "OCR",
+      "Dokumentensuche",
+      "Nordlicht"
+    ],
+    "textart": "Bildbasiert (simulierte Handschrift)"
+  },
+  {
+    "dateiName": "04_Datenschutz_Pruefvermerk.pdf",
+    "titel": "Prüfvermerk zum Datenschutz",
+    "seitenzahl": 2,
+    "datum": "2026-09-29",
+    "empfohlenesThema": "Organisation / Datenschutz",
+    "tags": [
+      "Datenschutz",
+      "Zugriffsrechte",
+      "Löschkonzept",
+      "Audit",
+      "Freigabe"
+    ],
+    "textart": "Durchsuchbarer PDF-Text"
+  },
+  {
+    "dateiName": "05_Angebot_Digitalisierungsprojekt.pdf",
+    "titel": "Angebot A-2026-017 – Digitalisierung",
+    "seitenzahl": 3,
+    "datum": "2026-08-24",
+    "empfohlenesThema": "Finanzen / Angebote",
+    "tags": [
+      "Angebot",
+      "Digitalisierung",
+      "Archivierung",
+      "Migration",
+      "Nordlicht"
+    ],
+    "textart": "Durchsuchbarer PDF-Text"
+  },
+  {
+    "dateiName": "06_Servicebericht_Scanner.pdf",
+    "titel": "Servicebericht – Scannerstation Q7",
+    "seitenzahl": 3,
+    "datum": "2026-10-07",
+    "empfohlenesThema": "Technik / Wartung",
+    "tags": [
+      "Scanner",
+      "Wartung",
+      "OCR",
+      "Qualitätssicherung",
+      "Digitalisierung"
+    ],
+    "textart": "Durchsuchbarer PDF-Text"
+  },
+  {
+    "dateiName": "07_Besprechungsprotokoll_Nordlicht.pdf",
+    "titel": "Besprechungsprotokoll – Nordlicht",
+    "seitenzahl": 4,
+    "datum": "2026-10-12",
+    "empfohlenesThema": "Projekte / Nordlicht / Besprechungen",
+    "tags": [
+      "Protokoll",
+      "Nordlicht",
+      "Meilenstein",
+      "Freigabe",
+      "Dokumentensuche"
+    ],
+    "textart": "Durchsuchbarer PDF-Text"
+  },
+  {
+    "dateiName": "08_Kurzanleitung_Dokumentensuche.pdf",
+    "titel": "Kurzanleitung – Dokumente wiederfinden",
+    "seitenzahl": 4,
+    "datum": "2026-10-15",
+    "empfohlenesThema": "Schulung / Anleitungen",
+    "tags": [
+      "Dokumentensuche",
+      "Volltext",
+      "Tags",
+      "Umlaute",
+      "Archivierung"
+    ],
+    "textart": "Durchsuchbarer PDF-Text"
+  },
+  {
+    "dateiName": "09_Testbericht_Archivimport.pdf",
+    "titel": "Testbericht – Archivimport und Volltextsuche",
+    "seitenzahl": 5,
+    "datum": "2026-10-22",
+    "empfohlenesThema": "Technik / Qualitätssicherung",
+    "tags": [
+      "Testbericht",
+      "Archivimport",
+      "Transkript",
+      "Volltext",
+      "Qualitätssicherung"
+    ],
+    "textart": "Durchsuchbarer PDF-Text"
+  },
+  {
+    "dateiName": "10_Mustervertrag_Archivierung.pdf",
+    "titel": "Mustervertrag – Archivierungsleistungen",
+    "seitenzahl": 6,
+    "datum": "2026-09-02",
+    "empfohlenesThema": "Finanzen / Verträge",
+    "tags": [
+      "Vertrag",
+      "Archivierung",
+      "Datenschutz",
+      "Vergütung",
+      "Nordlicht"
+    ],
+    "textart": "Durchsuchbarer PDF-Text"
+  },
+  {
+    "dateiName": "11_Projektplan_Nordlicht.pdf",
+    "titel": "Projektplan – Nordlicht",
+    "seitenzahl": 7,
+    "datum": "2026-09-09",
+    "empfohlenesThema": "Projekte / Nordlicht / Planung",
+    "tags": [
+      "Projektplan",
+      "Meilenstein",
+      "Migration",
+      "Nordlicht",
+      "Freigabe"
+    ],
+    "textart": "Durchsuchbarer PDF-Text"
+  },
+  {
+    "dateiName": "12_Schulungsunterlagen_Digitales_Archiv.pdf",
+    "titel": "Schulungsunterlagen – Digitales Archiv",
+    "seitenzahl": 8,
+    "datum": "2026-10-19",
+    "empfohlenesThema": "Schulung / Lernmodule",
+    "tags": [
+      "Schulung",
+      "Dokumentensuche",
+      "Metadaten",
+      "Freigabe",
+      "Nordlicht"
+    ],
+    "textart": "Durchsuchbarer PDF-Text"
+  },
+  {
+    "dateiName": "13_Technische_Dokumentation_Uferbox.pdf",
+    "titel": "Technische Dokumentation – Uferbox",
+    "seitenzahl": 10,
+    "datum": "2026-11-03",
+    "empfohlenesThema": "Technik / Architektur",
+    "tags": [
+      "Architektur",
+      "API",
+      "Transkript",
+      "Datenschutz",
+      "Versionierung",
+      "Archivierung"
+    ],
+    "textart": "Durchsuchbarer PDF-Text"
+  },
+  {
+    "dateiName": "14_Forschungsbericht_Moorfink.pdf",
+    "titel": "Forschungsbericht – Moorfink",
+    "seitenzahl": 12,
+    "datum": "2026-11-05",
+    "empfohlenesThema": "Forschung / Umweltmessung",
+    "tags": [
+      "Moorfink",
+      "Forschung",
+      "Beschattung",
+      "Kalibrierung",
+      "Messdaten"
+    ],
+    "textart": "Durchsuchbarer PDF-Text"
+  },
+  {
+    "dateiName": "15_Betriebshandbuch_Uferbox.pdf",
+    "titel": "Betriebshandbuch – Uferbox",
+    "seitenzahl": 30,
+    "datum": "2026-11-20",
+    "empfohlenesThema": "Technik / Betrieb / Handbücher",
+    "tags": [
+      "Betriebshandbuch",
+      "Nordlicht",
+      "Archivierung",
+      "Wiederanlauf",
+      "Datenschutz",
+      "Dokumentensuche"
+    ],
+    "textart": "Durchsuchbarer PDF-Text"
+  },
+  {
+    "dateiName": "16_Lieferschein_Nordlicht.pdf",
+    "titel": "Lieferschein LS-2026-018",
+    "seitenzahl": 1,
+    "datum": "2026-11-04",
+    "empfohlenesThema": "Finanzen / Lieferscheine",
+    "tags": [
+      "Nordlicht",
+      "Lieferung",
+      "Scanner",
+      "Archivierung"
+    ],
+    "textart": "Durchsuchbarer PDF-Text"
+  },
+  {
+    "dateiName": "17_Rechnung_Nordlicht_Korrektur.pdf",
+    "titel": "Rechnung NL-2026-041 – Korrektur",
+    "seitenzahl": 2,
+    "datum": "2026-10-26",
+    "empfohlenesThema": "Finanzen / Rechnungen",
+    "tags": [
+      "Nordlicht",
+      "Rechnung",
+      "Korrektur",
+      "Freigabe"
+    ],
+    "textart": "Durchsuchbarer PDF-Text"
+  },
+  {
+    "dateiName": "18_Besprechungsprotokoll_Nordlicht_November.pdf",
+    "titel": "Besprechungsprotokoll – Nordlicht",
+    "seitenzahl": 4,
+    "datum": "2026-11-12",
+    "empfohlenesThema": "Projekte / Nordlicht / Besprechungen",
+    "tags": [
+      "Nordlicht",
+      "Freigabe",
+      "Rückmeldung",
+      "Migration"
+    ],
+    "textart": "Durchsuchbarer PDF-Text"
+  },
+  {
+    "dateiName": "19_Besprechungsprotokoll_Moorfink.pdf",
+    "titel": "Besprechungsprotokoll – Moorfink",
+    "seitenzahl": 3,
+    "datum": "2025-06-17",
+    "empfohlenesThema": "Forschung / Moorfink / Besprechungen",
+    "tags": [
+      "Moorfink",
+      "Messdaten",
+      "Kalibrierung",
+      "Qualitätssicherung"
+    ],
+    "textart": "Durchsuchbarer PDF-Text"
+  },
+  {
+    "dateiName": "20_Migrationskonzept_Nordlicht.pdf",
+    "titel": "Migrationskonzept – Nordlicht",
+    "seitenzahl": 6,
+    "datum": "2026-11-03",
+    "empfohlenesThema": "Projekte / Nordlicht / Migration",
+    "tags": [
+      "Nordlicht",
+      "Migration",
+      "Archivierung",
+      "Löschkonzept",
+      "Freigabe"
+    ],
+    "textart": "Durchsuchbarer PDF-Text"
+  },
+  {
+    "dateiName": "21_Qualitaetsbericht_Dokumentensuche.pdf",
+    "titel": "Qualitätsbericht – Dokumentensuche",
+    "seitenzahl": 5,
+    "datum": "2026-07-31",
+    "empfohlenesThema": "Technik / Qualitätssicherung",
+    "tags": [
+      "Dokumentensuche",
+      "Qualitätssicherung",
+      "Volltext",
+      "Umlaute"
+    ],
+    "textart": "Durchsuchbarer PDF-Text"
+  },
+  {
+    "dateiName": "22_Raumbelegungsplan_Archiv.pdf",
+    "titel": "Raumbelegungsplan – Archivwerkstatt",
+    "seitenzahl": 3,
+    "datum": "2025-12-08",
+    "empfohlenesThema": "Organisation / Raumplanung",
+    "tags": [
+      "Archivierung",
+      "Raumplanung",
+      "Scanner",
+      "Schulung"
+    ],
+    "textart": "Durchsuchbarer PDF-Text"
+  },
+  {
+    "dateiName": "23_Abnahmeprotokoll_Uferbox.pdf",
+    "titel": "Abnahmeprotokoll – Uferbox",
+    "seitenzahl": 2,
+    "datum": "2026-02-18",
+    "empfohlenesThema": "Technik / Abnahmen",
+    "tags": [
+      "Uferbox",
+      "Freigabe",
+      "Wiederanlauf",
+      "Qualitätssicherung"
+    ],
+    "textart": "Durchsuchbarer PDF-Text"
+  },
+  {
+    "dateiName": "24_Sicherheitsaudit_Archiv.pdf",
+    "titel": "Sicherheitsaudit – Archivplattform",
+    "seitenzahl": 8,
+    "datum": "2026-11-20",
+    "empfohlenesThema": "Organisation / Datenschutz / Audits",
+    "tags": [
+      "Datenschutz",
+      "Audit",
+      "Löschkonzept",
+      "Zugriffsrechte",
+      "Freigabe"
+    ],
+    "textart": "Durchsuchbarer PDF-Text"
+  },
+  {
+    "dateiName": "25_Messblatt_Moorfink_Mischformat.pdf",
+    "titel": "Messblatt und Lageübersicht – Moorfink",
+    "seitenzahl": 4,
+    "datum": "2025-06-19",
+    "empfohlenesThema": "Forschung / Moorfink / Messdaten",
+    "tags": [
+      "Moorfink",
+      "Messdaten",
+      "Kalibrierung",
+      "Mischformat"
+    ],
+    "textart": "Durchsuchbarer PDF-Text"
+  },
+  {
+    "dateiName": "26_Schulung_Datenschutz.pdf",
+    "titel": "Schulungsunterlagen – Datenschutz im Archiv",
+    "seitenzahl": 7,
+    "datum": "2026-04-14",
+    "empfohlenesThema": "Schulung / Datenschutz",
+    "tags": [
+      "Datenschutz",
+      "Löschkonzept",
+      "Schulung",
+      "Freigabe"
+    ],
+    "textart": "Durchsuchbarer PDF-Text"
+  },
+  {
+    "dateiName": "27_Wartungscheckliste_Q7.pdf",
+    "titel": "Wartungscheckliste – Scannerstation Q7",
+    "seitenzahl": 3,
+    "datum": "2026-01-09",
+    "empfohlenesThema": "Technik / Wartung",
+    "tags": [
+      "Scanner",
+      "Kalibrierung",
+      "Wartung",
+      "Qualitätssicherung"
+    ],
+    "textart": "Durchsuchbarer PDF-Text"
+  },
+  {
+    "dateiName": "28_Angebot_Archivservice.pdf",
+    "titel": "Angebot A-2026-042 – Archivservice",
+    "seitenzahl": 6,
+    "datum": "2026-11-05",
+    "empfohlenesThema": "Finanzen / Angebote",
+    "tags": [
+      "Angebot",
+      "Archivierung",
+      "Nordlicht",
+      "Schulung"
+    ],
+    "textart": "Durchsuchbarer PDF-Text"
+  },
+  {
+    "dateiName": "29_Forschungsbericht_Moorfink_Nachmessung.pdf",
+    "titel": "Forschungsbericht – Moorfink: Nachmessung",
+    "seitenzahl": 5,
+    "datum": "2025-09-22",
+    "empfohlenesThema": "Forschung / Moorfink / Berichte",
+    "tags": [
+      "Moorfink",
+      "Forschung",
+      "Messdaten",
+      "Kalibrierung"
+    ],
+    "textart": "Durchsuchbarer PDF-Text"
+  },
+  {
+    "dateiName": "30_Archivhandbuch_Wellenhain.pdf",
+    "titel": "Archivhandbuch – Wellenhain",
+    "seitenzahl": 50,
+    "datum": "2026-11-24",
+    "empfohlenesThema": "Organisation / Archivbetrieb / Handbücher",
+    "tags": [
+      "Archivierung",
+      "Nordlicht",
+      "Dokumentensuche",
+      "Qualitätssicherung",
+      "Datenschutz",
+      "Wiederanlauf"
+    ],
+    "textart": "Durchsuchbarer PDF-Text"
+  }
+]

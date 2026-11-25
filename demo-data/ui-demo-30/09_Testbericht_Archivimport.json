@@ -1,0 +1,25 @@
+{
+  "fileName": "09_Testbericht_Archivimport.pdf",
+  "pages": [
+    {
+      "page": 1,
+      "text": "Moorfeder Prüftechnik (fiktiv)\nTestbericht – Archivimport und Volltextsuche\nQA-022  |  22.10.2026  |  FIKTIVES DEMODOKUMENT\nTestauftrag\nSimulierter Abnahmetest des Projekts Nordlicht. Die Testfälle beziehen sich auf ein\nhypothetisches Archiv, nicht auf eine reale Softwareversion.\nPrüfziel\nDateien mit unterschiedlichen Seitenzahlen, deutschen Umlauten und wiederkehrenden\nSuchbegriffen sollen eindeutig gespeichert und wiedergefunden werden.\nTestumgebung\nKomponente\nKonfiguration\nDatenbestand\n50 erfundene Dokumente\nDateiformat\nPDF und JSON\nBetriebsart\nIsolierter Testbetrieb\nZeichensatz\nUTF-8\nAbgrenzung\nKeine Lastmessung und keine Prüfung einer produktiven Installation.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 1 von 5"
+    },
+    {
+      "page": 2,
+      "text": "Moorfeder Prüftechnik (fiktiv)\nTestbericht – Archivimport und Volltextsuche\nQA-022  |  22.10.2026  |  FIKTIVES DEMODOKUMENT\nImport und Seitenzuordnung\nDie Testgruppe verwendet dieselbe Eingabemenge für jeden Wiederholungslauf.\nTestfälle\nID\nPrüfung\nSoll\nStatus\nI-01\nEinseitige Rechnung\n1 Seite\nBestanden\nI-02\nMehrseitiger Bericht\n12 Seiten\nBestanden\nI-03\nDoppelter Name\nKein Überschreiben\nBestanden\nI-04\nUngültiges JSON\nFehlermeldung\nBestanden\nBeobachtung\nBeim Import einer unvollständigen Transkriptdatei wurde ein verständlicher Fehler angezeigt.\nDie unveränderte Originaldatei blieb im Testordner erhalten.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 2 von 5"
+    },
+    {
+      "page": 3,
+      "text": "Moorfeder Prüftechnik (fiktiv)\nTestbericht – Archivimport und Volltextsuche\nQA-022  |  22.10.2026  |  FIKTIVES DEMODOKUMENT\nVolltext und Filter\nDie Suchbegriffe stammen aus mehreren fiktiven Dokumentarten.\nSuchtest\nID\nBegriff\nTreffer\nStatus\nS-01\nNordlicht\n18\nBestanden\nS-02\nRückmeldung\n6\nBestanden\nS-03\nLöschkonzept\n2\nBestanden\nS-04\nUnbekanntesTestwort\n0\nBestanden\nErgebnis\nDie erwarteten Treffer wurden im simulierten Testlauf bestätigt. Ein aktiver Datumsfilter war\nzunächst nicht erkennbar und wurde als Bedienhinweis erfasst.\nHinweis\nDie Trefferzahlen gelten für den erfundenen Testbestand dieses Berichts.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 3 von 5"
+    },
+    {
+      "page": 4,
+      "text": "Moorfeder Prüftechnik (fiktiv)\nTestbericht – Archivimport und Volltextsuche\nQA-022  |  22.10.2026  |  FIKTIVES DEMODOKUMENT\nFehlerklassifizierung\nAlle 24 fiktiven Testfälle wurden einem Ergebnis zugeordnet.\nTestergebnisse\nEinheit: Anzahl\nBestanden\n21\nMit Hinweis\n2\nOffen\n1\nOffene Befunde\nID\nBeschreibung\nPriorität\nB-01\nFilterzustand besser anzeigen\nMittel\nB-02\nLeeres Suchfeld erläutern\nNiedrig\nB-03\nExportzweck protokollieren\nMittel\nBewertung\nEin offener Punkt betrifft das organisatorische Exportverfahren. Die technischen Importtests\nsind abgeschlossen.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 4 von 5"
+    },
+    {
+      "page": 5,
+      "text": "Moorfeder Prüftechnik (fiktiv)\nTestbericht – Archivimport und Volltextsuche\nQA-022  |  22.10.2026  |  FIKTIVES DEMODOKUMENT\nAbschluss und Nachprüfung\nDer Bericht wird als simulierte Grundlage für die nächste Freigabebesprechung abgelegt.\nAbnahmekriterien\nSeitenzahl und Transkriptzuordnung müssen übereinstimmen.\nSuchbegriffe mit ä, ö, ü und ß müssen prüfbar sein.\nFehlerhafte Eingaben dürfen bestehende Daten nicht verändern.\nNachprüfung\nAufgabe\nTermin\nB-01 und B-02 bewerten\n26.10.2026\nB-03 erneut prüfen\n28.10.2026\nFreigabeprotokoll erstellen\n29.10.2026\nStatus\nBedingte simulierte Freigabe; kein Nachweis für ein reales Produkt.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 5 von 5"
+    }
+  ]
+}

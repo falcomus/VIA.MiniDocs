@@ -48,7 +48,10 @@ it('koppelt Demo-Scrollen nur vorwärts und lässt sich abschalten', () => {
   pane.scrollTop = 250;
   fireEvent.scroll(pane);
   expect(editor.scrollTop).toBe(200);
-  fireEvent.click(v.getByRole('checkbox', { name: /Synchron scrollen/ }));
+  const sync = v.getByRole('checkbox', { name: /Synchron scrollen/ });
+  expect(v.getByRole('region', { name: 'Transkript' })).toContainElement(sync);
+  expect(v.getByRole('toolbar', { name: 'Dokumentansicht' })).not.toContainElement(sync);
+  fireEvent.click(sync);
   pane.scrollTop = 500;
   fireEvent.scroll(pane);
   expect(editor.scrollTop).toBe(200);

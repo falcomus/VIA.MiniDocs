@@ -1,0 +1,25 @@
+{
+  "fileName": "21_Qualitaetsbericht_Dokumentensuche.pdf",
+  "pages": [
+    {
+      "page": 1,
+      "text": "Moorfeder Prüftechnik (fiktiv)\nQualitätsbericht – Dokumentensuche\nQA-073  |  31.07.2026  |  FIKTIVES DEMODOKUMENT\nPrüfauftrag Juli\nFiktive Untersuchung der Trefferqualität in einem synthetischen Archiv.\nMethodik\nFür jeden Suchbegriff wird eine manuell annotierte Referenzmenge mit der Trefferliste\nverglichen.\nTestgruppen\nGruppe\nFälle\nUmlaute\n18\nZusammensetzungen\n22\nDatumsfilter\n15\nSeitentreffer\n25\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 1 von 5"
+    },
+    {
+      "page": 2,
+      "text": "Moorfeder Prüftechnik (fiktiv)\nQualitätsbericht – Dokumentensuche\nQA-073  |  31.07.2026  |  FIKTIVES DEMODOKUMENT\nTrefferqualität\nDie Beispielmessung unterscheidet relevante Treffer von unbeabsichtigten\nTeilstring-Treffern.\nKorrekt zugeordnete Treffer\nEinheit: Anzahl\nUmlaute\n17\nZusammensetzungen\n20\nDatumsfilter\n15\nSeitentreffer\n24\nInterpretation\nDie Zahlen sind synthetisch und keine Messwerte einer realen Software.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 2 von 5"
+    },
+    {
+      "page": 3,
+      "text": "Moorfeder Prüftechnik (fiktiv)\nQualitätsbericht – Dokumentensuche\nQA-073  |  31.07.2026  |  FIKTIVES DEMODOKUMENT\nOrthografische Varianten\nDie Begriffe Rückmeldung, Qualitätssicherung und Müllerstraße dienen als\nVergleichsgrundlage.\nSuchvarianten\nEingabe\nPrüfziel\nMüllerstraße\nExakte Form\nMuellerstrasse\nUmschrift\nLÖSCHKONZEPT\nGroßschreibung\nFreigabe\nWortbestandteil\nAbgrenzung\nUmschrift und Wortstammerkennung sind getrennt von einer einfachen Teilstringsuche zu\nbewerten.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 3 von 5"
+    },
+    {
+      "page": 4,
+      "text": "Moorfeder Prüftechnik (fiktiv)\nQualitätsbericht – Dokumentensuche\nQA-073  |  31.07.2026  |  FIKTIVES DEMODOKUMENT\nFehleranalyse\nBei zwei hypothetischen Fällen wurde die Fundseite nicht direkt geöffnet.\nAnalyseweg\nSuchanfrage\nTreffer-ID\nSeitenindex\nVorschau\nBefund\nDie gespeicherte Seitennummer und der nullbasierte Index des Viewers dürfen nicht\nverwechselt werden.\nKorrektur\nRegressionstest mit Fundstellen auf der ersten und letzten PDF-Seite vorsehen.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 4 von 5"
+    },
+    {
+      "page": 5,
+      "text": "Moorfeder Prüftechnik (fiktiv)\nQualitätsbericht – Dokumentensuche\nQA-073  |  31.07.2026  |  FIKTIVES DEMODOKUMENT\nEmpfehlungen\nDie nächste Qualitätssicherung soll fehlende Textgrundlagen und gemischte Formate\neinschließen.\nMaßnahmen\nSuchregeln nachvollziehbar dokumentieren.\nLeere und fehlende Transkripte unterscheiden.\nErgebnisse pro Seite und pro Dokument getrennt ausweisen.\nFreigabe\nDer Bericht ist als fiktive Arbeitsgrundlage abgeschlossen.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 5 von 5"
+    }
+  ]
+}

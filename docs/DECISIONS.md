@@ -12,7 +12,7 @@ MiniDocs-Benutzeridentität, fachlicher Workspace und technische VIA.Docs-Anwend
 
 ## ADR-003 – 1:1 in V1.0: Freigegeben
 
-Ein MiniDocs-Benutzer besitzt einen privaten Workspace mit eigener VIA.Docs-Anwendung. `Claus_Demo` und `Klaus-Uwe-Demo` sind vorgesehene getrennte Anwendungen mit eigenen ApplicationIds und Dokumentbeständen. Gemeinsame Projekte, Mitgliedschaften und fachliche Projektrollen gehören zu einer späteren Ausbaustufe.
+Reguläre registrierte Benutzer besitzen genau einen privaten Workspace mit eigener VIA.Docs-Anwendung. Ausschließlich administrative Konten dürfen ohne Workspace existieren; Administratorrechte erlauben keinen Zugriff auf private Dokumente. Fachlich tätige Administratoren erhalten einen eigenen regulär provisionierten Workspace. `Claus_Demo` und `Klaus-Uwe-Demo` sind vorgesehene getrennte Anwendungen mit eigenen ApplicationIds und Dokumentbeständen. Gemeinsame Projekte, Mitgliedschaften und fachliche Projektrollen gehören zu einer späteren Ausbaustufe.
 
 ## ADR-004 – Serverseitige Integration: Freigegeben
 
@@ -50,9 +50,9 @@ Jede Fachoperation serverseitig autorisieren; Workspace-bezogene Abfragen, EF-Co
 
 Erste Administratoridentität durch gesicherten lokalen administrativen Vorgang, ohne öffentlichen Bootstrap-Endpunkt, Standardpasswörter oder Zugangsdaten in Git, Logs und Kommandozeilenargumenten. Unbeabsichtigte erneute Initialisierung verhindern. Betriebsbefehl oder Verwaltungswerkzeug bleibt bis zur Deployment-Planung offen.
 
-## ADR-013 – Hosting und Deployment: Offen
+## ADR-013 – Hosting und Deployment: Freigegeben als Zielarchitektur
 
-Windows oder Linux, Reverse Proxy, Prozessidentität, Betriebs- und Deployment-Verfahren, Verschlüsselung des Data-Protection-Schlüsselbestands sowie Backup und Restore sind offen. Same-Origin-Hosting ist bereits in ADR-009 freigegeben.
+**Zielarchitektur fachlich freigegeben; keine Betriebsfreigabe:** Linux mit einem systemd-geführten ASP.NET-Core-10-Prozess, Nginx/TLS und Same-Origin-React-Build, eigener PostgreSQL-Datenbank, separaten Laufzeit-/Migrationsrollen und dauerhaftem X.509-verschlüsseltem Data-Protection-Key-Ring. Kontrollierte Migrationen, geschützte Credentials, versioniertes Deployment und systemübergreifender Backup-/Restore-Prozess gemäß [Betriebskonzept](ARCHITECTURE.md#hosting-deployment-und-betrieb). Die erforderliche Infrastruktur, Zuständigkeiten, Limits und Wiederherstellbarkeit sind nicht nachgewiesen und müssen vom Betreiber bestätigt werden. Same-Origin ist durch ADR-009 bereits freigegeben; diese Architekturfreigabe erteilt keine Implementierungs-, Integrations- oder Betriebsfreigabe.
 
 ## ADR-014 – Solution-Architektur: Freigegeben
 
@@ -65,3 +65,23 @@ Minimal APIs, schlanke Handler, OpenAPI und ProblemDetails; getrennte MiniDocs- 
 ## ADR-016 – Persistenz und Engineering: Freigegeben
 
 .NET 10, EF Core und Npgsql, PostgreSQL-Migrationen, xUnit, zentrale NuGet-Verwaltung, Nullable Reference Types, durchgängig asynchrones I/O, CancellationToken, strukturiertes Logging und Standard-Dependency-Injection. Konkrete Paketversionen erst nach Kompatibilitätsprüfung festlegen. Zusätzliche Architekturframeworks nur bei nachgewiesenem Bedarf. Die verbindlichen Query-Filter und PostgreSQL-Schutzmechanismen aus ADR-011 bleiben davon unberührt.
+
+## ADR-017 – PostgreSQL-Modell und Wiederanlauf: Freigegeben
+
+Das freigegebene [B0.6-Modell](ARCHITECTURE.md#b06--postgresql-datenmodell-und-persistenzarchitektur) empfiehlt UUID-/Workspace-Schlüssel, zusammengesetzte Fremdschlüssel, Adjacency List mit serialisierten Baum- und Zuordnungsänderungen, seitenbezogene und dokumentweite Transkriptrevisionen sowie persistierte Provisionierungs- und Dateivorgänge. ADR-003 erlaubt ausschließlich administrativen Identitäten ein Konto ohne Workspace; fachlich tätige Administratoren benötigen einen eigenen regulären Workspace. Bei unklaren externen Ergebnissen kein blindes Wiederholen; ohne nachgewiesene Dateikorrelation kontrollierte Klärung ohne automatischen Adminzugriff auf private Inhalte. Suchstrategie erhält die aktuelle Teilstringsemantik und prüft `pg_trgm` anhand von Messungen. Technische Details, Constraints und Tests stehen im Entwurf; keine Implementierungsfreigabe.
+
+## ADR-018 – Papierkorb und endgültige Löschung: Freigegeben
+
+Freigegeben ist eine logische Löschung mit Erhalt von Original, unverändertem Thema, Tags und Transkript. Papierkorbdokumente belegen ihr Thema; normale Listen und Suche blenden sie aus. Nur der berechtigte Benutzer stellt wieder her oder löst ausdrücklich die endgültige Löschung aus. Wiederherstellung ist bei begonnener oder ungeklärter endgültiger Löschung gesperrt. Ein minimaler technischer Abschlussnachweis ohne private Inhalte bleibt erhalten. Keine automatische Papierkorbleerung oder Aufbewahrungsfrist für Papierkorbdokumente. Abgeschlossene technische Löschreceipts werden 30 Tage aufbewahrt; ungeklärte Vorgänge nicht automatisch bereinigt. Fallback für inkonsistente Altdaten bleibt offen. Der vollständige Ablauf steht im [B0.6-Entwurf](ARCHITECTURE.md#b06--postgresql-datenmodell-und-persistenzarchitektur).
+
+## Freigegebene Präzisierungen aus B0-FINAL
+
+Diese Architektur- und Vertragspräzisierungen sind fachlich freigegeben; technische Nachweise und Betreiberentscheidungen bleiben eigenständige Gates. Details stehen im [REST-Vertrag](ARCHITECTURE.md#b07--rest-vertragsentwurf-zur-architekturfreigabe) und im [Betriebskonzept](ARCHITECTURE.md#hosting-deployment-und-betrieb).
+
+- **REST, DTOs und Grenzen:** B0.7-Routen, Felder, Nullbarkeit, Zustände, Validierung, ProblemDetails und Limits wie dokumentiert übernehmen; sie geben D1–D7 eine gemeinsame prüfbare Grundlage. Die Umsetzung erfordert einen gesonderten Implementierungsauftrag.
+- **OpenAPI/TypeScript:** ASP.NET-Core-OpenAPI aus den tatsächlichen C#-Verträgen erzeugen und mit `openapi-typescript` (MIT-Lizenz) gepinnt in Strict-TypeScript-Typen überführen; dies vermeidet doppelte manuelle Vertragsquellen. Reproduzierbarkeit, Multipart, Binärantworten und Nullbarkeit in D1 testen.
+- **Upload-Wiederholung:** serverseitig vollständig ermittelte Dateigröße und SHA-256 vergleichen, sonst keine Gleichheit bestätigen; unbekannte externe Ergebnisse blockieren erneute Remote-Writes. Keine zusätzliche dauerhafte PDF-Kopie. Das ist keine nachgewiesene Remote-Idempotenz.
+- **Upload-Aufbewahrung:** abgeschlossenen Status 30 Tage speichern, danach inhaltsfreie Request-ID-Sperrmarke bis zum Ende des Workspaces; ungeklärte Vorgänge nicht automatisch entfernen. Damit löst eine alte ID keinen neuen Upload aus. Das ist von den bereits freigegebenen 30 Tagen für Löschreceipts zu unterscheiden.
+- **Pagination:** manipulationsgeschützte undurchsichtige Cursor an Workspace, Filter, Sortierung und Sortierschlüssel binden; kein bestandsweiter Snapshot. UUID ist der bereits freigegebene letzte Such-Tie-Breaker.
+- **PDF-Grenze:** zunächst zentral konfigurierbar höchstens 25 MiB pro Dokument; der gesichtete VIA.Docs-Quellstand erzwingt diesen Wert. Erhöhung erst mit bestätigtem Remote-Vertrag und Tests. Der Deploy-Stand bleibt offen.
+- **ADR-013:** Linux, systemd, Kestrel auf Loopback, Nginx/TLS und X.509-geschützter dauerhafter Data-Protection-Key-Ring empfehlen; schlanke Ein-Prozess-Architektur unter dem ausdrücklichen Vorbehalt der Infrastruktur- und Betreiberprüfung. Die tatsächlichen Betreiberentscheidungen zu Host, Identitäten, Zertifikaten, Limits, Backup, RPO/RTO und Restore stehen im Betriebskonzept. Lokales D1 mit Testdoubles setzt diese spätere Betriebsabnahme nicht voraus.

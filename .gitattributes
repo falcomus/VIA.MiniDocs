@@ -5,3 +5,7 @@
 *.css text eol=lf
 *.json text eol=lf
 *.md text eol=lf
+
+*.pdf binary
+demo-data/ui-demo-30/** -text
+demo-data/ui-demo-30/*.csv whitespace=cr-at-eol

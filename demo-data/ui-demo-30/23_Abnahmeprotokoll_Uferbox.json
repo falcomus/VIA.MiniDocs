@@ -1,0 +1,13 @@
+{
+  "fileName": "23_Abnahmeprotokoll_Uferbox.pdf",
+  "pages": [
+    {
+      "page": 1,
+      "text": "Falkenquell Digitalwerk (fiktiv)\nAbnahmeprotokoll – Uferbox\nAB-218  |  18.02.2026  |  FIKTIVES DEMODOKUMENT\nFunktionsabnahme\nGeprüft wird ein erfundener Testaufbau der Uferbox in Version 0.8.\nPrüfpunkte\nID\nPrüfung\nResultat\nA01\nStart nach Neustart\nOK\nA02\nExport und Archivierung\nOK\nA03\nFehleranzeige\nOffen\nA04\nWiederanlauf\nOK\nBefund\nDie Fehlermeldung bei fehlendem Zielordner enthält noch keine verständliche\nHandlungsanweisung.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 1 von 2"
+    },
+    {
+      "page": 2,
+      "text": "Falkenquell Digitalwerk (fiktiv)\nAbnahmeprotokoll – Uferbox\nAB-218  |  18.02.2026  |  FIKTIVES DEMODOKUMENT\nFreigabeentscheidung\nDie Abnahme ist bis zur Nachprüfung des offenen Punkts eingeschränkt.\nNachweise\nTestprotokoll mit Eingabedaten und erwartetem Ergebnis.\nRückmeldung der Bediengruppe.\nWiederholung des betroffenen Prüffalls.\nEntscheidung\nFiktiver Status: bedingt freigegeben für interne Schulung, nicht für Produktivbetrieb.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 2 von 2"
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "fileName": "13_Technische_Dokumentation_Uferbox.pdf",
+  "pages": [
+    {
+      "page": 1,
+      "text": "Falkenquell Digitalwerk (fiktiv)\nTechnische Dokumentation – Uferbox\nTECH-UF-03  |  03.11.2026  |  FIKTIVES DEMODOKUMENT\nSystemüberblick\nDie fiktive Architektur der Archivplattform Uferbox trennt Bedienoberfläche,\nAnwendungslogik und Speicher.\nTechnisches Konzept\nDie Oberfläche übermittelt Such- und Importaufträge über eine definierte Schnittstelle. Die\nAnwendung verwaltet Dokumentidentitäten und prüft Berechtigungen. Der Binärspeicher\nhält die PDF-Dateien getrennt von den Metadaten.\nKomponenten\nOberfläche\nAnwendungsdienst\nMetadaten\nBinärspeicher\nSchnittstellengrenzen\nKeine direkte Datenbankverbindung aus der Oberfläche.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 1 von 10"
+    },
+    {
+      "page": 2,
+      "text": "Falkenquell Digitalwerk (fiktiv)\nTechnische Dokumentation – Uferbox\nTECH-UF-03  |  03.11.2026  |  FIKTIVES DEMODOKUMENT\nDatenmodell\nEin Dokument besitzt eine stabile Kennung, einen Titel, ein Thema und mehrere Tags.\nTechnisches Konzept\nEine Dokumentseite gehört genau einem Dokument. Das Transkript enthält die einsbasierte\nSeitennummer und den Text. Versionen werden als eigene Datensätze verwaltet.\nEntitäten\nDocument\nPage\nTopic\nTag\nRevision\nIntegritätsregel\nDokument-ID und Seitennummer bilden einen eindeutigen Seitenschlüssel.\nBeispielattribute\nEntität\nAttribute\nDocument\nID, Titel, Originalname, Thema\nPage\nDokument-ID, Seitennummer, Text\nTopic\nID, Name, übergeordnetes Thema\nTag\nID, Bezeichnung\nRevision\nID, Version, Status, Änderungsgrund\nBeziehung und Lebensdauer\nEine Seite kann ohne übergeordnetes Dokument nicht fachlich sinnvoll existieren. Tags sind\ndagegen eigenständige Zuordnungen und können von vielen Dokumenten verwendet werden.\nBeim Löschen eines einzelnen Dokuments darf ein weiterhin verwendeter Tag daher nicht\nautomatisch entfernt werden.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 2 von 10"
+    },
+    {
+      "page": 3,
+      "text": "Falkenquell Digitalwerk (fiktiv)\nTechnische Dokumentation – Uferbox\nTECH-UF-03  |  03.11.2026  |  FIKTIVES DEMODOKUMENT\nImportpipeline\nDer Import prüft Dateiformat, Größenlimit und Transkriptzuordnung vor der\nVeröffentlichung.\nTechnisches Konzept\nEine Datei wird zunächst als temporäres Objekt abgelegt. Nach erfolgreicher Prüfung werden\nMetadaten und Status gespeichert. Ein unterbrochener Import muss erkennbar bleiben.\nImportablauf\nAnnahme\nValidierung\nSpeichern\nFreigabe\nFehlerfall\nUngültiges JSON führt zu einer verständlichen Meldung und keiner Freigabe.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 3 von 10"
+    },
+    {
+      "page": 4,
+      "text": "Falkenquell Digitalwerk (fiktiv)\nTechnische Dokumentation – Uferbox\nTECH-UF-03  |  03.11.2026  |  FIKTIVES DEMODOKUMENT\nTranskript und Zeichensatz\nDie JSON-Repräsentation verwendet UTF-8 und eine Liste von Seitenobjekten.\nTechnisches Konzept\nDie Reihenfolge der Seitenobjekte entspricht der physischen PDF-Reihenfolge. Umlaute und\nß bleiben erhalten. Ein leerer Text kann bei einer bildlichen Seite vorkommen und wird als\nsolcher dokumentiert.\nFelder\nfileName\npages\npage\ntext\nAustauschformat\nFeld\nTyp\nBedeutung\nfileName\nString\nPDF-Dateiname\npages\nArray\nSeitenliste\npage\nInteger\nSeitennummer\ntext\nString\nTranskript\nPrüfregel\nDie Anzahl der Seitenobjekte muss der tatsächlichen PDF-Seitenzahl entsprechen.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 4 von 10"
+    },
+    {
+      "page": 5,
+      "text": "Falkenquell Digitalwerk (fiktiv)\nTechnische Dokumentation – Uferbox\nTECH-UF-03  |  03.11.2026  |  FIKTIVES DEMODOKUMENT\nDokumentensuche\nDie Volltextsuche indiziert Metadaten und seitenbezogene Transkripte getrennt.\nTechnisches Konzept\nSuchtreffer enthalten die Dokumentkennung und, sofern vorhanden, die Fundseite. Filter\nwerden zusätzlich zur Volltextbedingung angewendet. Unterschiedliche Wortformen sind\nabhängig von der Suchkonfiguration.\nSuchkette\nAnfrage\nFilter\nIndex\nTreffer\nBeispiel\nDer Begriff „Rückmeldung“ kann in einem Protokoll und einer Schulung vorkommen.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 5 von 10"
+    },
+    {
+      "page": 6,
+      "text": "Falkenquell Digitalwerk (fiktiv)\nTechnische Dokumentation – Uferbox\nTECH-UF-03  |  03.11.2026  |  FIKTIVES DEMODOKUMENT\nZugriffsrechte\nBerechtigungen werden vor jeder fachlichen Aktion geprüft.\nTechnisches Konzept\nLesen, Bearbeiten, Exportieren und Löschen werden als separate Rechte behandelt. Die\nAnzeige einer Schaltfläche ersetzt keine serverseitige Autorisierungsprüfung.\nRollen\nLeser\nBearbeiter\nPrüfer\nAdministrator\nBeispielrechte\nRolle\nLesen\nBearbeiten\nFreigeben\nLeser\nJa\nNein\nNein\nBearbeiter\nJa\nJa\nNein\nPrüfer\nJa\nNein\nJa\nDatenschutz\nEin Auditprotokoll enthält den Vorgang, nicht den vollständigen Dokumentinhalt.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 6 von 10"
+    },
+    {
+      "page": 7,
+      "text": "Falkenquell Digitalwerk (fiktiv)\nTechnische Dokumentation – Uferbox\nTECH-UF-03  |  03.11.2026  |  FIKTIVES DEMODOKUMENT\nVersionierung\nFreigegebene Dokumentversionen bleiben unverändert.\nTechnisches Konzept\nEine Korrektur erzeugt eine neue Revision mit Änderungsgrund. Die Vorschau kennzeichnet\ndie jeweils geöffnete Version. Die Dokumentensuche soll den Versionsstatus nachvollziehbar\ndarstellen.\nStatusfolge\nEntwurf\nPrüfung\nFreigegeben\nArchiviert\nKonsistenz\nEine neue Revision wird erst nach erfolgreichem Speichern als aktuell markiert.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 7 von 10"
+    },
+    {
+      "page": 8,
+      "text": "Falkenquell Digitalwerk (fiktiv)\nTechnische Dokumentation – Uferbox\nTECH-UF-03  |  03.11.2026  |  FIKTIVES DEMODOKUMENT\nFehlerbehandlung und Wiederanlauf\nNetzwerkunterbrechungen und unvollständige Importe sind erwartbare Betriebsfälle.\nTechnisches Konzept\nTemporäre Objekte erhalten einen Zeitstempel und eine Auftragskennung. Wiederholte\nImportaufträge dürfen nicht unbemerkt bestehende Dokumente überschreiben.\nFehlerzustände\nAngelegt\nIn Arbeit\nFehlgeschlagen\nAbgeschlossen\nDiagnose\nEin technischer Fehlercode wird von der verständlichen Benutzermeldung getrennt.\nIdempotenz im Modell\nEin erneut übermittelter Auftrag besitzt dieselbe fachliche Auftragskennung. Vor der\nFortsetzung wird geprüft, ob der vorherige Versuch bereits abgeschlossen wurde. Ein\nunbekannter Speicherzustand wird nicht stillschweigend als Erfolg interpretiert. Die\nVerarbeitung kann eine manuelle Kontrolle anfordern, wenn sich das Ergebnis nicht eindeutig\nfeststellen lässt.\nBeobachtbarkeit\nDie Diagnose unterscheidet Validierungsfehler, vorübergehende Verbindungsprobleme und\ndauerhafte Konsistenzbefunde. Der technische Status dient der Wiederaufnahme; die\nBenutzermeldung erläutert dagegen, welche Handlung erforderlich ist.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 8 von 10"
+    },
+    {
+      "page": 9,
+      "text": "Falkenquell Digitalwerk (fiktiv)\nTechnische Dokumentation – Uferbox\nTECH-UF-03  |  03.11.2026  |  FIKTIVES DEMODOKUMENT\nSicherung und Wiederherstellung\nMetadaten und Binärdateien müssen gemeinsam wiederherstellbar sein.\nTechnisches Konzept\nEin Sicherungslauf dokumentiert seinen Zeitpunkt und den Umfang. Bei der\nWiederherstellung werden stichprobenartig PDF-Seiten, Prüfsummen und Transkripte\nverglichen.\nPrüfkette\nSichern\nWiederherstellen\nVergleichen\nFreigeben\nLöschkonzept\nSicherungskopien unterliegen eigenen dokumentierten Aufbewahrungsfristen.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 9 von 10"
+    },
+    {
+      "page": 10,
+      "text": "Falkenquell Digitalwerk (fiktiv)\nTechnische Dokumentation – Uferbox\nTECH-UF-03  |  03.11.2026  |  FIKTIVES DEMODOKUMENT\nBetrieb und Qualitätssicherung\nBetriebskennzahlen helfen, Importfehler und Suchprobleme frühzeitig zu erkennen.\nTechnisches Konzept\nEine regelmäßige Stichprobe untersucht die Verfügbarkeit von Dokumenten, die Zuordnung\nder Seiten und die Aktualität freigegebener Anleitungen.\nKontrollpunkte\nImportfehler\nSuchzeit\nSpeicherstatus\nFreigabe\nAbschluss\nDer fiktive Betriebsbericht enthält Messwerte, offene Befunde und Verantwortlichkeiten.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 10 von 10"
+    }
+  ]
+}

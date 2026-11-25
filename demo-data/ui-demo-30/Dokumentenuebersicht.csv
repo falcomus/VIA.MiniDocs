@@ -1,0 +1,31 @@
+﻿Dateiname;Dokumenttitel;Seitenzahl;Datum (ISO);Empfohlenes Thema;Tags;Textart
+01_Rechnung_Nordlicht.pdf;Rechnung NL-2026-041;1;2026-10-19;Finanzen / Rechnungen;Rechnung, Nordlicht, Digitalisierung, Schulung, Archivierung;Durchsuchbarer PDF-Text
+02_Memo_Dokumentenfreigabe.pdf;Interne Mitteilung: Dokumentenfreigabe;1;2026-09-08;Verwaltung / Mitteilungen;Freigabe, Qualitätssicherung, Datenschutz, Versionierung, Nordlicht;Durchsuchbarer PDF-Text
+03_Notizbuch_Werkstatt.pdf;Werkstattnotizen – Nordlicht;2;2026-10-06;Projekte / Nordlicht / Notizen;Handschrift, Notiz, Scanner, OCR, Dokumentensuche, Nordlicht;Bildbasiert (simulierte Handschrift)
+04_Datenschutz_Pruefvermerk.pdf;Prüfvermerk zum Datenschutz;2;2026-09-29;Organisation / Datenschutz;Datenschutz, Zugriffsrechte, Löschkonzept, Audit, Freigabe;Durchsuchbarer PDF-Text
+05_Angebot_Digitalisierungsprojekt.pdf;Angebot A-2026-017 – Digitalisierung;3;2026-08-24;Finanzen / Angebote;Angebot, Digitalisierung, Archivierung, Migration, Nordlicht;Durchsuchbarer PDF-Text
+06_Servicebericht_Scanner.pdf;Servicebericht – Scannerstation Q7;3;2026-10-07;Technik / Wartung;Scanner, Wartung, OCR, Qualitätssicherung, Digitalisierung;Durchsuchbarer PDF-Text
+07_Besprechungsprotokoll_Nordlicht.pdf;Besprechungsprotokoll – Nordlicht;4;2026-10-12;Projekte / Nordlicht / Besprechungen;Protokoll, Nordlicht, Meilenstein, Freigabe, Dokumentensuche;Durchsuchbarer PDF-Text
+08_Kurzanleitung_Dokumentensuche.pdf;Kurzanleitung – Dokumente wiederfinden;4;2026-10-15;Schulung / Anleitungen;Dokumentensuche, Volltext, Tags, Umlaute, Archivierung;Durchsuchbarer PDF-Text
+09_Testbericht_Archivimport.pdf;Testbericht – Archivimport und Volltextsuche;5;2026-10-22;Technik / Qualitätssicherung;Testbericht, Archivimport, Transkript, Volltext, Qualitätssicherung;Durchsuchbarer PDF-Text
+10_Mustervertrag_Archivierung.pdf;Mustervertrag – Archivierungsleistungen;6;2026-09-02;Finanzen / Verträge;Vertrag, Archivierung, Datenschutz, Vergütung, Nordlicht;Durchsuchbarer PDF-Text
+11_Projektplan_Nordlicht.pdf;Projektplan – Nordlicht;7;2026-09-09;Projekte / Nordlicht / Planung;Projektplan, Meilenstein, Migration, Nordlicht, Freigabe;Durchsuchbarer PDF-Text
+12_Schulungsunterlagen_Digitales_Archiv.pdf;Schulungsunterlagen – Digitales Archiv;8;2026-10-19;Schulung / Lernmodule;Schulung, Dokumentensuche, Metadaten, Freigabe, Nordlicht;Durchsuchbarer PDF-Text
+13_Technische_Dokumentation_Uferbox.pdf;Technische Dokumentation – Uferbox;10;2026-11-03;Technik / Architektur;Architektur, API, Transkript, Datenschutz, Versionierung, Archivierung;Durchsuchbarer PDF-Text
+14_Forschungsbericht_Moorfink.pdf;Forschungsbericht – Moorfink;12;2026-11-05;Forschung / Umweltmessung;Moorfink, Forschung, Beschattung, Kalibrierung, Messdaten;Durchsuchbarer PDF-Text
+15_Betriebshandbuch_Uferbox.pdf;Betriebshandbuch – Uferbox;30;2026-11-20;Technik / Betrieb / Handbücher;Betriebshandbuch, Nordlicht, Archivierung, Wiederanlauf, Datenschutz, Dokumentensuche;Durchsuchbarer PDF-Text
+16_Lieferschein_Nordlicht.pdf;Lieferschein LS-2026-018;1;2026-11-04;Finanzen / Lieferscheine;Nordlicht, Lieferung, Scanner, Archivierung;Durchsuchbarer PDF-Text
+17_Rechnung_Nordlicht_Korrektur.pdf;Rechnung NL-2026-041 – Korrektur;2;2026-10-26;Finanzen / Rechnungen;Nordlicht, Rechnung, Korrektur, Freigabe;Durchsuchbarer PDF-Text
+18_Besprechungsprotokoll_Nordlicht_November.pdf;Besprechungsprotokoll – Nordlicht;4;2026-11-12;Projekte / Nordlicht / Besprechungen;Nordlicht, Freigabe, Rückmeldung, Migration;Durchsuchbarer PDF-Text
+19_Besprechungsprotokoll_Moorfink.pdf;Besprechungsprotokoll – Moorfink;3;2025-06-17;Forschung / Moorfink / Besprechungen;Moorfink, Messdaten, Kalibrierung, Qualitätssicherung;Durchsuchbarer PDF-Text
+20_Migrationskonzept_Nordlicht.pdf;Migrationskonzept – Nordlicht;6;2026-11-03;Projekte / Nordlicht / Migration;Nordlicht, Migration, Archivierung, Löschkonzept, Freigabe;Durchsuchbarer PDF-Text
+21_Qualitaetsbericht_Dokumentensuche.pdf;Qualitätsbericht – Dokumentensuche;5;2026-07-31;Technik / Qualitätssicherung;Dokumentensuche, Qualitätssicherung, Volltext, Umlaute;Durchsuchbarer PDF-Text
+22_Raumbelegungsplan_Archiv.pdf;Raumbelegungsplan – Archivwerkstatt;3;2025-12-08;Organisation / Raumplanung;Archivierung, Raumplanung, Scanner, Schulung;Durchsuchbarer PDF-Text
+23_Abnahmeprotokoll_Uferbox.pdf;Abnahmeprotokoll – Uferbox;2;2026-02-18;Technik / Abnahmen;Uferbox, Freigabe, Wiederanlauf, Qualitätssicherung;Durchsuchbarer PDF-Text
+24_Sicherheitsaudit_Archiv.pdf;Sicherheitsaudit – Archivplattform;8;2026-11-20;Organisation / Datenschutz / Audits;Datenschutz, Audit, Löschkonzept, Zugriffsrechte, Freigabe;Durchsuchbarer PDF-Text
+25_Messblatt_Moorfink_Mischformat.pdf;Messblatt und Lageübersicht – Moorfink;4;2025-06-19;Forschung / Moorfink / Messdaten;Moorfink, Messdaten, Kalibrierung, Mischformat;Durchsuchbarer PDF-Text
+26_Schulung_Datenschutz.pdf;Schulungsunterlagen – Datenschutz im Archiv;7;2026-04-14;Schulung / Datenschutz;Datenschutz, Löschkonzept, Schulung, Freigabe;Durchsuchbarer PDF-Text
+27_Wartungscheckliste_Q7.pdf;Wartungscheckliste – Scannerstation Q7;3;2026-01-09;Technik / Wartung;Scanner, Kalibrierung, Wartung, Qualitätssicherung;Durchsuchbarer PDF-Text
+28_Angebot_Archivservice.pdf;Angebot A-2026-042 – Archivservice;6;2026-11-05;Finanzen / Angebote;Angebot, Archivierung, Nordlicht, Schulung;Durchsuchbarer PDF-Text
+29_Forschungsbericht_Moorfink_Nachmessung.pdf;Forschungsbericht – Moorfink: Nachmessung;5;2025-09-22;Forschung / Moorfink / Berichte;Moorfink, Forschung, Messdaten, Kalibrierung;Durchsuchbarer PDF-Text
+30_Archivhandbuch_Wellenhain.pdf;Archivhandbuch – Wellenhain;50;2026-11-24;Organisation / Archivbetrieb / Handbücher;Archivierung, Nordlicht, Dokumentensuche, Qualitätssicherung, Datenschutz, Wiederanlauf;Durchsuchbarer PDF-Text

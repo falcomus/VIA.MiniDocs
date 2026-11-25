@@ -21,7 +21,8 @@
 .spacer {
   flex: 1;
 }
-.bar button {
+.bar button,
+.bar a {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -32,19 +33,23 @@
   border-radius: var(--r);
   background: var(--panel);
   cursor: pointer;
+  text-decoration: none;
 }
-.active button {
+.active button,
+.active a {
   background: rgba(255, 255, 255, 0.12);
   border-color: rgba(255, 255, 255, 0.25);
   color: #fff;
 }
-.active button:hover:not(:disabled) {
+.active button:hover:not(:disabled),
+.active a:hover {
   background: rgba(255, 255, 255, 0.22);
 }
 .bar button:disabled {
   opacity: 0.45;
   cursor: not-allowed;
 }
-.active button:focus-visible {
+.active button:focus-visible,
+.active a:focus-visible {
   outline-color: #fff;
 }

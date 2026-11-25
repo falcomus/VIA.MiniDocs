@@ -2,6 +2,7 @@ import { Icon } from '../../components/Icon';
 import type { DocumentSummary } from './document.types';
 import styles from './DocumentSummary.module.css';
 import { PdfThumbnail } from './PdfThumbnail';
+import { DemoPdfThumbnail } from './DemoPdfThumbnail';
 import { DemoInkPage } from './DemoInkPage';
 export function TranscriptStatus({ document }: { readonly document: DocumentSummary }) {
   const status = !document.transcript
@@ -29,9 +30,11 @@ export function TranscriptStatus({ document }: { readonly document: DocumentSumm
 export function DocumentActions({
   onTags,
   onOpenTab,
+  document,
 }: {
   readonly onTags?: () => void;
   readonly onOpenTab?: () => void;
+  readonly document?: DocumentSummary;
 }) {
   return (
     <div className={styles.actions}>
@@ -41,14 +44,26 @@ export function DocumentActions({
       <button disabled={!onOpenTab} onClick={onOpenTab} aria-label="In neuem Tab öffnen">
         <Icon name="external" />
       </button>
-      <button disabled aria-label="Herunterladen">
-        <Icon name="download" />
-      </button>
+      {document?.demoUrl ? (
+        <a
+          href={document.demoUrl}
+          download={document.fileName}
+          aria-label="Herunterladen"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <Icon name="download" />
+        </a>
+      ) : (
+        <button disabled aria-label="Herunterladen">
+          <Icon name="download" />
+        </button>
+      )}
     </div>
   );
 }
-/** Synthetic demo ink only: no URL, file access or implied real PDF preview. */
+/** Reale PDF-Quellen werden bedarfsgerecht als Miniatur dargestellt. */
 export function DemoPreview({ document }: { readonly document: DocumentSummary }) {
+  if (document.demoUrl) return <DemoPdfThumbnail url={document.demoUrl} />;
   if (document.source?.kind === 'pdf') {
     return <PdfThumbnail blob={document.source.blob} />;
   }

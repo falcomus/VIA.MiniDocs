@@ -8,6 +8,7 @@ export function SelectionBar({
   onMove,
   onTags,
   onOpen,
+  download,
 }: {
   readonly count: number;
   readonly hasDocuments: boolean;
@@ -16,6 +17,7 @@ export function SelectionBar({
   readonly onMove: () => void;
   readonly onTags: () => void;
   readonly onOpen: () => void;
+  readonly download?: { readonly url: string; readonly fileName: string };
 }) {
   return (
     <div
@@ -39,9 +41,15 @@ export function SelectionBar({
           <button onClick={onMove}>
             <Icon name="move" /> Verschieben nach …
           </button>
-          <button disabled>
-            <Icon name="download" /> {count === 1 ? 'Herunterladen' : 'Als ZIP herunterladen'}
-          </button>
+          {count === 1 && download ? (
+            <a href={download.url} download={download.fileName}>
+              <Icon name="download" /> Herunterladen
+            </a>
+          ) : (
+            <button disabled>
+              <Icon name="download" /> {count === 1 ? 'Herunterladen' : 'Als ZIP herunterladen'}
+            </button>
+          )}
           <button onClick={onClear}>
             <Icon name="x" />
             Auswahl aufheben

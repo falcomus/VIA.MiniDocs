@@ -17,7 +17,8 @@
   gap: 2px;
   justify-content: flex-end;
 }
-.actions button {
+.actions button,
+.actions a {
   border: 0;
   background: transparent;
   border-radius: 6px;
@@ -30,7 +31,8 @@
 .actions button:not(:disabled) {
   cursor: pointer;
 }
-.actions button:not(:disabled):hover {
+.actions button:not(:disabled):hover,
+.actions a:hover {
   background: var(--accent-weak);
   color: var(--text);
 }
@@ -38,7 +40,8 @@
   opacity: 0.45;
   cursor: not-allowed;
 }
-.actions button svg {
+.actions button svg,
+.actions a svg {
   width: 16px;
   height: 16px;
 }

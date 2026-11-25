@@ -1,8 +1,6 @@
 import { useEffect, useReducer, useRef, useState } from 'react';
 import { documentReducer } from '../documents/documentOperations';
-import { demoDocuments } from '../documents/demoDocuments';
-import { demoTags } from '../documents/tags';
-import { demoTopics } from '../topics/demoTopics';
+import { initialDocuments, initialTags, initialTopics } from '../documents/demoDataset';
 import type { DocumentSummary } from '../documents/document.types';
 import type { TagDefinition } from '../documents/tags';
 import type { Topic } from '../topics/topic.types';
@@ -21,7 +19,7 @@ export function StandaloneViewer() {
   const owner = params.get('owner') ?? '';
   const rawPage = params.get('page');
   const page = rawPage === null ? 1 : Number(rawPage);
-  const demo = demoDocuments.find((item) => item.id === id);
+  const demo = initialDocuments.find((item) => item.id === id);
   const [transfer, setTransfer] = useState<PdfResponse | 'missing' | null>(null);
   const [pending, setPending] = useState(0);
   const [message, setMessage] = useState('');
@@ -119,9 +117,9 @@ export function StandaloneViewer() {
         doc={doc}
         page={page}
         term={params.get('term') ?? ''}
-        topics={topicState?.topics ?? received?.topics ?? demoTopics}
+        topics={topicState?.topics ?? received?.topics ?? initialTopics}
         topicState={topicState}
-        tags={received?.tags ?? demoTags}
+        tags={received?.tags ?? initialTags}
         owner={owner}
         onMove={(documentId, topicId) => {
           if (!owner || !channelRef.current) return;
@@ -222,7 +220,9 @@ function StandaloneDocument({
       onPdfPages={(id, blob, pages) => dispatch({ type: 'pdf-pages', id, blob, pages })}
       getSource={(id) => {
         const current = state.documents.find((item) => item.id === id);
-        return current ? (current.source ?? { kind: 'demo' }) : undefined;
+        return current
+          ? (current.source ?? (current.demoUrl ? { kind: 'pdf', blob: null } : { kind: 'demo' }))
+          : undefined;
       }}
       session={{ id: doc.id, ids: [doc.id], hits: { [doc.id]: { page, term } } }}
       initialPage={page}

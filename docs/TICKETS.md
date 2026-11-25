@@ -197,112 +197,134 @@ Aktuelle Aufgaben und offene Abnahmen; frühere Detailnachweise stehen im [Ticke
 
 - **Status:** Dokumentation auf `main` integriert; offene Architektur- und Deploymentfragen bleiben bestehen. Keine Implementierungsfreigabe.
 - **Umfang:** [Backend-Architektur](ARCHITECTURE.md), [ADR-Register](DECISIONS.md), Identität, Sicherheit, VIA.Docs, Datenmodell und Deployment. Quellcodeanalyse ist keine Deployment-Abnahme.
-- **Planungsstand:** B0.1 MiniDocs-Bestandsaufnahme abgeschlossen; B0.2 VIA.Docs-Quellcodeanalyse abgeschlossen, Abweichung zwischen Commit und uncommittetem Einladungsentwurf dokumentiert; B0.3 Benutzer, Workspaces und Provisionierung freigegeben; B0.4 Sicherheitsarchitektur freigegeben, Hostingdetails offen; B0.5 Solution-, REST- und Engineering-Architektur nach ADR-014 bis ADR-016 freigegeben und dokumentiert; B0.6 PostgreSQL-Datenmodell als nächster Planungsschritt offen; B0.7 REST-Verträge offen; B0.8 Hosting und Deployment-Verifikation offen; B0.9 abschließende Dokumentation und Implementierungstickets offen.
+- **Planungsstand:** B0.1 MiniDocs-Bestandsaufnahme abgeschlossen; B0.2 VIA.Docs-Quellcodeanalyse abgeschlossen, Abweichung zwischen Commit und uncommittetem Einladungsentwurf dokumentiert; B0.3 Benutzer, Workspaces und Provisionierung freigegeben; B0.4 Sicherheitsarchitektur freigegeben, Hostingdetails offen; B0.5 Solution-, REST- und Engineering-Architektur nach ADR-014 bis ADR-016 freigegeben und dokumentiert; B0.6 PostgreSQL-Datenmodell fachlich freigegeben; B0.7 REST-Vertrag fachlich freigegeben; B0.8 Hosting-Zielarchitektur freigegeben, reale Deployment- und Betriebsfreigabe offen; B0.9 Architekturreview und Implementierungsreihenfolge fachlich freigegeben.
 - **Abnahme:** Die offenen Entscheidungen und Deployment-Nachweise bleiben gesondert zu klären. D1–D8 bleiben geplante Implementierungstickets und benötigen gesonderte Freigabe.
 - **Technischer Nachweis:** Frontend-Regressionsprüfung `npm run check` Exit 0, 219 Tests und Produktionsbuild erfolgreich; Build-Warnung für ein JavaScript-Chunk über 500 kB. Keine Backend-, Datenbank-, Deployment- oder produktiven Integrationstests im Dokumentationsauftrag.
 
 ### B0.5 – Backend-Projektarchitektur
 
-- **Status:** abgeschlossen hinsichtlich Freigabe und Dokumentationsabgleich; ADR-014, ADR-015 und ADR-016 sind freigegeben, ADR-013 bleibt offen. Keine Solution angelegt und keine Implementierung freigegeben.
+- **Status:** abgeschlossen hinsichtlich Freigabe und Dokumentationsabgleich; ADR-014, ADR-015 und ADR-016 sind freigegeben, ADR-013 ist als Zielarchitektur freigegeben; die Betriebsfreigabe bleibt offen. Keine Solution angelegt und keine Implementierung freigegeben.
 - **Umgebung:** Lesend festgestellt: .NET SDK 10.0.404 und Visual Studio Community 2026 18.11.4; die Versionen erfüllen die [Microsoft-Vorgabe für `net10.0`](https://learn.microsoft.com/de-de/dotnet/core/porting/versioning-sdk-msbuild-vs). Eine konkrete Projekt-/Workload-Buildprüfung wurde nicht durchgeführt; `dotnet --info` meldete beim Zugriff auf die Windows-Dienstverwaltung einen Berechtigungsfehler. VS Code ist vorhanden und die .NET-CLI eine mögliche Alternative.
 
 ### B0.6 – PostgreSQL-Datenmodell vorbereiten
 
-- **Status / Umfang:** nächster Planungsschritt, offen; logischer Entwurf in der [Architektur](ARCHITECTURE.md), kein freigegebenes physisches Schema. Tabellen, Typen, Indizes, Constraints und Migrationen sind hier noch zu entscheiden. D1–D8 bleiben ohne Implementierungsfreigabe.
+- **Status / Umfang:** Gesamtmodell nach unabhängigem Review in der [Architektur](ARCHITECTURE.md#b06--postgresql-datenmodell-und-persistenzarchitektur) überarbeitet; gemeinsam mit dem [B0.7-Vertragsentwurf](ARCHITECTURE.md#b07--rest-vertragsentwurf-zur-architekturfreigabe) dokumentiert. ADR-017/018 sind fachlich freigegeben. Kein physisches Schema oder Migration implementiert. D1–D8 bleiben ohne Implementierungsfreigabe.
 - **Identity / Workspace:** ASP.NET Core Identity, geschlossene Benutzereinladungen, privater 1:1-Workspace, getrennte technische VIA.Docs-Anwendung und wiederanlauffähiger Provisionierungsvorgang müssen gemeinsam mit Status- und Secret-Lebenszyklen modelliert werden; fachliche Regeln stehen in ADR-001 bis ADR-012. Benutzeridentität, Workspace-Zugehörigkeit und die technische ApplicationId bleiben getrennt. Gesperrte Konten und nicht aktive Workspaces sind zu berücksichtigen.
 - **React-Bestand:** `DocumentSummary` führt eigene ID, Titel, optionale Datei-/Datumsangaben, Art, Themen-ID, optionale Tag-IDs, nullable Seitenzahl und optionale seitenweise Transkripte mit Bearbeitungsstatus; lokale PDF-Blobs sind keine Persistenz. PDF-Import erlaubt gleiche Dateinamen, erzeugt unabhängige IDs und liest die Seitenzahl. Themen besitzen Eltern-ID und geschützten Systemknoten; nur Themen ohne direkte Dokumente und Unterthemen sind löschbar. Tags besitzen ID, Name, Beschreibung und Farbe. Dokument-Tag-Zuordnungen und Transkriptseiten sind fachlich eigenständig abzubilden.
 - **Suche / Bearbeitung:** Die Demo normalisiert Groß-/Kleinschreibung und Akzente, unterstützt Phrasen, Teilstrings und UND über Begriffe/Tags, Datumsbereich sowie Themenbereich mit Nachfahren; Trefferpunkte und erste Trefferseite sind im bestehenden Suchcode definiert. Der separate Viewer synchronisiert Änderungen sitzungsgebunden; persistente Nebenläufigkeits- und Konfliktregeln sind noch nicht implementiert. Wartende Transkriptimporte sind geplant, nicht vorhandener React-Fachzustand.
-- **Offene Modellierungsfragen:** Identity-Schlüssel und Workspace-Grenzen, eindeutige fachliche IDs und VIA.Docs-Dateireferenz, erlaubte Nullwerte und Herkunft der Seitenzahl; constraintsichere Workspace-bezogene Fremdschlüssel für Themen, Tags und Transkripte; Zyklenvermeidung auch bei konkurrierenden Änderungen; Versionierung und Konfliktantworten für mehrere Tabs; Suchsemantik, Unicode, Relevanz und Indizes; Regeln für fehlgeschlagene Uploads und Löschungen über zwei Systeme ohne Exactly-once-Annahme; fachliche Entscheidung zu Papierkorb, Wiederherstellung und endgültiger Dateilöschung. B0.6 legt die physische Ausprägung und geeignete Sicherheits- und Migrationstests fest; SEC-01 bis SEC-15 bleiben verbindlich.
+- **Freigabe / Nachweise:** Gesamtkatalog, Constraint- und EF-Mapping, Sicherheits- und Migrationstestanforderungen sind vorgeschlagen; Papierkorb, Wiederherstellung, Pending-Import und UUID-Such-Tie-Breaker sind fachlich freigegeben; technische Klärung ungeklärter externer Vorgänge bleibt offen. ADR-013 und VIA.Docs-Deployment bleiben ungeprüft. SEC-01 bis SEC-15 und weitere im Entwurf genannte Integrationstests sind nicht ausgeführt.
+
+### B0.7 – REST-Verträge
+
+- **Status:** Paket A und der [REST-Vertrag](ARCHITECTURE.md#b07--rest-vertragsentwurf-zur-architekturfreigabe) einschließlich Upload-Vergleich und -Aufbewahrung, Cursor-Bindung, DTOs und Limits sind fachlich freigegeben. Kein Backend implementiert, keine Implementierungsfreigabe; tatsächliches VIA.Docs-Deployment nicht verifiziert.
+
+**Umsetzungsnachweise:** D1 prüft OpenAPI-Generierung, Nullable/Enum/ProblemDetails, Header und Drift; D2 beweist Constraints, atomare Reservierung und Versionierung auf echtem PostgreSQL; D4 weist Antiforgery, Session-Sperre und Isolation nach; D5 prüft Stream-/Digestvergleich, unbekannte Remote-Ergebnisse, parallele Request-IDs und Sperrmarken; D6 prüft Batch-Atomarität und ETags; D7 prüft KU-Transkriptformate, Cursor-/Suchparität und Unicode; D8 weist Proxy-/Range-Verhalten und externe Integration in gesondert freigegebener Testumgebung nach. Diese Nachweise wurden noch nicht erbracht. B0.8 und B0.9 sind fachlich freigegeben; ihre technischen Nachweise bleiben offen.
+
+### B0.8 – Hosting, Deployment und Betrieb
+
+- **Status:** [Betriebskonzept](ARCHITECTURE.md#hosting-deployment-und-betrieb) und ADR-013 als Zielarchitektur fachlich freigegeben; keine Implementierungs-, Installations-, Integrations- oder Betriebsfreigabe.
+- **Vorschlag:** Linux, systemd, Kestrel auf Loopback, Nginx/TLS, ein Origin und eigene PostgreSQL-Datenbank; Key Ring dauerhaft und X.509-verschlüsselt, Rollen und Umgebungen getrennt, kontrollierte Migration und systemübergreifender Restore. Verfügbarkeit und Betreiberzuständigkeiten sind nicht nachgewiesen.
+- **Nachweise:** D2 prüft Datenbankrechte, Migration und Restore; D4 Data-Protection-Initialisierung, Rotation, Session und Restore; D5 Streaming/Range und Ausfallverhalten; D8 Zielhost, TLS/Proxy, Limits, Secrets, Backup/Restore und freigegebene End-to-End-Tests. Produktive externe Aufrufe benötigen gesonderte Freigabe. Kein Betriebsnachweis wurde in B0.8 ausgeführt.
+- **Gates:** Plattformneutraler lokaler D1-Start benötigt einen Implementierungsauftrag und freigegebene betroffene Sicherheitsentscheidungen, keinen vorhandenen Produktionsserver. Reale VIA.Docs-Integration benötigt isolierte Testumgebung/Vertrag/Identität und Testfreigabe. Demo-/Produktivbetrieb erfordert ADR-013, Betreiberentscheidungen und reale Zielumgebungsnachweise.
+
+### B0-FINAL-C – VIA.Docs-Integrationsvertrag
+
+- **Status:** [Statischer Quellabgleich und Abnahmematrix](VIA-DOCS-API.md#quellabgleich-b0-final-c) fachlich freigegeben; kein laufendes Deployment, keine API-Aufrufe oder neue Testergebnisse nachgewiesen.
+- **Abweichung:** VIA.Docs-Quellstand erzwingt 25 MiB je Dokument und puffert Multipart über `ReadFormAsync`. MiniDocs schlägt ebenfalls 25 MiB und eingangsseitiges Streaming vor; die Grenze ist fachlich freigegeben und benötigt reale Prüfung vor Integration.
+- **Gates:** D3/D4/D5 prüfen Vertrag, Isolation, Einladungsdeployment und kontrollierte Wiederanlaufpfade; D8 ergänzt zugelassene echte Proxy-/Range-, Preview-, Speicher- und Restore-Nachweise. Lokal sind Testdoubles ohne reale VIA.Docs-Berechtigungen nutzbar. ADR-013 ist als Zielarchitektur freigegeben; die Betriebsfreigabe bleibt offen.
+
+### Abhängigkeiten und gemeinsame Freigabegates D1–D8
+
+**Status aller Tickets:** geplant; Architektur- und Vertragsentscheidungen sowie die Reihenfolge sind fachlich freigegeben, ein gesonderter Implementierungsauftrag bleibt erforderlich. Reihenfolge: **D1 → D2 → D3 → D4 → D6 → D5 → D7 → D8**. D3 benötigt nur D1; D4 benötigt D1/D2 und die Client-Schnittstelle D3; D6 benötigt D1/D2/D4; D5 benötigt D1–D4 und D6; D7 benötigt D1/D2/D4/D6 und D5 für echte PDF-Flüsse; D8 benötigt D1–D7. D6 entwickelt Themen-/Metadatenfunktionen mit Dateitestdoubles; D5 integriert die fertigen Funktionen ohne provisorische Fachimplementierung. D7 darf reine Such-/Transkriptteile nach D6 mit Dateitestdoubles vorbereiten; vollständiger Abschluss mit PDF-Fluss benötigt D5. Kein Ticket setzt sein eigenes Folgeticket voraus. M8 ist ein separates fachliches UI-Gate, kein Blocker für Backendtests.
+
+**Freigegebene Grenzwerte:** MiniDocs zunächst zentral konfigurierbar auf höchstens **25 MiB pro Dokument** begrenzen, passend zum statisch geprüften VIA.Docs-Quellstand; eine Erhöhung erst nach bestätigtem kompatiblem Remote-Vertrag und geeigneten Tests. Der bisherige 100-MiB-Vorschlag wird ersetzt; die 25 MiB sind fachlich freigegeben. VIA.Docs `ReadFormAsync` kann puffern; MiniDocs-Streaming belegt keine ungepufferte Gesamtkette. SVG-Preview-Fallback ist kein fertig gerendertes PDF; DELETE 204 ist keine physische Löschgarantie. Remote-Idempotenz und sichere Dateiwiederauffindung nach verlorenem ACK sind nicht nachgewiesen. Einladungsrouten liegen nur uncommittiert vor. [VIA.Docs-Vertrag und 13 Prüffälle](VIA-DOCS-API.md#integrations--und-abnahmematrix).
+
+**Gemeinsame DoD und Status:** Vor Beginn: expliziter Ticketauftrag und Freigabe jeweils betroffener Entscheidungen; echte PostgreSQL-Tests nur mit autorisierter isolierter DB. Implementierungsabschluss umfasst Code, präzise Tests, Review und Dokumentation nach [Standards](ENGINEERING-STANDARDS.md) und [DoD](DEFINITION-OF-DONE.md). Technische Abnahme verlangt die im jeweiligen Ticket genannten erfolgreichen automatisierten Nachweise; PostgreSQL-InMemory ersetzt PostgreSQL nicht. Fachliche Abnahme prüft die benannten Benutzerfälle und offene UI-Nachweise separat. Reale Integrationsabnahme setzt bestätigten VIA.Docs-Deploy-/Migrationsstand, isolierte Identitäten und gesonderte Testfreigabe voraus; fehlende reale Systeme blockieren keine zulässige Arbeit mit Testdoubles. Deployment-/Betriebsfreigabe setzt ADR-013, Betreiberentscheidungen und Zielumgebungsnachweise voraus. Keine dieser Freigaben impliziert eine andere. Jeder Abschlussbericht nennt Änderungen, konkrete Testbefehle/Exitcodes, Scope der Testdoubles, Abnahmen, Risiken und offene Gates. Kein Produktionszugriff ohne gesonderten Auftrag.
 
 ### D1 – MiniDocs-API und Verträge
-- **Planungsergänzung:** Backend-Grundstruktur nach freigegebenen ADR-014 bis ADR-016; konkrete API-Verträge in B0.7. Akzeptanz vorläufig, Implementierung gesondert beauftragen.
-- **Status:** geplant, gesonderter Auftrag erforderlich.
-- **Ziel / Umfang:** ASP.NET-Core-API-Grundlage mit .NET 10 gemäß ADR-016, dokumentierte Verträge und Fehlerantworten für die MiniDocs-Schicht; Dienste und Datenzugriff trennen.
-- **Ausgeschlossen:** Änderung von VIA.Docs, produktiver Zugriff und unbestätigte Endpunkte als Tatsachen festschreiben.
-- **Abhängigkeiten:** Architektur- und Sicherheitsentscheidungen; Abstimmung mit D2–D4.
-- **Akzeptanz:** Verträge für die benötigten Funktionen prüfbar; Eingaben, Ausgaben, Fehler und Authentifizierungsgrenzen dokumentiert.
-- **Technische DoD:** allgemeine und API-DoD, geeignete .NET-Build-/Testbefehle festlegen.
-- **Tests:** Vertrags-, Validierungs-, Fehler- und Integrationstests mit kontrollierten Abhängigkeiten.
-- **Risiken:** tatsächliche API-Verträge und Hosting noch offen.
+
+- **Ziel:** erstes lokal baubares Backend-Fundament nach ADR-014–016; empfohlener Reasoning-Level **hoch**.
+- **Voraussetzungen:** gesonderter D1-Auftrag; Vertrags-/Toolentscheidungen sind fachlich freigegeben; lokal .NET-10-SDK, kompatibles Node/npm und isolierter Arbeitsbereich. Kein PostgreSQL-Server, VIA.Docs, Deployment oder ADR-013-Hostingfreigabe erforderlich. Paketinstallation erst im ausdrücklich beauftragten Implementierungslauf.
+- **Umfang/Projekte:** `backend/VIA.MiniDocs.sln`, `Directory.Build.props`, `Directory.Packages.props`; Domain ohne Projektabhängigkeiten, Application → Domain, Infrastructure → Application/Domain, Api → Application/Infrastructure, `tests/VIA.MiniDocs.Tests` mit xUnit. .NET 10, nullable/strict Warnungen, zentrale gepinnte Paketverwaltung, reproduzierbarer Build, Standard-DI und asynchrones I/O. Api: Minimal-API-Host, sichere Fehlerbehandlung/ProblemDetails und OpenAPI aus tatsächlichen Endpoint-/DTO-Metadaten; Application/Domain: nur benötigte abstrakte Grenzen; Infrastructure: lokale Testdoubles, keine reale Integration.
+- **Verträge/Tests:** OpenAPI auf reproduzierbarem Buildweg erzeugen; gepinnte Generierung von TypeScript-Typen aus OpenAPI mit Strict-Prüfung und Drift-Erkennung gemäß ADR-015. Ein begrenzter nichtfachlicher Testendpoint/Testfixture prüft Nullable, Enum, ProblemDetails und Header; Multipart und Binärschema als Fixture, ohne fiktive Fach-API als implementiert auszugeben. Unit- und Hostintegrationstests für DI, ProblemDetails ohne Secrets, Routen-/OpenAPI-Metadaten und Abhängigkeitsrichtung; negative Driftprobe. PostgreSQL und reale VIA.Docs-Tests sind für D1 nicht erforderlich.
+- **Nicht-Ziele:** Identity, Datenbank, Migrationen, Geschäftsoperationen D2–D7, Frontend-Redesign, Serverinstallation und produktiver Netzwerkzugriff.
+- **Akzeptanz/Gates:** dokumentierte `dotnet restore/build/test` und lokale Startanleitung funktionieren, Paketversionen sind zentral festgelegt, keine Zyklen, Generator produziert reproduzierbare typprüfbare Ergebnisse; Build-/Testprotokoll und Architekturprüfung vorlegen. Fachliche Abnahme bestätigt Scope und Vertrag, keine Integrations-/Produktionsfreigabe. Allgemeine Gates oben gelten.
 
 ### D2 – PostgreSQL-Modell und Migrationen
-- **Planungsergänzung:** B0.6 klärt das physische Modell; verbindliche Workspace-Isolation und zusammengesetzte Fremdschlüssel nach ADR-011, Tests gegen echtes PostgreSQL. Akzeptanz vorläufig.
-- **Status:** geplant, gesonderter Auftrag erforderlich.
-- **Ziel / Umfang:** Themen, Dokumentmetadaten, Tags und seitenweise Transkripte samt Relationen und versionierten Migrationen nach abgestimmtem Modell.
-- **Ausgeschlossen:** Änderungen an bestehenden Datenbanken; unbestätigte Tabellenentwürfe ungeprüft übernehmen.
-- **Abhängigkeiten:** D1-Vertragsabstimmung; isolierte freigegebene Testdatenbank.
-- **Akzeptanz:** Schema, Systemknoten, Zuordnung und Integritätsregeln nachvollziehbar; Migration und Rückweg bzw. Wiederherstellung nachgewiesen.
-- **Technische DoD:** Datenbank-DoD inklusive Backup/Restore und Datenintegrität.
-- **Tests:** Migration/Rollback bzw. Restore, Constraints, Beziehungen und Konfliktfälle.
-- **Risiken:** Datenverlust bei Migration, Dateinamenkollisionen und noch offene Suchstrategie.
+
+- **Ziel:** Datenmodell/Constraints nach ADR-011/016/017/018 und [B0.6](ARCHITECTURE.md#b06--postgresql-datenmodell-und-persistenzarchitektur); Reasoning **extra hoch**.
+- **Voraussetzungen/Schichten:** D1, Freigabe des konkreten Modells und einer isolierten echten PostgreSQL-Testdatenbank. Tests auf Constraint-Ebene verwenden kontrollierte Daten; API-/Identity-Flüsse folgen in D4–D8. Infrastructure verantwortet EF-Mapping, Migrationen und Transaktionsgrenzen; Domain enthält Invarianten; Application definiert Grenzen, API keine direkten DB-Umgehungen. Tabellen/Relationen für Identity, Workspaces, Themen, Dokumente, Tags, Seiten, Pending-Import, Provisionierung, Uploadvorgänge, Sperrmarken und Löschreceipts entsprechend freigegebenem Vertrag modellieren; kein PDF dauerhaft ablegen.
+- **Nicht-Ziele:** VIA.Docs-Schema, Produktionsmigration, vollständige CRUD-Handler aus D4–D7, neue Repository-Frameworks.
+- **Akzeptanz/Sicherheit:** zusammengesetzte Workspace-FKs, Systemknoten und 1:1-Regeln, Versionsspalten, Unique- und CHECK-Bedingungen, konsistente Sperrreihenfolge und atomare Receipt-/Sperrmarkenübergänge sind in Migration/Mapping nachprüfbar; Rolle mit geringsten Rechten und sicherer Migrationspfad dokumentiert.
+- **Tests/Nachweise:** Unit-Tests für reine Invarianten; echte PostgreSQL-Integration für Fremdzuordnung, direkte Constraints, parallele Baum-/Zuordnungsänderungen, Phantomschutz, konkurrierende Einladungen, Upload-Reservierung, Restore/Purge, Migration/Restore und Rollback. Kein InMemory-Ersatz. Echte VIA.Docs-Aufrufe nicht erforderlich. Technische, fachliche und Deployment-Gates gemäß gemeinsamer DoD; Backup-/Zielsystemnachweis zusätzlich D8.
 
 ### D3 – VIA.Docs-V1.2-Client
-- **Planungsergänzung:** Typisierter serverseitiger Client; Commit und uncommittierter Einladungsentwurf sowie Deployment-Verifikation gemäß [Integration](VIA-DOCS-API.md) getrennt behandeln. Akzeptanz vorläufig.
-- **Status:** geplant, gesonderter Auftrag erforderlich.
-- **Ziel / Umfang:** serverseitige, typisierte VIA.Docs-Clientgrenze für später benötigte Datei-/Vorschauoperationen nach verifiziertem Vertrag.
-- **Ausgeschlossen:** Änderungen am VIA.Docs-Server; produktiver Zugriff ohne gesonderten Testauftrag.
-- **Abhängigkeiten:** D1; tatsächliche VIA.Docs-Schnittstellen und Testumgebung klären; D4 für authentifizierte Integration.
-- **Akzeptanz:** bestätigte Verträge, Fehler, Timeouts und IDs kapseln; keine Credentials im Browser.
-- **Technische DoD:** API-DoD und dokumentierte Fehlerbehandlung; Secrets serverseitig.
-- **Tests:** Vertrags-/Negativtests mit Stubs, später freigegebene Integrationstests.
-- **Risiken:** unbekannte API-Details, Previewgrößen und Ablauf bei Nichtverfügbarkeit.
+
+- **Ziel:** typisierte serverseitige Grenze nach ADR-004–007/011/015 und [VIA.Docs-Vertrag](VIA-DOCS-API.md); Reasoning **hoch**.
+- **Voraussetzungen/Schichten:** D1 und Freigabe der Clientverträge. Application definiert Schnittstelle/Fehlerklassen; Infrastructure kapselt HTTP, Application-Identität, Authentifizierung, Konfiguration und Timeouts; API gibt keine VIA.Docs-Secrets aus. D4 bindet später Identitäten ein; D3 benötigt D4 nicht.
+- **Umfang/Akzeptanz:** Login, Einladungsschnittstelle als deploymentabhängige Fähigkeit, File-Liste/Metadaten/Upload/GET/HEAD/Range/Preview/DELETE und Fehlermapping; freigegebene 25-MiB-Grenze und tatsächlichen Vertrag berücksichtigen. SVG-Fallback unterscheiden, 204 nur als fachliche Löschung behandeln, 404 nicht als physisches Löschergebnis, unbekanntes Ergebnis explizit. Keine blinden Retries oder Dateizuordnung anhand von Hash/Namen; keine Remote-Idempotenz behaupten.
+- **Nicht-Ziele:** VIA.Docs ändern, produktive Registrierung, MiniDocs-Fachzustandsmaschine oder fremde DB-Zugriffe. Unit-/HTTP-Testdouble-Tests für DTOs, Mandantentoken, Fehler, Cancellation und verlorene Antworten; kein PostgreSQL für isolierten Client nötig. Technischer Abschluss ist ohne reales VIA.Docs möglich; Integrationsabnahme verlangt später getrennte Demo-Identitäten und gesondert bestätigtes Deployment. Dokumentierte Requests/Assertions ohne Secrets vorlegen.
 
 ### D4 – Anwendungskonto, Einladung und JWT
-- **Planungsergänzung:** MiniDocs Identity, Benutzereinladungen, getrennte technische Einladung, wiederanlauffähige Provisionierung, Secret-Schutz und getrennte JWTs nach ADR-001 bis ADR-012; Hosting/Schlüsselbestand und Sitzungsvalidierung konkretisieren. Akzeptanz vorläufig.
-- **Status:** geplant, gesonderter Auftrag erforderlich.
-- **Ziel / Umfang:** das nur im lokalen VIA.Docs-Arbeitsbaum vorgefundene Einladungs-/Application-Verfahren für die MiniDocs-Serverintegration verifizieren; JWT-Bezug, sichere Konfiguration und Erneuerung nach tatsächlichem Vertrag.
-- **Ausgeschlossen:** neue VIA.Docs-Registrierung erfinden, Zugangsdaten ins Frontend legen oder produktive Konten ohne Auftrag verwenden.
-- **Abhängigkeiten:** D1, D3-Vertragsklärung; freigegebene Testidentität und Geheimnisverwaltung.
-- **Akzeptanz:** nachvollziehbarer Einladungs- und Tokenablauf mit minimalen Rechten; keine Secrets in Logs, Git oder Frontend.
-- **Technische DoD:** API-/Sicherheits-DoD; Betriebsverantwortung und Rotation dokumentiert.
-- **Tests:** erfolgreiche und ungültige/abgelaufene Tokenfälle, Berechtigungsfehler und sichere Konfiguration in Testumgebung.
-- **Risiken:** reale Rollen, Tokenlebensdauer und Registrierung noch ungeklärt.
+
+- **Ziel:** MiniDocs Identity, geschlossene Registrierung und wiederanlauffähige technische Provisionierung nach ADR-001–012/017; Reasoning **extra hoch**.
+- **Voraussetzungen/Schichten:** D1/D2 und D3-Schnittstelle; Sicherheits-/Session-/Secret- und Vertragsvorschläge vor Umsetzung freigeben. API besitzt Einladungs-, Login-, Logout-, Session-, Antiforgery-, Admin- und Provisionierungsrouten; Application steuert Autorisierung/Zustände; Infrastructure Identity, PostgreSQL, Data Protection und via D3 getrennte technische JWTs; Domain schützt Konto-/Workspace-Invarianten.
+- **Akzeptanz:** reguläre Nutzer genau ein Workspace, Admin-only optional ohne Workspace und ohne privaten Zugriff; Einladungen einmalig/fristgebunden nach DB-Zeit nach Sperre; Cookie/Antiforgery vor/nach Login, Sperre bestehender Sitzungen und keine Secrets im Browser; geschütztes vorbereitendes Secret vor Remote-Registrierung, höchstens ein Vorgang, Unknown ohne Blind-Retry. Key-Ring dauerhaft/verschlüsselt und fail closed nach freigegebener Betriebskonfiguration.
+- **Tests:** Unit für Zustände, Token-/Secretredaktion und Policy; echte PostgreSQL-Tests für parallele Einlösung/Expiry/Sperren und Provisionierungs-Leases, HTTP-Tests für CSRF/Login/Logout/Session-Invalidierung und admin-only. Testdouble für externe Registrierung, verlorene Antwort, verspäteten Worker sowie separate JWT-Caches. Realer Einladungs-/Deploymentnachweis erst nach gesonderter Freigabe; SEC-08–15 siehe Matrix. Keine produktiven Credentials oder Änderung von VIA.Docs. Technische/fachliche/Integrations- und Betriebsgates gemäß gemeinsamer DoD; Key-Ring-Restore in D8 zusätzlich nachweisen.
+
+- **Nicht-Ziele:** Keine Änderung von VIA.Docs, keine produktiven Zugangsdaten und keine eigene Kryptografie.
 
 ### D5 – PDF-Upload, Download und Vorschau
-- **Planungsergänzung:** Autorisiertes Streaming ohne vollständige `byte[]`-Pufferung; unterstützte Range-Requests, Status 200/206/304/416, Header, Cancellation und Speicherverbrauch gemäß [Integration](VIA-DOCS-API.md) nachweisen. Akzeptanz vorläufig.
-- **Status:** geplant, gesonderter Auftrag erforderlich.
-- **Ziel / Umfang:** MiniDocs-API verbindet PDF-Upload, Dateiabruf und Vorschauen mit VIA.Docs und speichert zugehörige Referenzen/Metadaten.
-- **Ausgeschlossen:** Änderung von VIA.Docs, produktive Dateien oder neue Viewer-Funktionen außerhalb des vereinbarten Umfangs.
-- **Abhängigkeiten:** D1–D4; M7 für den vollständigen UI-Importfluss.
-- **Akzeptanz:** Test-PDF kann hochgeladen, abgerufen und mit bestätigter Vorschau angezeigt werden; Teilfehler hinterlassen nachvollziehbaren Zustand.
-- **Technische DoD:** API- und Datenbank-DoD; Fehler- und Wiederanlaufregel für zwei Systeme vereinbart.
-- **Tests:** End-to-End mit Testdateien, fehlgeschlagener Upload, nicht verfügbare Vorschau, Zugriffs- und Wiederholungsfälle.
-- **Risiken:** inkonsistente Metadaten und Dateien bei Teilausfällen, Größen- und Vorschaugrenzen.
+
+- **Ziel:** autorisierte Dateioperationen und Papierkorb nach ADR-004/011/017/018 und B0.7; Reasoning **extra hoch**.
+- **Voraussetzungen/Schichten:** D1–D4 und D6 mit produktiven Themen-/Metadatenfunktionen, freigegebene 25-MiB-Grenze und Upload-ID-/Sperrmarken-/Receipt-Verträge sowie eine echte isolierte PostgreSQL-Testdatenbank. API streamt innerhalb Request-Lebensdauer, Application orchestriert lokale Zustandsübergänge, Infrastructure persistiert und nutzt D3, Domain prüft Invarianten; kein Netzwerk innerhalb DB-Transaktion.
+- **Umfang:** Upload-Request-ID mit serverseitiger Länge/SHA-256 nur bei vollständigem Stream, Mehrfachanfragen, Status/Unknown/Lease-Fencing und 30-Tage-/Sperrmarkenvorschlag; Original GET/HEAD/Range, Preview inkl. SVG-Fallback, Seitennachführung, Papierkorb/Restore und finale Löschung samt 30-Tage-Löschreceipt. Eingehender MiniDocs-Stream wird nicht dauerhaft als PDF gepuffert; VIA.Docs selbst nutzt `ReadFormAsync`. Weiterverwendung von Viewer und bestehenden Bedienabläufen ohne Neugestaltung.
+- **Akzeptanz/Tests:** Unit für Zustands- und Größenvalidierung; echte PostgreSQL-Integration mit HTTP-Testdoubles für gleichzeitige IDs, fremde Statusabfrage, verlorene Antwort, Abbruch vor/nach Versand, unbekannte Ergebnisse, verspäteten Worker, Themenlöschung gegen Uploadaktivierung/Restore, Restore gegen DELETE, Receipt-Ablauf und Sperrmarken. Keine ungesicherte externe Wiederholung, kein 204-als-physische-Löschung, keine neue Remote-Korrelation erfinden. Technischer Abschluss mit Testdoubles; gesondert realer Test für 25 MiB, Speicher-/Proxy-Pufferung, 200/206/304/416, Vorschau und Löschung; D8 Betriebsgate. Keine Änderung an VIA.Docs oder Produktionsdaten.
+
+- **Nicht-Ziele:** Keine VIA.Docs-Änderungen, keine produktiven Dateien und keine vollständige dauerhafte PDF-Kopie in MiniDocs.
 
 ### D6 – Themen-, Tag- und Metadatenpersistenz
-- **Planungsergänzung:** workspace-bezogene Themen-, Tag- und Dokumentmetadaten mit Integritäts- und Isolationsregeln; B0.6/B0.7 offen. Akzeptanz vorläufig.
-- **Status:** geplant, gesonderter Auftrag erforderlich.
-- **Ziel / Umfang:** dauerhafte Themenhierarchie, Tagzuordnung und Dokumentmetadaten über MiniDocs-API und PostgreSQL; Frontend an die vereinbarten Grenzen anschließen.
-- **Ausgeschlossen:** VIA.Docs-Serveränderungen, Suchindex und Transkriptbearbeitung aus D7.
-- **Abhängigkeiten:** D1, D2; M2 und M5 für zugehörige UI-Abläufe.
-- **Akzeptanz:** Ändern, Neuladen und erneutes Lesen erhalten Daten; Systemknoten, Lösch- und Zuordnungsregeln bleiben gewahrt.
-- **Technische DoD:** API- und Datenbank-DoD, relevante Verträge und Fehlerzustände dokumentiert.
-- **Tests:** CRUD und Integrität, Reload, Systemschutz, Konflikte und API-/DB-Integration.
-- **Risiken:** konkurrierende Änderungen und Atomarität; Konfliktbehandlung für mehrere Sitzungen konkretisieren. Das private 1:1-Workspace-Modell ist in ADR-003 freigegeben.
+
+- **Ziel:** Thema-/Tag-/Dokumentmetadaten und bestehende Übersicht nach ADR-011/017 und B0.7; Reasoning **hoch**.
+- **Voraussetzungen/Schichten:** D1/D2/D4 und freigegebene Metadatenverträge. Domain prüft Systemknoten/Zyklen; Application autorisiert, serialisiert und koordiniert; Infrastructure verwaltet PostgreSQL; API bietet Topic-/Tag-/Document-Routen und atomare Batch-Moves/Tagänderungen. React integriert die API schrittweise ohne visuelle Neugestaltung; vor D5 nur Dateitestdoubles.
+- **Akzeptanz:** eigene Daten bleiben nach Reload erhalten; Inbox geschützt, Themenlöschung nur leer einschließlich Papierkorbdokumente; Parent-/Document-Änderungen atomar, Batch und Undo bleiben bei Konflikt konsistent. Metadaten-/Tagänderungen einschließlich indirekter Änderungen invalidieren korrekte ETags.
+- **Tests:** Unit für Baum und Validierung; echte PostgreSQL-Races für gegenläufige Umzüge und Löschung gegen vorhandene Zuordnung, Fremd-FKs und ETag 412/428; Löschung gegen reale Uploadaktivierung/Restore ist nach D6 in D5 und abschließend D8 nachzuweisen; API-/React-Integration mit Testdoubles und Tab-Synchronisierung. Keine Transkript-/Suchimplementierung aus D7, keine Remote-Änderung. Technische/fachliche/Gesamtintegrationsgates gemäß oben; sichtbarer KU-Vergleich bleibt M8.
+
+- **Nicht-Ziele:** Keine Transkript- oder Suchimplementierung aus D7 und keine Neugestaltung der Oberfläche.
 
 ### D7 – Transkripte und Volltextsuche
-- **Planungsergänzung:** Transkriptseiten, Konflikt- und Nebenläufigkeitskontrolle sowie Suchsemantik; wartende Transkripte sind geplanter Importumfang, kein bereits implementiertes Frontend-Modell. Akzeptanz vorläufig.
-- **Status:** geplant, gesonderter Auftrag erforderlich.
-- **Ziel / Umfang:** seitenweise Transkriptpersistenz, Zuordnung per Dateiname einschließlich wartender Transkripte, Suche und Filter über die MiniDocs-API; Suchverhalten gegen M5 abgleichen.
-- **Ausgeschlossen:** KI-Transkription, semantische Suche, automatische Scan-Zerlegung und ungeprüfte Performanceversprechen.
-- **Abhängigkeiten:** D1, D2, D6; M5–M7 für vollständige UI-Flüsse; D5 für Verknüpfung mit echten PDFs.
-- **Akzeptanz:** bearbeitete Transkripte bleiben nach Reload erhalten; wartende Zuordnung und Konflikte sind definiert; Suchtreffer mit Seite und vereinbarten Filtern reproduzierbar.
-- **Technische DoD:** API- und Datenbank-DoD; Suchsemantik und Indexstrategie ausdrücklich entscheiden.
-- **Tests:** Import-/Zuordnungskonflikte, Transkriptbearbeitung, Suche/Filter, Sonderzeichen und API-/DB-Integration.
-- **Risiken:** Abweichung zwischen Original-Teilstringsuche und Datenbanksuche; Dateinamenkollisionen.
+
+- **Ziel:** persistente Transkripte, wartender Import und React-paritätische Suche nach ADR-011/017 und B0.7; Reasoning **extra hoch**.
+- **Voraussetzungen/Schichten:** D1/D2/D4/D6 und freigegebene Import-/Suchverträge. Domain trägt Seiten-/Revisionsregeln, Application Zuordnung und Suche, Infrastructure persistiert/indiziert, API stellt Transkript-/Pending-/Suchrouten bereit; React übernimmt bestehenden Viewer und geplanten M7-B-TRANSKRIPT-Import. Echte PDFs erst mit D5.
+- **Umfang/Akzeptanz:** Seiten-/Aggregatrevision atomar für Insert/Update/Delete und Replace-all; gleiche Dateinamen nie mehrdeutig automatisch zuordnen. KU-Referenz `.md`, `.markdown` und strukturgleiches `.txt` mit `# Dateiname.pdf`, `## Seite n` und belegten Metadaten; keine unbelegten Formate. Normalisierung, Phrasen/Teilstrings, UND, Datums-/Themen-/Tagfilter, Score/erste Trefferseite wie React; UUID-Tie-Breaker und cursorgebundene Filter, kein Snapshot versprochen.
+- **Tests:** Unit für Parser, Unicode, Such- und Ersetzparität; echte PostgreSQL-Tests für parallele Seiteneinfügung und Replace-all, Pending-Doppelzuordnung, 412/428, Cursor-Manipulation und Cross-Tenant-Zugriff; API-/React-Test mit Testdoubles, repräsentative Performance-/Indexmessung ohne harte unbelegte Zusage. Keine KI-/semantische Suche oder D5-Implementierung. Technische/fachliche und spätere reale Integrations-/Deploymentgates gemäß gemeinsamer DoD.
+
+- **Nicht-Ziele:** Keine KI-Transkription, semantische Suche, Scan-Zerlegung oder unbelegte Importformate.
 
 ### D8 – Integrations-, Sicherheits- und Betriebstests
-- **Planungsergänzung:** SEC-01 bis SEC-15, Deployment-Verifikation, Wiederanlauf, Schlüsselrotation und Backup/Restore nach [Sicherheit](ARCHITECTURE.md) und [Deployment](ARCHITECTURE.md). Akzeptanz vorläufig; keine Test- oder Produktivfreigabe.
-- **KU-Vorgabe:** sicheren Zugriff von unterwegs vorsehen; Authentifizierung, Betriebsmodell und Absicherung vor Umsetzung konkretisieren.
-- **Status:** geplant, gesonderter Auftrag erforderlich.
-- **Ziel / Umfang:** integrierte Testumgebung, Sicherheits- und Fehlerfallprüfung, Betriebsdokumentation, Backup/Restore, Monitoring und Wiederanlauf für die beteiligten Systeme.
-- **Ausgeschlossen:** Änderung von VIA.Docs, unautorisierte Produktivtests und automatische Produktivfreigabe.
-- **Abhängigkeiten:** D1–D7 und M8; freigegebene Testumgebung, Testidentität und Zuständigkeiten.
-- **Akzeptanz:** dokumentierter Ende-zu-Ende-Nachweis mit Testdaten, Rechte-/Fehlerfällen, Wiederherstellung und Wiederanlauf; offene Risiken und Betriebsverantwortung benannt.
-- **Technische DoD:** allgemeine, API-, Datenbank- sowie Deployment-/Betriebs-DoD.
-- **Tests:** Integrations- und Sicherheitstests, Ausfall-/Timeoutfälle, Backup/Restore und Wiederanlauf; keine produktiven Zugriffe ohne gesonderten Testauftrag.
-- **Risiken:** Verfügbarkeit externer Testsysteme, übergreifende Datenkonsistenz und unklare Zuständigkeit für VIA.Docs-Backups.
 
+- **Ziel:** nach D1–D7 Sicherheits-, Integrations- und Betriebsgates prüfen; Reasoning **extra hoch**.
+- **Voraussetzungen/Schichten:** D1–D7 technisch abgeschlossen, isolierte PostgreSQL- und freigegebene VIA.Docs-Testumgebung für reale Nachweise; ADR-013-Freigabe und benannter Betreiber vor Deployment. Schichten über öffentliche Grenzen prüfen; kein neuer Fachcode oder VIA.Docs-Änderungen ohne Auftrag. D8 kann Testdouble-Prüfungen vorbereiten, reale Freigabe nicht vorwegnehmen.
+- **Akzeptanz:** SEC-01–15 und 13 Matrixfälle mit dokumentiertem Ergebnis, echte Tenantisolation beider Demo-Identitäten, freigegebener Einladungsweg, PDF-Upload/-Range/Preview und kontrollierter DELETE, große PDFs und tatsächliche Multipart-/Proxy-Pufferung. Backup/Restore von DB, Key Ring, Zertifikaten und Remote-Referenzen, Worker-/Lease-Abbrüche, Unknown und Recovery praktisch nachweisen; keine automatische Übernahme mehrdeutiger Dateien.
+- **Tests:** Unit für Hilfsprüfungen, echte PostgreSQL-/HTTP-Integration, realer Dienst und vorgesehener Proxy mit freigegebenen Testdaten; Sicherheits-, Last-, Cancellation-, Neustart-, Rotations-, Restore- und Smoke-Tests. Testdouble-Erfolg ausdrücklich getrennt von realer Integration; UI-Gesamtabnahme M8 und Touch-Ausnahme bleiben separat. Kein produktiver Zugriff, keine Installation oder Produktionsfreigabe ohne gesonderten Auftrag. Bericht nennt Tests, Limits, Verantwortliche und gescheiterte/offene Gates.
+
+- **Nicht-Ziele:** Keine VIA.Docs-Änderungen, produktiven Zugriffe oder Installation ohne gesonderten Auftrag.
+
+### Sicherheits- und Integrationszuordnung
+
+| Sicherheitsnachweis | Hauptverantwortung; ergänzender Gesamtnachweis D8 |
+| --- | --- |
+| SEC-01–04 eigene/fremde Dokumente lesen, ändern, löschen | D4 Autorisierung, D5 Dateifluss, D6 Metadaten |
+| SEC-05–06 fremde Themen-/Tagzuordnung | D2 Datenbank-FKs, D6 API-/Batch-Tests |
+| SEC-07 fremde Transkripte | D2 DB-Isolation, D7 API-/Seitentests |
+| SEC-08 Administrator ohne Privatdaten | D4 Rechte-/Workspace-Tests |
+| SEC-09 gesperrte bestehende Sitzungen | D4 Session-Invalidierung |
+| SEC-10 parallele Provisionierung | D2 Constraint/Lease, D4 Provisionierungsablauf |
+| SEC-11 Secrets in Antworten/Logs | D1 ProblemDetails/Logging, D3 Client, D4 Secret-Lifecycle |
+| SEC-12–14 Neustart, Rotation und Restore | D4 Data Protection, D8 isolierter Systemrestore |
+| SEC-15 JWT-Mandantenisolation | D3 Client-Caches, D4 Provisionierung/Auth |
+
+Die **13 nummerierten Matrixzeilen** in [VIA.Docs-API](VIA-DOCS-API.md#integrations--und-abnahmematrix) sind wie folgt zugeordnet: 1 D3/D4/D8; 2 D3/D4/D8; 3 D4/D8; 4 D3/D4; 5 D3/D5/D8; 6 D2/D5/D8; 7 D5/D8; 8 D3/D5/D8; 9 D3/D5/D8; 10 D2/D5/D8; 11 D2/D4/D5; 12 D2/D4/D8; 13 D3/D8. D8 bündelt die gesonderte reale Integrations-/Betriebsabnahme, soweit die jeweilige Zeile reale Nachweise verlangt. Alle Zuordnungen sind Anforderungen, keine durchgeführten Tests.
 ## Q3 – Unabhängige Auditbefunde und Qualitätsregeln
 
 - **Status:** technisch umgesetzt; Browser-/Screenreader-Abnahmen offen.
@@ -343,3 +365,18 @@ Aktuelle Aufgaben und offene Abnahmen; frühere Detailnachweise stehen im [Ticke
 - **Akzeptanz/Tests:** Integrationstest deckt verschachtelte Dokument-Drop-Navigation, manuelles Einklappen, gewöhnlichen Rerender, Kontextmenü-Neuanlage und anschließendes manuelles Auf-/Zuklappen ab. Bestehende Tests zu Baum, Fokus und DnD bleiben erhalten. Synthetische Drop-Ereignisse sind kein nativer Browsernachweis.
 - **Risiken:** browserabhängige Drag-/Fokus- und Screenreader-Abnahmen sind weiterhin offen.
 - **Technischer Nachweis:** `npm run check` Exit 0; 97 Tests einschließlich des neuen Regressionstests sowie Produktionsbuild erfolgreich. `git diff --check` und `git diff --cached --check` jeweils Exit 0.
+
+## UI-POLISH – VIA Professional Design System
+
+- **Status:** verbindlich geplant nach der funktionalen Entwicklung; keine Implementierungsfreigabe. Repräsentative Light-/Dark-Designstudien vorab erstellen und durch den Projektverantwortlichen freigeben lassen.
+- **Ziel:** eigenständige, konsistente VIA-Farbwelt für professionelle Desktop-Webanwendungen; perspektivisch für weitere VIA-Anwendungen nutzbar, ohne separate Design-System-Library in V1.
+- **Umfang:** semantische Tokens und abgestimmte Light-/Dark-Oberflächen, professionelle Typografie, Abstände, Größen, dezente Schatten, Rahmen und Rundungen; einheitliche Hover-, Active-, Selected-, Focus- und Disabled-Zustände, Dialoge, Menüs, Tooltips und Icons; dezente Animationen mit `prefers-reduced-motion`, WCAG-AA-Kontraste, klare Hierarchie und angemessene Informationsdichte.
+- **Referenzen:** [MUI Color](https://mui.com/material-ui/customization/color/), [MUI Default Theme](https://mui.com/material-ui/customization/default-theme/), [Material Theme Builder](https://material-foundation.github.io/material-theme-builder/), [Material Symbols](https://fonts.google.com/icons) und Material Design 3 dienen als Inspiration. Vor konkreter Ressourcenübernahme Lizenz prüfen; selektive Werkzeuge, Icons oder Komponenten nur mit nachgewiesenem Vorteil gesondert vorschlagen.
+- **Grenzen:** bestehendes KU-Layout, Fachlogik, CSS Modules und zentrale Design-Tokens erhalten; keine MUI-, Emotion- oder Tailwind-Installation, kein paralleles Styling-System, keine unkontrollierten Overrides, keine ungefragte Bibliothek und keine Verschlechterung von Accessibility, Performance oder Testbarkeit.
+- **Abnahme:** freigegebene Designstudien, dokumentierte Kontrastmessungen und Browser-/Tastatur-/Screenreaderprüfung beider Themes; bestehende funktionale und visuelle Abnahmen bleiben gültige Anforderungen.
+
+## UI-DEMO-30 – Fiktiver PDF-Datenbestand
+
+- **Status:** UI-DEMO-30 einschließlich Demo-Integration, PDFs, Transkripten und PDF-Miniaturen fachlich freigegeben. Der Projektverantwortliche bestätigt Kachelansicht, PDF-Miniaturen, Download und Dokumentverschiebung persönlich; ein vollständiger KU-Vergleich und weitere nicht nachgewiesene Browser-/Screenreader-Abnahmen bleiben offen.
+- **Daten:** 30 lokale PDF-Dokumente, 207 Seiten, 192 Transkriptseiten; Quellen und Umfang siehe [README](../README.md#lokaler-demo-datenbestand). Der Produktionsbuild enthält den Datenbestand nicht.
+- **Risiken:** gemischte Seitenformate, lange PDFs und Ressourcenverhalten benötigen weitere Browser-/Lastprüfungen. Der Produktionsbuild meldet weiterhin ein JavaScript-Chunk über 500 kB; die bestehende Warnung bleibt als technische Schuld offen. UI-POLISH bleibt gesondert geplant.

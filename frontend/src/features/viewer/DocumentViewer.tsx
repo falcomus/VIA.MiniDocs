@@ -295,7 +295,7 @@ export function DocumentViewer({
                 }}
               >
                 <div className={styles.pageControls} role="toolbar" aria-label="Dokumentansicht">
-                  {(source.kind === 'demo' || source.blob) && (
+                  {(source.kind === 'demo' || source.blob || current?.demoUrl) && (
                     <div className={styles.zoomControls}>
                       <button
                         className={styles.toolbarButton}
@@ -381,16 +381,6 @@ export function DocumentViewer({
                         ›
                       </button>
                     </div>
-                  )}
-                  {(source.kind === 'demo' || source.blob) && (
-                    <label className={styles.syncScroll}>
-                      <input
-                        type="checkbox"
-                        checked={syncScroll}
-                        onChange={(event) => setSyncScroll(event.target.checked)}
-                      />
-                      Synchron scrollen {source.kind === 'demo' ? '(ungefähr)' : '(seitenweise)'}
-                    </label>
                   )}
                 </div>
                 <div className={styles.pageViewport}>
@@ -481,6 +471,11 @@ export function DocumentViewer({
                 page={validPage}
                 editorRef={editor}
                 onPageChange={navigateToPage}
+                syncControl={
+                  source.kind === 'demo' || source.blob || current.demoUrl
+                    ? { checked: syncScroll, onChange: setSyncScroll }
+                    : undefined
+                }
                 followPage={source.kind === 'demo' || syncScroll}
                 onEdit={(operation) => onEditTranscript(current.id, operation)}
               />

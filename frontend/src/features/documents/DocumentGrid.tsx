@@ -77,6 +77,7 @@ export function DocumentGrid({
               />
             </label>
             <DocumentActions
+              document={document}
               onTags={onTags ? () => onTags(document.id) : undefined}
               onOpenTab={onOpen ? () => onOpen(document.id, true) : undefined}
             />

@@ -233,8 +233,7 @@
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-.pagePicker,
-.syncScroll {
+.pagePicker {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -249,10 +248,6 @@
   background: #43474d;
   color: #fff;
 }
-.syncScroll input {
-  margin: 0;
-  accent-color: #9cc9e2;
-}
 .pageLoading {
   font-size: 12px;
 }
@@ -262,8 +257,7 @@
 }
 .toolbarButton:focus-visible,
 .zoomSlider:focus-visible,
-.pagePicker select:focus-visible,
-.syncScroll input:focus-visible {
+.pagePicker select:focus-visible {
   outline: 2px solid #c4e8ff;
   outline-offset: 2px;
 }

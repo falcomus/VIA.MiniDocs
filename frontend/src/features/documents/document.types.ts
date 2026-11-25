@@ -7,6 +7,8 @@ export interface DocumentSummary {
   readonly topicId: TopicId;
   readonly date: string | null;
   readonly pages: number | null;
+  readonly demoUrl?: string;
+  readonly sizeBytes?: number;
   readonly source?: { readonly kind: 'pdf'; readonly blob: Blob };
   readonly kind: 'Besprechung' | 'Notiz';
   readonly fileName?: string;

@@ -20,17 +20,21 @@ Das geplante Zielbild ist **React → ASP.NET Core MiniDocs API → eigene Postg
 - Q3 Modulgrenzen und Testaussagen sind technisch geprüft und korrigiert; Q4 automatisiert die Frontend-Formatierung; CSS-Typautomatisierung bleibt als Q5 geplant.
 - Q6 sichert Dropmarkierung, interne Drag-Quellen und Wurzelablage mit gemeinsamem Sitzungsvertrag und gezielten Tests ab; Q8 setzt die Löschung ausschließlich leerer Themen technisch um; die Browser- und Sichtabnahme ist offen. Q5 bleibt separat geplant, Browser-/Screenreader-Abnahmen bleiben offen.
 - Die fortlaufende PDF-Darstellung mit seitenweiser Transkript-Nachführung ist als M7-B-PDF technisch umgesetzt und auf `main` integriert; die beauftragte Browserabnahme ist bestätigt. Der vollständige KU-Vergleich bleibt offen; eine manuelle Touch-Prüfung ist ausdrücklich aus dem aktuellen Abnahmeumfang ausgenommen. Der separate Transkriptdateiimport M7-B-TRANSKRIPT, Papierkorb und sicherer Zugriff von unterwegs sind Folgearbeiten. Die Datenanbindung D1–D8 ist geplant. Backend, PostgreSQL-Anbindung und VIA.Docs-Verbindung sind noch nicht implementiert.
-- B0-DOC und B0.5 dokumentieren die Backendplanung; die Solution-, Vertrags- und Engineering-Grundlagen sind freigegeben. Nächster Planungsschritt ist B0.6 zum PostgreSQL-Datenmodell; B0.7 bis B0.9 und D1–D8 bleiben offen beziehungsweise geplant. Es besteht keine Implementierungsfreigabe.
+- B0-FINAL einschließlich der dokumentierten Architektur- und Vertragsentscheidungen ist fachlich freigegeben. ADR-013 ist als Hosting-Zielarchitektur freigegeben, ausdrücklich ohne Betriebsfreigabe. Reale Integrations-, Deployment- und Betriebsnachweise bleiben offen; die Backendimplementierung benötigt einen gesonderten Auftrag.
+
+- UI-DEMO-30 einschließlich 30 lokaler Demo-PDFs mit Metadaten und Transkripten ist freigegeben. Der Projektverantwortliche bestätigt Kachelansicht, PDF-Miniaturen, Download und Dokumentverschiebung; der vollständige KU-Vergleich bleibt offen.
+
+- UI-POLISH – VIA Professional Design System ist nach der funktionalen Entwicklung geplant. Light-/Dark-Designstudien benötigen vor der Umsetzung die Freigabe des Projektverantwortlichen; Umfang und Abnahme stehen im [Ticket](TICKETS.md#ui-polish--via-professional-design-system).
 
 ## Abhängigkeiten
 
 Für die Demo ist die Reihenfolge M3 → M4 → M5 → M6 → M7 → M8 vorgesehen. M8 umfasst den funktionalen und visuellen Gesamtvergleich einschließlich der offenen M1-/M2-Abnahmen.
 
-Für die spätere Datenanbindung bilden API-Verträge und Datenmodell die Grundlage. VIA.Docs-Client und Authentifizierung werden für die Dateiflüsse benötigt; Persistenz und Suche sind Voraussetzungen für den Ende-zu-Ende-Nachweis. Die konkreten Abhängigkeiten und Akzeptanzkriterien stehen im [Ticketkatalog](TICKETS.md). Integration und Betrieb erfolgen in einer freigegebenen Testumgebung; die Produktivfreigabe ist eine gesonderte Entscheidung.
+Die freigegebene Implementierungsreihenfolge lautet D1 → D2 → D3 → D4 → D6 → D5 → D7 → D8. Für die spätere Datenanbindung bilden API-Verträge und Datenmodell die Grundlage. VIA.Docs-Client und Authentifizierung werden für die Dateiflüsse benötigt; Persistenz und Suche sind Voraussetzungen für den Ende-zu-Ende-Nachweis. Die konkreten Abhängigkeiten und Akzeptanzkriterien stehen im [Ticketkatalog](TICKETS.md). Integration und Betrieb erfolgen in einer freigegebenen Testumgebung; die Produktivfreigabe ist eine gesonderte Entscheidung.
 
 ## Offene Entscheidungen und Risiken
 
-Zu klären sind insbesondere Deployment und tatsächlicher VIA.Docs-Vertrag einschließlich des nur im Arbeitsbaum vorgefundenen Einladungswegs, Hosting, MiniDocs-API-Verträge, physisches Datenmodell, Fehler- und Wiederanlaufverhalten, Backup-/Restore-Zuständigkeiten, Suchsemantik und Indexstrategie. Die fachliche Abgrenzung der Scrollsynchronisation für M6-C/M7-A ist in der [PDF-Entscheidung](architecture/M6-C-PDF-ENTSCHEIDUNG.md) festgelegt. Der Datenmodell- und Suchentwurf ist kein bestätigter API-Vertrag oder Performance-Nachweis.
+Zu klären sind insbesondere die Betriebsfreigabe für die Hosting-Zielarchitektur, der tatsächliche VIA.Docs-Vertrag einschließlich des nur im Arbeitsbaum vorgefundenen Einladungswegs, Backup-/Restore-Zuständigkeiten, der reale Nachweis der freigegebenen 25-MiB-Uploadgrenze und die anhand von Messungen zu prüfende Indexstrategie. Die fachliche Abgrenzung der Scrollsynchronisation für M6-C/M7-A ist in der [PDF-Entscheidung](architecture/M6-C-PDF-ENTSCHEIDUNG.md) festgelegt. Die Architekturfreigabe ist kein Implementierungs-, Integrations- oder Performance-Nachweis.
 
 Die visuelle Vergleichsumgebung für M1 und M2 sowie die Browser- und Screenreader-Prüfung der Tastaturalternative zum Themenverschieben sind offen. Browserunterschiede, PDF-Viewer-Grenzen und inkonsistente Daten bei Teilausfällen bleiben relevante Risiken. Es gelten die Sicherheits- und Qualitätsanforderungen der [Definition of Done](DEFINITION-OF-DONE.md).
 

@@ -20,6 +20,24 @@
   gap: 6px;
   font-size: 12px;
 }
+.syncScroll {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+  white-space: nowrap;
+  color: var(--text);
+}
+.search .syncScroll input {
+  width: auto;
+  min-height: 0;
+  margin: 0;
+  accent-color: var(--accent);
+}
+.syncScroll input:focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 2px;
+}
 .group {
   display: flex;
   flex-wrap: wrap;

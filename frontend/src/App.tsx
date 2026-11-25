@@ -1,6 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { AppShell, Content, Sidebar, Toolbar } from './components/AppShell';
-import { demoTopics } from './features/topics/demoTopics';
 import { topicDisplayName } from './features/topics/topicDisplayName';
 import { TopicTree } from './features/topics/TopicTree';
 import { useTopicDrag } from './features/topics/useTopicDrag';
@@ -13,7 +12,7 @@ import {
   topicPath,
 } from './features/topics/topicUtils';
 import type { Topic, TopicId } from './features/topics/topic.types';
-import { demoDocuments } from './features/documents/demoDocuments';
+import { initialDocuments, initialTopics, initialTags } from './features/documents/demoDataset';
 import { DocumentOverview } from './features/documents/DocumentOverview';
 import type { DocumentView } from './features/documents/document.types';
 import styles from './App.module.css';
@@ -34,20 +33,21 @@ import {
 import type { PdfRequest } from './features/viewer/pdfTransfer';
 import type { ViewerSession } from './features/viewer/viewerModel';
 import { SelectionBar } from './features/documents/SelectionBar';
-import { demoTags } from './features/documents/tags';
 import { TagDialog } from './features/documents/TagDialog';
 import type { TagDialogState } from './features/documents/TagDialog';
 
 export function App() {
   const [view, setView] = useState<DocumentView>('grid');
-  const [topics, setTopics] = useState<readonly Topic[]>(demoTopics);
-  const [selectedTopicId, setSelectedTopicId] = useState<TopicId>('unassigned');
+  const [topics, setTopics] = useState<readonly Topic[]>(initialTopics);
+  const [selectedTopicId, setSelectedTopicId] = useState<TopicId>(
+    initialDocuments[0]?.topicId ?? 'unassigned',
+  );
   const search = useSearchState();
   const opening = useOpeningMode();
   const [viewer, setViewer] = useState<ViewerSession | null>(null);
-  const [tags, setTags] = useState(demoTags);
+  const [tags, setTags] = useState(initialTags);
   const [tagDialog, setTagDialog] = useState<TagDialogState | null>(null);
-  const workspace = useDocumentWorkspace(demoDocuments, topics, selectedTopicId, search);
+  const workspace = useDocumentWorkspace(initialDocuments, topics, selectedTopicId, search);
   const [owner] = useState(() => crypto.randomUUID());
   const pendingAcks = useRef<string[]>([]);
   const pendingRequests = useRef<PdfRequest[]>([]);
@@ -379,7 +379,9 @@ export function App() {
             onPdfPages={workspace.setPdfPages}
             getSource={(id) => {
               const doc = documents.find((item) => item.id === id);
-              return doc ? (doc.source ?? { kind: 'demo' }) : undefined;
+              return doc
+                ? (doc.source ?? (doc.demoUrl ? { kind: 'pdf', blob: null } : { kind: 'demo' }))
+                : undefined;
             }}
             onEditTranscript={workspace.editTranscript}
             onMoveTopic={(id, topicId) => workspace.move([id], topicId)}
@@ -447,6 +449,12 @@ export function App() {
       )}
       <SelectionBar
         count={workspace.selected.length}
+        download={(() => {
+          const doc = documents.find((item) => item.id === workspace.selected[0]);
+          return workspace.selected.length === 1 && doc?.demoUrl && doc.fileName
+            ? { url: doc.demoUrl, fileName: doc.fileName }
+            : undefined;
+        })()}
         hasDocuments={workspace.visible.length > 0}
         onAll={() => workspace.all(true)}
         onClear={() => {

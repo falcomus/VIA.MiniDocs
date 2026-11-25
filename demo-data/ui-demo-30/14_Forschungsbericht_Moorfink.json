@@ -1,0 +1,53 @@
+{
+  "fileName": "14_Forschungsbericht_Moorfink.pdf",
+  "pages": [
+    {
+      "page": 1,
+      "text": "Institut für modellierte Umweltstudien (fiktiv)\nForschungsbericht – Moorfink\nMF-R-012  |  05.11.2026  |  FIKTIVES DEMODOKUMENT\nZusammenfassung\nDas fiktive Forschungsprojekt Moorfink untersucht den Zusammenhang\nzwischen Beschattung und Temperatur an kleinen Messstationen.\nAuswertung und Vorgehen\nIn zwölf simulierten Messtagen wurden drei Standorte verglichen. Die\nsynthetischen Messwerte dienen zur Demonstration von Forschungsdokumenten\nund erlauben keine Aussage über reale Umweltbedingungen.\nForschungsfrage\nWie verändert sich die mittlere Tagestemperatur mit zunehmender\nBeschattung?\nMethodischer Rahmen\nFür jede Station wurden 48 mögliche Messzeitpunkte angelegt. Zwei Werte\nfehlen absichtlich, sodass für die Auswertung 142 gültige Beobachtungen\nverbleiben. Die Daten sind so konstruiert, dass die Rangfolge der drei Standorte\nüber mehrere Kennzahlen erhalten bleibt. Der Bericht dient vor allem dazu,\nTabellen, Diagramme, wissenschaftliche Fachbegriffe und mehrseitige\nSuchtreffer in einem Archiv zu erproben.\nLeserhinweis\nDie Kapitel folgen dem üblichen Ablauf eines Forschungsberichts:\nVersuchsdesign, Kalibrierung, Datenerhebung, Auswertung, Grenzen und\nEmpfehlungen. Alle Ergebnisse sind ausschließlich illustrative Zahlen.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 1 von 12"
+    },
+    {
+      "page": 2,
+      "text": "Institut für modellierte Umweltstudien (fiktiv)\nForschungsbericht – Moorfink\nMF-R-012  |  05.11.2026  |  FIKTIVES DEMODOKUMENT\nVersuchsdesign\nDrei erfundene Standorte besitzen unterschiedliche Beschattungsgrade.\nAuswertung und Vorgehen\nDie Stationen A, B und C sind als offene Fläche, Halbschatten und dichter\nSchatten definiert. Die Messhöhe beträgt im Modell jeweils 1,5 m.\nStandortdefinition\nStation\nBeschattung\nMesshöhe\nA\n0 %\n1,5 m\nB\n45 %\n1,5 m\nC\n85 %\n1,5 m\nHypothese\nStärker beschattete Stationen weisen geringere Temperaturmittel auf.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 2 von 12"
+    },
+    {
+      "page": 3,
+      "text": "Institut für modellierte Umweltstudien (fiktiv)\nForschungsbericht – Moorfink\nMF-R-012  |  05.11.2026  |  FIKTIVES DEMODOKUMENT\nMessgeräte und Kalibrierung\nDie virtuelle Messkette verwendet identisch konfigurierte Sensoren.\nAuswertung und Vorgehen\nVor Beginn wird für jede Station eine simulierte Referenzmessung bei 20 °C\ndurchgeführt. Eine Abweichung über 0,3 °C würde eine erneute Kalibrierung\nauslösen.\nReferenzprüfung\nStation\nMesswert\nAbweichung\nA\n20,1 °C\n+0,1 °C\nB\n19,9 °C\n-0,1 °C\nC\n20,2 °C\n+0,2 °C\nQualitätssicherung\nAlle drei virtuellen Sensoren liegen innerhalb der festgelegten Toleranz.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 3 von 12"
+    },
+    {
+      "page": 4,
+      "text": "Institut für modellierte Umweltstudien (fiktiv)\nForschungsbericht – Moorfink\nMF-R-012  |  05.11.2026  |  FIKTIVES DEMODOKUMENT\nDatenerhebung\nDie simulierten Messreihen bestehen aus vier Tageszeitpunkten pro Station.\nAuswertung und Vorgehen\nMessungen erfolgen im Modell um 06:00, 10:00, 14:00 und 18:00 Uhr. Fehlende\nWerte werden ausdrücklich gekennzeichnet, nicht stillschweigend durch Null\nersetzt.\nArchivierung\nRohdaten und Auswertung werden als getrennte Dokumentversionen\nverwaltet.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 4 von 12"
+    },
+    {
+      "page": 5,
+      "text": "Institut für modellierte Umweltstudien (fiktiv)\nForschungsbericht – Moorfink\nMF-R-012  |  05.11.2026  |  FIKTIVES DEMODOKUMENT\nTemperaturmittel\nDie Mittelwerte der synthetischen Tagesmessungen unterscheiden sich\nzwischen den Standorten.\nAuswertung und Vorgehen\nDie offene Fläche A erreicht im Modell den höchsten Mittelwert. Standort C\nweist die niedrigste mittlere Temperatur auf.\nMittlere Tagestemperatur\nEinheit: °C\nStation A\n24,6\nStation B\n22,8\nStation C\n20,9\nInterpretation\nDie Unterschiede sind Bestandteil der konstruierten Daten und kein\nempirischer Nachweis.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 5 von 12"
+    },
+    {
+      "page": 6,
+      "text": "Institut für modellierte Umweltstudien (fiktiv)\nForschungsbericht – Moorfink\nMF-R-012  |  05.11.2026  |  FIKTIVES DEMODOKUMENT\nTagesverlauf\nDie stärkste modellierte Erwärmung tritt zur Mittagszeit auf.\nAuswertung und Vorgehen\nAm Morgen liegen die Messwerte enger zusammen. Gegen 14:00 Uhr\nunterscheiden sich die drei Stationen im Modell deutlicher.\nModellierter Tagesverlauf\nUhrzeit\nA (°C)\nB (°C)\nC (°C)\n06:00\n17,2\n16,9\n16,5\n10:00\n24,3\n22,1\n20,4\n14:00\n32,0\n29,0\n25,8\n18:00\n24,9\n23,2\n20,9\nBeobachtung\nDie Spannweite sinkt am Abend wieder, bleibt aber über dem Morgenwert.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 6 von 12"
+    },
+    {
+      "page": 7,
+      "text": "Institut für modellierte Umweltstudien (fiktiv)\nForschungsbericht – Moorfink\nMF-R-012  |  05.11.2026  |  FIKTIVES DEMODOKUMENT\nLuftfeuchtigkeit\nZusätzlich zur Temperatur enthält der Datensatz eine simulierte relative\nLuftfeuchtigkeit.\nAuswertung und Vorgehen\nStandort C weist im Modell eine höhere relative Feuchtigkeit auf. Die\nAuswertung betrachtet zunächst nur die deskriptiven Mittelwerte.\nMittlere relative Luftfeuchtigkeit\nEinheit: %\nStation A\n48\nStation B\n55\nStation C\n63\nEinschränkung\nAus den Zahlen kann kein ursächlicher Zusammenhang abgeleitet werden.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 7 von 12"
+    },
+    {
+      "page": 8,
+      "text": "Institut für modellierte Umweltstudien (fiktiv)\nForschungsbericht – Moorfink\nMF-R-012  |  05.11.2026  |  FIKTIVES DEMODOKUMENT\nDatenbereinigung\nZwei synthetische Messwerte wurden absichtlich als fehlend markiert.\nAuswertung und Vorgehen\nDie Mittelwertbildung verwendet nur vorhandene Werte. Der Bericht führt die\nZahl gültiger und fehlender Beobachtungen getrennt auf.\nVollständigkeit\nStation\nGültig\nFehlend\nA\n48\n0\nB\n47\n1\nC\n47\n1\nNachvollziehbarkeit\nKorrekturen werden mit Datum und Änderungsgrund im Transkript\ndokumentiert.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 8 von 12"
+    },
+    {
+      "page": 9,
+      "text": "Institut für modellierte Umweltstudien (fiktiv)\nForschungsbericht – Moorfink\nMF-R-012  |  05.11.2026  |  FIKTIVES DEMODOKUMENT\nUnsicherheit und Grenzen\nDie Simulation bildet keine realen Wetterschwankungen ab.\nAuswertung und Vorgehen\nWind, Niederschlag, Bodenfeuchte und lokale Reflexion wurden nicht als\neigenständige Einflussgrößen modelliert. Die Stichprobe ist für reale\nSchlussfolgerungen nicht geeignet.\nBewertung\nDie Zahlen eignen sich ausschließlich für Layout-, Such- und Archivtests.\nStichprobenverzerrung\nDie Auswahl der drei Standorte ist nicht zufällig, sondern durch die gewählten\nBeschattungsgrade vorgegeben. Die Temperaturwerte wurden nicht mit einer\nrealen Referenzstation abgeglichen. Auch die zeitliche Abhängigkeit\naufeinanderfolgender Messpunkte bleibt unberücksichtigt.\nÜbertragbarkeit\nFür eine tatsächliche Untersuchung wären wiederholte Messungen an mehreren\nunabhängigen Standorten und in unterschiedlichen Jahreszeiten erforderlich.\nDie Darstellung von Mittelwerten allein genügt nicht, um Unsicherheiten oder\nstatistische Signifikanz zu bewerten. Deshalb wird in diesem Bericht bewusst\nauf Konfidenzintervalle und Signifikanztests verzichtet.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 9 von 12"
+    },
+    {
+      "page": 10,
+      "text": "Institut für modellierte Umweltstudien (fiktiv)\nForschungsbericht – Moorfink\nMF-R-012  |  05.11.2026  |  FIKTIVES DEMODOKUMENT\nVergleich der Standorte\nDie Standortübersicht fasst Beschattung, Temperatur und Feuchtigkeit\nzusammen.\nAuswertung und Vorgehen\nStation A steht für eine offene Fläche, B für Halbschatten und C für dichten\nSchatten. Die Rangfolge ist in den synthetischen Daten absichtlich konsistent.\nVergleich\nStation\nSchatten\nTemperatur\nFeuchte\nA\n0 %\n24,6 °C\n48 %\nB\n45 %\n22,8 °C\n55 %\nC\n85 %\n20,9 °C\n63 %\nDokumentensuche\nDie Begriffe Moorfink, Kalibrierung und Beschattung erscheinen auch in den\nfrüheren Kapiteln.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 10 von 12"
+    },
+    {
+      "page": 11,
+      "text": "Institut für modellierte Umweltstudien (fiktiv)\nForschungsbericht – Moorfink\nMF-R-012  |  05.11.2026  |  FIKTIVES DEMODOKUMENT\nEmpfehlungen für Folgeversuche\nEin hypothetischer Folgeversuch könnte die Variation von Wind und\nNiederschlag ergänzen.\nAuswertung und Vorgehen\nEin erweiterter Versuchsplan sollte Messdauer, Sensorprüfung und\nDatenbereinigung bereits vor dem ersten Messzeitpunkt festlegen.\nErweiterungen\nMessdauer auf 30 Tage erhöhen.\nUnterschiedliche Wetterlagen berücksichtigen.\nUnabhängige Referenzmessungen planen.\nPlanung\nDie Ergebnisse müssten unabhängig von dieser Demo erhoben und validiert\nwerden.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 11 von 12"
+    },
+    {
+      "page": 12,
+      "text": "Institut für modellierte Umweltstudien (fiktiv)\nForschungsbericht – Moorfink\nMF-R-012  |  05.11.2026  |  FIKTIVES DEMODOKUMENT\nAnhang und Freigabe\nDer Anhang dokumentiert die verwendeten fiktiven Kennungen und die\ninterne Ablagestruktur.\nAuswertung und Vorgehen\nDie Forschungsakte enthält den Bericht, synthetische Messreihen und den\nsimulierten Kalibrierungsvermerk. Der Bericht selbst ist das einzige hier\nerzeugte Forschungsdokument.\nAblagekennungen\nUnterlage\nKennung\nBericht\nMF-R-012\nRohdaten (fiktiv erwähnt)\nMF-D-001\nKalibrierung (fiktiv erwähnt)\nMF-K-003\nFreigabestatus\nFiktiv geprüft am 05.11.2026; keine wissenschaftliche Publikation.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 12 von 12"
+    }
+  ]
+}

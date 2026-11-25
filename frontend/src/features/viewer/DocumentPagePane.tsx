@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import type { DocumentSummary } from '../documents/document.types';
 import { PdfRenderer } from './PdfRenderer';
 import { ContinuousPdfRenderer } from './ContinuousPdfRenderer';
@@ -25,6 +26,19 @@ export function DocumentPagePane({
   readonly onVisiblePage?: (page: number) => void;
 }) {
   if (source.kind === 'demo') return <ViewerPage document={document} page={page} zoom={zoom} />;
+  if (!source.blob && document.demoUrl)
+    return (
+      <LazyPdf
+        key={document.id}
+        url={document.demoUrl}
+        document={document}
+        page={page}
+        zoom={zoom}
+        onPdfLoaded={onPdfLoaded}
+        navigation={navigation}
+        onVisiblePage={onVisiblePage}
+      />
+    );
   if (!source.blob) return <p role="alert">Keine PDF-Quelle vorhanden.</p>;
   if (onVisiblePage)
     return (
@@ -48,4 +62,27 @@ export function DocumentPagePane({
       onLoaded={onPdfLoaded ?? (() => {})}
     />
   );
+}
+
+function LazyPdf({
+  url,
+  ...props
+}: Omit<Parameters<typeof DocumentPagePane>[0], 'source'> & { readonly url: string }) {
+  const [state, setState] = useState<Blob | 'error' | null>(null);
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch(url, { signal: controller.signal })
+      .then((r) => {
+        if (!r.ok) throw new Error('PDF');
+        return r.blob();
+      })
+      .then(setState)
+      .catch(() => {
+        if (!controller.signal.aborted) setState('error');
+      });
+    return () => controller.abort();
+  }, [url]);
+  if (state === 'error') return <p role="alert">PDF konnte nicht geladen werden.</p>;
+  if (!state) return <p role="status">PDF wird geladen …</p>;
+  return <DocumentPagePane {...props} source={{ kind: 'pdf', blob: state }} />;
 }

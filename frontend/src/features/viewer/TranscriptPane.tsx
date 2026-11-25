@@ -11,6 +11,7 @@ export function TranscriptPane({
   onEdit,
   editorRef,
   followPage = true,
+  syncControl,
 }: {
   readonly document: DocumentSummary;
   readonly page: number;
@@ -18,6 +19,10 @@ export function TranscriptPane({
   readonly onEdit: (operation: TranscriptOperation) => void;
   readonly editorRef?: React.RefObject<HTMLTextAreaElement | null>;
   readonly followPage?: boolean;
+  readonly syncControl?: {
+    readonly checked: boolean;
+    readonly onChange: (checked: boolean) => void;
+  };
 }) {
   const [query, setQuery] = useState('');
   const [replacement, setReplacement] = useState('');
@@ -141,6 +146,16 @@ export function TranscriptPane({
             Alle ersetzen
           </button>
         </div>
+        {syncControl && (
+          <label className={styles.syncScroll}>
+            <input
+              type="checkbox"
+              checked={syncControl.checked}
+              onChange={(event) => syncControl.onChange(event.target.checked)}
+            />
+            Synchron scrollen
+          </label>
+        )}
       </div>
       <span className={styles.srOnly} id="transcript-search-help">
         Die Suche ignoriert Akzente; „Alle ersetzen“ beachtet sie.

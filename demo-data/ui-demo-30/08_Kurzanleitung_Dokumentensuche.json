@@ -1,0 +1,21 @@
+{
+  "fileName": "08_Kurzanleitung_Dokumentensuche.pdf",
+  "pages": [
+    {
+      "page": 1,
+      "text": "Lernwerk Uferfalter (fiktiv)\nKurzanleitung – Dokumente wiederfinden\nANL-015  |  15.10.2026  |  FIKTIVES DEMODOKUMENT\nSuche beginnen\nDiese Anleitung beschreibt ein erfundenes Dokumentenarchiv und dient als\nSchulungsmaterial, nicht als Funktionsbeschreibung einer realen Software.\nSuchablauf\nSuchwort\nTrefferliste\nVorschau\nPrüfen\nSchritt für Schritt\nÖffnen Sie das Thema Projekte / Nordlicht.\nGeben Sie „Archivierung“ in das Suchfeld ein.\nVergleichen Sie Titel und Änderungsdatum der Treffer.\nÖffnen Sie die Seite mit dem passenden Transkript.\nTipp\nEin kurzer Suchbegriff eignet sich als Einstieg; präzisieren Sie ihn bei zu vielen Treffern.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 1 von 4"
+    },
+    {
+      "page": 2,
+      "text": "Lernwerk Uferfalter (fiktiv)\nKurzanleitung – Dokumente wiederfinden\nANL-015  |  15.10.2026  |  FIKTIVES DEMODOKUMENT\nMetadaten und Tags nutzen\nMetadaten beschreiben das Dokument unabhängig von seinem Seiteninhalt.\nBeispielhafte Filter\nFeld\nBeispiel\nThema\nFinanzen / Rechnungen\nTag\nNordlicht\nDatum\nOktober 2026\nDokumentart\nRechnung\nKombination\nWerden Thema und Tag kombiniert, sollte die Trefferliste nur Dateien enthalten, die beide\nBedingungen erfüllen. Prüfen Sie, ob aktive Filter sichtbar sind.\nTypische Fehler\nEin alter Datumsfilter blendet aktuelle Dokumente aus.\nEin Tag wurde beim Import nicht zugeordnet.\nEin Dokument ist im falschen Thema abgelegt.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 2 von 4"
+    },
+    {
+      "page": 3,
+      "text": "Lernwerk Uferfalter (fiktiv)\nKurzanleitung – Dokumente wiederfinden\nANL-015  |  15.10.2026  |  FIKTIVES DEMODOKUMENT\nUmlaute und Volltext\nDeutsche Fachbegriffe bieten geeignete Testfälle für die Dokumentensuche.\nSuchbeispiele\nSuchwort\nErwarteter Kontext\nRückmeldung\nBesprechungsprotokoll\nLöschkonzept\nDatenschutz\nQualitätssicherung\nPrüfbericht\nMüllerstraße\nHandschriftliche Notiz\nTranskript prüfen\nÖffnen Sie die Fundseite und vergleichen Sie den sichtbaren Inhalt mit dem Transkript. Ein\nTreffer im Seitentext ist nicht automatisch ein Treffer im Dateinamen.\nHinweis\nOb die Suche Groß- und Kleinschreibung oder Wortformen berücksichtigt, hängt von der\nkonkreten Implementierung ab.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 3 von 4"
+    },
+    {
+      "page": 4,
+      "text": "Lernwerk Uferfalter (fiktiv)\nKurzanleitung – Dokumente wiederfinden\nANL-015  |  15.10.2026  |  FIKTIVES DEMODOKUMENT\nÜbung und Fehlerbehebung\nDie Übung wird in einer isolierten Testumgebung durchgeführt.\nÜbung\nSuchen Sie nach „Nordlicht“ und notieren Sie die Trefferzahl.\nGrenzen Sie die Suche auf Rechnungen ein.\nEntfernen Sie alle Filter und suchen Sie nach „Moorfink“.\nÖffnen Sie einen mehrseitigen Bericht und kontrollieren Sie die Fundseite.\nFehlerbehebung\nSymptom\nPrüfschritt\nKeine Treffer\nFilter und Schreibweise prüfen\nFalsche Seite\nTranskriptzuordnung prüfen\nViele Dubletten\nVersionierung kontrollieren\nAbschluss\nDie Übung ist abgeschlossen, wenn die Ergebnisse nachvollziehbar dokumentiert sind.\nVIA.MiniDocs · Synthetischer Datenbestand\nSeite 4 von 4"
+    }
+  ]
+}
