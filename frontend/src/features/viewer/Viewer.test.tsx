@@ -100,6 +100,43 @@ it('zeigt die KU-orientierte Werkzeugleiste im Dokumentbereich und erhält die N
   expect(within(pane).getByRole('button', { name: 'Nächste Seite' })).toBeDisabled();
   expect(viewer().getByRole('button', { name: 'Schließen' })).toBeInTheDocument();
 });
+it('ordnet hierarchische Themen zu und erhält Viewerzustand und Übersicht', () => {
+  render(<App />);
+  fireEvent.doubleClick(row('demo-1'));
+  const topic = viewer().getByRole('combobox', { name: 'Thema' });
+  expect(topic).toHaveValue('unassigned');
+  const options = within(topic).getAllByRole('option');
+  expect(options.map((option) => option.getAttribute('value'))).toEqual([
+    'unassigned',
+    'own-notes',
+    'ideas',
+    'customers',
+    'alpha',
+    'alpha-steering',
+    'alpha-project',
+    'beta',
+  ]);
+  expect(
+    options.find((option) => option.getAttribute('value') === 'alpha-steering')?.textContent,
+  ).toMatch(/^\u00a0{6}/);
+  fireEvent.click(viewer().getByRole('button', { name: 'Vergrößern' }));
+  fireEvent.click(viewer().getByRole('button', { name: 'Nächste Seite' }));
+  const editor = viewer().getByRole('textbox', { name: 'Transkript Seite 2' });
+  fireEvent.change(editor, { target: { value: 'Erhaltener Text' } });
+  const pane = document.querySelector<HTMLElement>('#viewer-document-pane')!;
+  pane.scrollTop = 42;
+  fireEvent.change(topic, { target: { value: 'alpha-steering' } });
+  expect(topic).toHaveValue('alpha-steering');
+  expect(viewer().getByRole('slider', { name: 'Viewer-Zoom' })).toHaveValue('110');
+  expectDemoPage(2, 2);
+  expect(editor).toHaveValue('Erhaltener Text');
+  expect(pane.scrollTop).toBe(42);
+  fireEvent.change(topic, { target: { value: 'unassigned' } });
+  expect(topic).toHaveValue('unassigned');
+  fireEvent.change(topic, { target: { value: 'alpha' } });
+  fireEvent.click(viewer().getByRole('button', { name: 'Schließen' }));
+  expect(document.querySelector('[data-document-id="demo-1"]')).not.toBeInTheDocument();
+});
 it('prüft Trefferseiten und erzeugt stabile sichere Tab-URLs', () => {
   const doc = demoDocuments[0];
   expect(startPage(doc, { page: 2, term: 'lösung' })).toBe(2);

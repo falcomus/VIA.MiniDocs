@@ -25,7 +25,12 @@ import { useOpeningMode } from './features/viewer/openingMode';
 import { DocumentViewer } from './features/viewer/DocumentViewer';
 import { openViewerTab, startPage } from './features/viewer/viewerModel';
 import { importPdfs } from './features/documents/pdfImport';
-import { channelName, isRequest, isTranscriptUpdate } from './features/viewer/pdfTransfer';
+import {
+  channelName,
+  isRequest,
+  isTranscriptUpdate,
+  isTopicUpdate,
+} from './features/viewer/pdfTransfer';
 import type { PdfRequest } from './features/viewer/pdfTransfer';
 import type { ViewerSession } from './features/viewer/viewerModel';
 import { SelectionBar } from './features/documents/SelectionBar';
@@ -49,9 +54,13 @@ export function App() {
   const transferChannel = useRef<BroadcastChannel | null>(null);
   const [ackSequence, setAckSequence] = useState(0);
   const editTranscript = useRef(workspace.editTranscript);
+  const moveDocument = useRef(workspace.move);
+  const previousTopics = useRef(new Map<string, string>());
+  const previousTopicList = useRef(topics);
   useEffect(() => {
     editTranscript.current = workspace.editTranscript;
-  }, [workspace.editTranscript]);
+    moveDocument.current = workspace.move;
+  }, [workspace.editTranscript, workspace.move]);
   function changeSearch(next: SearchState) {
     workspace.clear();
     search.setCriteria(next);
@@ -60,6 +69,22 @@ export function App() {
   const transferData = useRef({ documents, topics, tags });
   useEffect(() => {
     transferData.current = { documents, topics, tags };
+    for (const document of documents) {
+      const previous = previousTopics.current.get(document.id);
+      if (
+        previous !== undefined &&
+        (previous !== document.topicId || previousTopicList.current !== topics)
+      )
+        transferChannel.current?.postMessage({
+          kind: 'topic-state',
+          owner,
+          documentId: document.id,
+          topicId: document.topicId,
+          topics,
+        });
+    }
+    previousTopics.current = new Map(documents.map((document) => [document.id, document.topicId]));
+    previousTopicList.current = topics;
     for (const requestId of pendingAcks.current.splice(0))
       transferChannel.current?.postMessage({ kind: 'transcript-ack', owner, requestId });
     for (const request of pendingRequests.current.splice(0)) {
@@ -80,6 +105,19 @@ export function App() {
     const channel = new BroadcastChannel(channelName);
     transferChannel.current = channel;
     channel.onmessage = (event: MessageEvent<unknown>) => {
+      if (isTopicUpdate(event.data)) {
+        const update = event.data;
+        if (
+          update.owner !== owner ||
+          !transferData.current.documents.some((doc) => doc.id === update.documentId) ||
+          !transferData.current.topics.some((topic) => topic.id === update.topicId)
+        )
+          return;
+        moveDocument.current([update.documentId], update.topicId);
+        pendingAcks.current.push(update.requestId);
+        setAckSequence((value) => value + 1);
+        return;
+      }
       if (isTranscriptUpdate(event.data)) {
         const update = event.data;
         if (
@@ -344,6 +382,7 @@ export function App() {
               return doc ? (doc.source ?? { kind: 'demo' }) : undefined;
             }}
             onEditTranscript={workspace.editTranscript}
+            onMoveTopic={(id, topicId) => workspace.move([id], topicId)}
             session={viewer}
             documents={documents}
             topics={topics}

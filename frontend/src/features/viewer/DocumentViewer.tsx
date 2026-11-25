@@ -1,7 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { DocumentSummary } from '../documents/document.types';
 import type { Topic } from '../topics/topic.types';
-import { topicPath } from '../topics/topicUtils';
 import type { TagDefinition } from '../documents/tags';
 import { TagChips } from '../documents/TagChips';
 import { TranscriptStatus } from '../documents/DocumentSummary';
@@ -21,6 +20,7 @@ export function DocumentViewer({
   onClose,
   initialPage,
   onEditTranscript,
+  onMoveTopic,
   onPdfPages,
   getSource,
   owner,
@@ -36,6 +36,7 @@ export function DocumentViewer({
   readonly owner?: string;
   readonly onReturnOverview?: () => void;
   readonly onEditTranscript: (id: string, operation: TranscriptOperation) => void;
+  readonly onMoveTopic: (id: string, topicId: string) => void;
   readonly onPdfPages?: (id: string, blob: Blob, pages: number) => void;
 }) {
   const [id, setId] = useState(session.id);
@@ -103,6 +104,20 @@ export function DocumentViewer({
   const pages =
     current?.pages && Number.isInteger(current.pages) && current.pages > 0 ? current.pages : 1;
   const validPage = Math.max(1, Math.min(page, pages));
+  const topicOptions: { topic: Topic; depth: number }[] = [];
+  const walk = (parentId: string | null, depth: number) => {
+    topics
+      .filter((topic) => topic.parentId === parentId)
+      .sort(
+        (a, b) =>
+          Number(!!b.systemKey) - Number(!!a.systemKey) || a.name.localeCompare(b.name, 'de'),
+      )
+      .forEach((topic) => {
+        topicOptions.push({ topic, depth });
+        walk(topic.id, depth + 1);
+      });
+  };
+  walk(null, 0);
   const fileDetails = current
     ? `${current.fileName ?? '—'} · ${current.kind} · ${
         current.pages === null ? 'Seitenzahl unbekannt' : `${current.pages} Seiten`
@@ -226,12 +241,21 @@ export function DocumentViewer({
             <div className={styles.meta}>
               <span className={styles.metaLabel}>Datum</span>
               <span className={styles.metaValue}>{formatDocumentDate(current.date)}</span>
-              <span className={styles.metaLabel}>Thema</span>
-              <span className={styles.topicName}>
-                {topicPath(topics, current.topicId)
-                  .map((topic) => topic.name)
-                  .join(' / ') || 'Unbekanntes Thema'}
-              </span>
+              <label className={styles.metaLabel}>
+                Thema
+                <select
+                  className={styles.topicSelect}
+                  value={current.topicId}
+                  onChange={(event) => onMoveTopic(current.id, event.target.value)}
+                >
+                  {topicOptions.map(({ topic, depth }) => (
+                    <option key={topic.id} value={topic.id}>
+                      {'\u00a0'.repeat(depth * 3)}
+                      {topic.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
               <span className={styles.metaLabel}>Tags</span>
               <TagChips ids={current.tagIds} tags={tags} />
               <TranscriptStatus document={current} />

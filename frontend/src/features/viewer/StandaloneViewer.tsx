@@ -25,6 +25,11 @@ export function StandaloneViewer() {
   const [transfer, setTransfer] = useState<PdfResponse | 'missing' | null>(null);
   const [pending, setPending] = useState(0);
   const [message, setMessage] = useState('');
+  const [topicState, setTopicState] = useState<{
+    documentId: string;
+    topicId: string;
+    topics: readonly Topic[];
+  } | null>(null);
   const channelRef = useRef<BroadcastChannel | null>(null);
   const pendingIds = useRef(new Set<string>());
   const returnRequested = useRef(false);
@@ -62,6 +67,16 @@ export function StandaloneViewer() {
       ) {
         setPending(pendingIds.current.size);
         if (returnRequested.current && pendingIds.current.size === 0) closeAfterAck();
+        return;
+      }
+      if (
+        data?.kind === 'topic-state' &&
+        data.owner === owner &&
+        data.documentId === id &&
+        typeof data.topicId === 'string' &&
+        Array.isArray(data.topics)
+      ) {
+        setTopicState({ documentId: id, topicId: data.topicId, topics: data.topics as Topic[] });
         return;
       }
       if (!matchesResponse(event.data, requestId, id)) return;
@@ -104,9 +119,23 @@ export function StandaloneViewer() {
         doc={doc}
         page={page}
         term={params.get('term') ?? ''}
-        topics={received?.topics ?? demoTopics}
+        topics={topicState?.topics ?? received?.topics ?? demoTopics}
+        topicState={topicState}
         tags={received?.tags ?? demoTags}
         owner={owner}
+        onMove={(documentId, topicId) => {
+          if (!owner || !channelRef.current) return;
+          const requestId = crypto.randomUUID();
+          pendingIds.current.add(requestId);
+          setPending(pendingIds.current.size);
+          channelRef.current.postMessage({
+            kind: 'topic-update',
+            owner,
+            requestId,
+            documentId,
+            topicId,
+          });
+        }}
         onEdit={(documentId, operation) => {
           if (!owner || !channelRef.current) return;
           const requestId = crypto.randomUUID();
@@ -155,6 +184,8 @@ function StandaloneDocument({
   tags,
   owner,
   onEdit,
+  onMove,
+  topicState,
   onReturn,
 }: {
   readonly doc: DocumentSummary;
@@ -164,6 +195,8 @@ function StandaloneDocument({
   readonly tags: readonly TagDefinition[];
   readonly owner: string;
   readonly onEdit: (id: string, operation: TranscriptOperation) => void;
+  readonly onMove: (id: string, topicId: string) => void;
+  readonly topicState: { documentId: string; topicId: string; topics: readonly Topic[] } | null;
   readonly onReturn?: () => void;
 }) {
   const [state, dispatch] = useReducer(documentReducer, {
@@ -173,6 +206,15 @@ function StandaloneDocument({
     undo: null,
     message: '',
   });
+  useEffect(() => {
+    if (topicState?.documentId === doc.id)
+      dispatch({
+        type: 'move',
+        ids: [doc.id],
+        target: topicState.topicId,
+        topics: topicState.topics,
+      });
+  }, [topicState, doc.id]);
   return (
     <DocumentViewer
       owner={owner}
@@ -185,6 +227,10 @@ function StandaloneDocument({
       session={{ id: doc.id, ids: [doc.id], hits: { [doc.id]: { page, term } } }}
       initialPage={page}
       documents={state.documents}
+      onMoveTopic={(id, topicId) => {
+        onMove(id, topicId);
+        dispatch({ type: 'move', ids: [id], target: topicId, topics });
+      }}
       onEditTranscript={(id, operation) => {
         onEdit(id, operation);
         dispatch({

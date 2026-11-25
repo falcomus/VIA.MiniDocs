@@ -4,6 +4,24 @@ import type { Topic } from '../topics/topic.types';
 import type { TranscriptOperation } from '../documents/transcriptOperations';
 
 export const channelName = 'via.minidocs.pdf-transfer.v1';
+export type TopicUpdate = {
+  kind: 'topic-update';
+  owner: string;
+  requestId: string;
+  documentId: string;
+  topicId: string;
+};
+export function isTopicUpdate(value: unknown): value is TopicUpdate {
+  if (!value || typeof value !== 'object') return false;
+  const v = value as Record<string, unknown>;
+  return (
+    v.kind === 'topic-update' &&
+    typeof v.owner === 'string' &&
+    typeof v.requestId === 'string' &&
+    typeof v.documentId === 'string' &&
+    typeof v.topicId === 'string'
+  );
+}
 export type PdfRequest = { kind: 'request'; requestId: string; documentId: string; owner?: string };
 export type TranscriptUpdate = {
   kind: 'transcript-update';

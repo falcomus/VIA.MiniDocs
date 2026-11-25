@@ -19,6 +19,30 @@ class Channel {
     this.onmessage = null;
   }
 }
+it('synchronisiert die Themenzuordnung zwischen Übersicht und separatem Tab', async () => {
+  vi.stubGlobal('BroadcastChannel', Channel);
+  const open = vi.spyOn(window, 'open').mockImplementation(() => null);
+  const app = render(<App />);
+  const row = app.container.querySelector<HTMLElement>('[data-document-id="demo-1"]')!;
+  fireEvent.click(within(row).getByRole('button', { name: 'In neuem Tab öffnen' }));
+  const url = new URL(String(open.mock.calls[0][0]));
+  window.history.replaceState({}, '', url.pathname + url.search);
+  const tab = render(<StandaloneViewer />);
+  const select = await within(tab.container).findByRole('combobox', { name: 'Thema' });
+  fireEvent.change(select, { target: { value: 'alpha' } });
+  await waitFor(() =>
+    expect(app.container.querySelector('[data-document-id="demo-1"]')).not.toBeInTheDocument(),
+  );
+  fireEvent.change(select, { target: { value: 'unassigned' } });
+  await waitFor(() =>
+    expect(app.container.querySelector('[data-document-id="demo-1"]')).toBeInTheDocument(),
+  );
+  fireEvent.doubleClick(app.container.querySelector<HTMLElement>('[data-document-id="demo-1"]')!);
+  fireEvent.change(within(app.container).getByRole('combobox', { name: 'Thema' }), {
+    target: { value: 'beta' },
+  });
+  await waitFor(() => expect(select).toHaveValue('beta'));
+});
 afterEach(() => {
   cleanup();
   Channel.channels.clear();

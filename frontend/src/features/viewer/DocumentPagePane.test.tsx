@@ -147,6 +147,7 @@ it('ordnet Quellen beim Dokumentwechsel der aktuellen ID zu und entfernt die alt
       tags={demoTags}
       getSource={getSource}
       onEditTranscript={() => {}}
+      onMoveTopic={() => {}}
       onClose={() => {}}
     />,
   );
@@ -162,6 +163,33 @@ it('ordnet Quellen beim Dokumentwechsel der aktuellen ID zu und entfernt die alt
   fireEvent.click(screen.getByRole('button', { name: 'Vorheriges Dokument' }));
   fireEvent.click(screen.getByRole('button', { name: 'Vorheriges Dokument' }));
   expect(await screen.findByRole('region', { name: 'PDF-Darstellung' })).toBeInTheDocument();
+});
+
+it('erhält die PDF-Darstellung beim Wechsel der Themenzuordnung', async () => {
+  const blob = new Blob(['test'], { type: 'application/pdf' });
+  const source = { kind: 'pdf' as const, blob };
+  const props = {
+    session: { id: 'demo-1', ids: ['demo-1'], hits: {} },
+    topics: demoTopics,
+    tags: demoTags,
+    getSource: () => source,
+    onEditTranscript: () => {},
+    onMoveTopic: () => {},
+  };
+  const { rerender } = render(<DocumentViewer {...props} documents={demoDocuments} />);
+  const pdf = await screen.findByRole('region', { name: 'PDF-Darstellung' });
+  fireEvent.click(screen.getByRole('button', { name: 'Vergrößern' }));
+  rerender(
+    <DocumentViewer
+      {...props}
+      documents={demoDocuments.map((doc) =>
+        doc.id === 'demo-1' ? { ...doc, topicId: 'alpha' } : doc,
+      )}
+    />,
+  );
+  expect(screen.getByRole('region', { name: 'PDF-Darstellung' })).toBe(pdf);
+  expect(screen.getByRole('slider', { name: 'Viewer-Zoom' })).toHaveValue('110');
+  expect(screen.getByRole('combobox', { name: 'Thema' })).toHaveValue('alpha');
 });
 
 it('beendet Pointer-Abbruch und Capture-Verlust und erhält die Splitterauswahl', () => {
