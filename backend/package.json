@@ -1,0 +1,15 @@
+{
+  "name": "via-minidocs-contracts",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "node scripts/contracts.mjs generate",
+    "check": "node scripts/contracts.mjs check",
+    "typecheck": "tsc --noEmit",
+    "test:drift": "node scripts/drift-test.mjs"
+  },
+  "devDependencies": {
+    "openapi-typescript": "7.13.0",
+    "typescript": "5.9.3"
+  }
+}

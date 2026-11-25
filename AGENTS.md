@@ -5,6 +5,7 @@
 - React-Rendering nicht durch direkte DOM-Manipulation umgehen. Für die Migration kein `dangerouslySetInnerHTML` verwenden. Browser-APIs über geeignete React-Refs und Effekte einsetzen.
 - TypeScript strict beibehalten und nachvollziehbare Typen definieren; keine unnötigen Abhängigkeiten oder State-Bibliotheken einführen. Vorhandene CSS Modules bevorzugen.
 - Wichtige Interaktionen sinnvoll testen und vorhandene funktionierende Implementierungen bewahren.
+- Risikoarme Routineprobleme im freigegebenen Auftrag eigenständig analysieren und beheben; fehlgeschlagene Prüfungen nach Korrektur wiederholen. Bei tatsächlichen Blockern, notwendigen neuen Architekturentscheidungen oder erforderlichen externen Berechtigungen anhalten.
 - Keine eigenmächtige UI-Neugestaltung: `.local-reference/MiniDoc_Prototyp.html` ist die verbindliche Referenz für Funktion, Bedienkonzept und Grundlayout. Gezielt freigegebene Verbesserungen von Kontrast, Tiefe, Lesbarkeit und visueller Qualität sind zulässig; Abweichungen kenntlich machen.
 - Niemals Secrets oder produktive Zugangsdaten ins Frontend oder Git aufnehmen. Keine produktiven VIA.Docs-Zugriffe ohne gesonderten Testauftrag.
 - Keine Änderungen außerhalb des Workspaces ohne ausdrückliche Freigabe. Lokale Originalreferenzen nicht veröffentlichen.

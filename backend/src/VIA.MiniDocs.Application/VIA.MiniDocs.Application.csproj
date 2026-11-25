@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../VIA.MiniDocs.Domain/VIA.MiniDocs.Domain.csproj" />
+  </ItemGroup>
+</Project>

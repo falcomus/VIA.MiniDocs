@@ -1,10 +1,10 @@
 # VIA.MiniDocs – Gesamtarchitektur
 
-Aktueller Frontend-Bestand und freigegebenes Backend-Zielbild. Backend und Persistenz sind nicht implementiert; Architekturplanung ist keine Implementierungsfreigabe. Verbindliche Entscheidungen und ihre Status stehen ausschließlich in [DECISIONS.md](DECISIONS.md), der externe Quellenstand in [VIA-DOCS-API.md](VIA-DOCS-API.md).
+Aktueller Frontend-Bestand und freigegebenes Backend-Zielbild. Das D1-Backend-Fundament ist implementiert; fachliche API und Persistenz sind nicht implementiert. Architekturplanung ist keine allgemeine Implementierungsfreigabe. Verbindliche Entscheidungen und ihre Status stehen ausschließlich in [DECISIONS.md](DECISIONS.md), der externe Quellenstand in [VIA-DOCS-API.md](VIA-DOCS-API.md).
 
 ## Backend-Architektur V1.0
 
-**Planungsstand:** [ADR-001 bis ADR-018](DECISIONS.md) sind fachlich freigegeben; ADR-013 ist eine Zielarchitektur ohne Betriebsfreigabe. Es gibt keine Implementierungsfreigabe und noch kein MiniDocs-Backend. Der historische [Entwurf](ARCHITECTURE_DRAFT.md) ist keine aktuelle Entscheidungsquelle.
+**Planungsstand:** [ADR-001 bis ADR-018](DECISIONS.md) sind fachlich freigegeben; ADR-013 ist eine Zielarchitektur ohne Betriebsfreigabe. D1 ist beauftragt und implementiert; weitergehende Backendimplementierung benötigt gesonderte Aufträge. Der historische [Entwurf](ARCHITECTURE_DRAFT.md) ist keine aktuelle Entscheidungsquelle.
 
 ```mermaid
 flowchart LR
