@@ -36,7 +36,7 @@ Diese Standards ergänzen [AGENTS.md](../AGENTS.md), die [Architektur](ARCHITECT
 
 - React spricht künftig die MiniDocs-API an; VIA.Docs-Credentials bleiben serverseitig. Keine produktiven VIA.Docs-Zugriffe ohne gesonderten Testauftrag. Verträge, Autorisierung, Fehlerfälle und Timeouts an der Servicegrenze prüfen; keine Secrets oder lokale Referenzen in Git oder Logs.
 - Testdaten und freigegebene Testumgebungen verwenden. Persistenz-/Importvorgänge über mehrere Systeme benötigen definierte Teilfehler- und Wiederanlaufregeln.
-- Für spätere Backend-Arbeit sind die freigegebenen [ADRs](DECISIONS.md) verbindlich: Identity mit Cookie und Antiforgery, serverseitige Workspace-Autorisierung in mehreren Ebenen, getrennte technische Identitäten und geschützte Schlüsselverwaltung. Vorgeschlagene Technologien bleiben bis zu ihrer Freigabe unverbindlich. Sicherheitsnachweise und Testanforderungen stehen in der [Sicherheitsarchitektur](ARCHITECTURE.md).
+- Für spätere Backend-Arbeit sind die freigegebenen [ADRs](DECISIONS.md) verbindlich: Identity mit Cookie und Antiforgery, serverseitige Workspace-Autorisierung in mehreren Ebenen, getrennte technische Identitäten und geschützte Schlüsselverwaltung. ADR-014 bis ADR-016 legen Projektgrenzen, Minimal APIs und .NET 10 mit EF Core/Npgsql sowie weitere Engineering-Grundlagen fest; konkrete Paketversionen erst nach Kompatibilitätsprüfung. Sicherheitsnachweise und Testanforderungen stehen in der [Sicherheitsarchitektur](ARCHITECTURE.md). Die Architekturfreigabe ist keine Implementierungsfreigabe.
 
 ## Code-Kommentierung und Dokumentation
 

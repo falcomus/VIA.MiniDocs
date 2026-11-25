@@ -4,7 +4,7 @@ Aktueller Frontend-Bestand und freigegebenes Backend-Zielbild. Backend und Persi
 
 ## Backend-Architektur V1.0
 
-**Planungsstand:** [ADR-001 bis ADR-012](DECISIONS.md) sind fachlich freigegeben; ADR-013 bis ADR-016 sind offen beziehungsweise vorgeschlagen. Es gibt keine Implementierungsfreigabe und noch kein MiniDocs-Backend. Der historische [Entwurf](ARCHITECTURE_DRAFT.md) ist keine aktuelle Entscheidungsquelle.
+**Planungsstand:** [ADR-001 bis ADR-012 und ADR-014 bis ADR-016](DECISIONS.md) sind fachlich freigegeben; ADR-013 bleibt offen. Es gibt keine Implementierungsfreigabe und noch kein MiniDocs-Backend. Der historische [Entwurf](ARCHITECTURE_DRAFT.md) ist keine aktuelle Entscheidungsquelle.
 
 ```mermaid
 flowchart LR
@@ -20,7 +20,7 @@ Das bestehende React-Frontend verwaltet Dokumente, Hierarchie, Tags und seitenwe
 
 Aktuell dürfen nur nicht geschützte Themen ohne direkt zugeordnete Dokumente und ohne Unterthemen gelöscht werden; das Löschen verschiebt keine Dokumente. Der historische KU-Prototyp verhält sich anders. PDF-Leistung und Speicherverbrauch bei großen Dateien sind nicht systematisch gemessen; gemischte Seitenformate können die Scrollposition verändern. Die vollständige KU-Designabnahme bleibt offen, manuelle Touch-Prüfung ist ausdrücklich ausgenommen.
 
-Für eine Backend-Solution ist ein modularer Monolith mit Domain-, Application-, Infrastructure- und API-Projekten sowie Tests **vorgeschlagen**; die Abhängigkeitsrichtung und der unfreigegebene Projektvorschlag stehen vollständig in ADR-014. ADR-015 und ADR-016 sind ebenfalls nicht freigegeben.
+Für die Backend-Solution ist ein modularer Monolith mit Domain-, Application-, Infrastructure- und API-Projekten sowie Tests gemäß ADR-014 freigegeben. Die Projektabhängigkeiten und das vorgesehene Layout stehen dort; keine zusätzlichen Projekte ohne nachgewiesenen Bedarf. REST-Verträge und Engineering-Grundlagen sind in ADR-015 und ADR-016 freigegeben. Eine Implementierung ist gesondert zu beauftragen.
 
 ## Identität und Provisionierung
 

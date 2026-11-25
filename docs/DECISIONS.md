@@ -54,14 +54,14 @@ Erste Administratoridentität durch gesicherten lokalen administrativen Vorgang,
 
 Windows oder Linux, Reverse Proxy, Prozessidentität, Betriebs- und Deployment-Verfahren, Verschlüsselung des Data-Protection-Schlüsselbestands sowie Backup und Restore sind offen. Same-Origin-Hosting ist bereits in ADR-009 freigegeben.
 
-## ADR-014 – Solution-Architektur: Vorgeschlagen, Freigabe offen
+## ADR-014 – Solution-Architektur: Freigegeben
 
-Modularer Monolith mit pragmatischer Clean Architecture: `backend/VIA.MiniDocs.sln`, `Directory.Build.props`, `Directory.Packages.props`; Projekte `src/VIA.MiniDocs.Api`, `.Application`, `.Domain`, `.Infrastructure` und `tests/VIA.MiniDocs.Tests`. Domain ohne Projektabhängigkeit, Application → Domain, Infrastructure → Application und Domain, Api → Application und Infrastructure, Tests → benötigte produktive Projekte. Keine Zyklen. Nichts davon ist eine Freigabe zur Anlage.
+Modularer Monolith mit pragmatischer Clean Architecture: `backend/VIA.MiniDocs.sln`, `Directory.Build.props`, `Directory.Packages.props`; Projekte `src/VIA.MiniDocs.Api`, `.Application`, `.Domain`, `.Infrastructure` und `tests/VIA.MiniDocs.Tests`. Domain ohne Projektabhängigkeit, Application → Domain, Infrastructure → Application und Domain, Api → Application und Infrastructure, Tests → benötigte produktive Projekte. Keine Zyklen. Keine zusätzlichen Projekte oder Architekturframeworks ohne nachgewiesenen Bedarf. Die Architekturfreigabe ist keine Freigabe zur Anlage oder Implementierung.
 
-## ADR-015 – REST und Verträge: Vorgeschlagen, Freigabe offen
+## ADR-015 – REST und Verträge: Freigegeben
 
 Minimal APIs, schlanke Handler, OpenAPI und ProblemDetails; getrennte MiniDocs- und VIA.Docs-Verträge, keine direkte Projektreferenz auf die VIA.Docs-Solution, kein separates Contracts-Projekt ohne Bedarf. TypeScript-Generierung aus OpenAPI evaluieren.
 
-## ADR-016 – Persistenz und Engineering: Vorgeschlagen, Freigabe offen
+## ADR-016 – Persistenz und Engineering: Freigegeben
 
-.NET 10, EF Core und Npgsql, PostgreSQL-Migrationen, xUnit, zentrale NuGet-Verwaltung, Nullable Reference Types, asynchrones I/O, CancellationToken, strukturiertes Logging und Standard-Dependency-Injection. Zusätzliche Architekturframeworks nur bei nachgewiesenem Bedarf. Die verbindlichen Query-Filter und PostgreSQL-Schutzmechanismen aus ADR-011 bleiben davon unberührt.
+.NET 10, EF Core und Npgsql, PostgreSQL-Migrationen, xUnit, zentrale NuGet-Verwaltung, Nullable Reference Types, durchgängig asynchrones I/O, CancellationToken, strukturiertes Logging und Standard-Dependency-Injection. Konkrete Paketversionen erst nach Kompatibilitätsprüfung festlegen. Zusätzliche Architekturframeworks nur bei nachgewiesenem Bedarf. Die verbindlichen Query-Filter und PostgreSQL-Schutzmechanismen aus ADR-011 bleiben davon unberührt.
