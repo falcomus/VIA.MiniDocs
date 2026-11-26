@@ -2,9 +2,11 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi;
+using VIA.MiniDocs.Infrastructure.ViaDocs;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddProblemDetails();
+builder.Services.AddViaDocs(builder.Configuration);
 builder.Services.AddExceptionHandler<SafeExceptionHandler>();
 builder.Services.AddOpenApi(options => options.AddOperationTransformer((operation, context, _) =>
 {
