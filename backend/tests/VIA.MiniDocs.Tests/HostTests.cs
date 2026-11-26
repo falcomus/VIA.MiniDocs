@@ -123,15 +123,26 @@ public class HostTests
     [Fact]
     public void ProjectReferencesRespectLayerBoundaries()
     {
-        var current = new DirectoryInfo(AppContext.BaseDirectory);
-        while (current is not null && !File.Exists(Path.Combine(current.FullName, "VIA.MiniDocs.sln"))) current = current.Parent;
-        Assert.NotNull(current);
+        // The build output may be outside the repository (MSBuild --artifacts-path).
+        var current = FindSolutionDirectory();
         string[] References(string project) => System.Xml.Linq.XDocument.Load(Path.Combine(current.FullName, "src", "VIA.MiniDocs." + project, "VIA.MiniDocs." + project + ".csproj"))
             .Descendants("ProjectReference").Select(e => Path.GetFileNameWithoutExtension((string?)e.Attribute("Include"))!).Order().ToArray();
         Assert.Empty(References("Domain"));
         Assert.Equal(new[] { "VIA.MiniDocs.Domain" }, References("Application"));
         Assert.Equal(new[] { "VIA.MiniDocs.Application", "VIA.MiniDocs.Domain" }, References("Infrastructure"));
         Assert.Equal(new[] { "VIA.MiniDocs.Application", "VIA.MiniDocs.Infrastructure" }, References("Api"));
+    }
+
+    private static DirectoryInfo FindSolutionDirectory(
+        [System.Runtime.CompilerServices.CallerFilePath] string sourceFile = "")
+    {
+        var directory = Path.GetDirectoryName(sourceFile);
+        var current = directory is null ? null : new DirectoryInfo(directory);
+        while (current is not null && !File.Exists(Path.Combine(current.FullName, "VIA.MiniDocs.sln")))
+        {
+            current = current.Parent;
+        }
+        return current ?? throw new InvalidOperationException("MiniDocs solution not found from the test source path.");
     }
 
     [Fact]

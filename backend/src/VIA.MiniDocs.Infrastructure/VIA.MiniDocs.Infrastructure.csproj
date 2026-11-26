@@ -1,5 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
+    <EmbeddedResource Include="Persistence/Migrations/WriteBoundary/*.sql" />
+    <EmbeddedResource Include="Persistence/Migrations/FinalHardening/*" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all"><IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets></PackageReference>
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
     <ProjectReference Include="../VIA.MiniDocs.Application/VIA.MiniDocs.Application.csproj" />
     <ProjectReference Include="../VIA.MiniDocs.Domain/VIA.MiniDocs.Domain.csproj" />
   </ItemGroup>

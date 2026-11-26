@@ -1,6 +1,6 @@
 # VIA.MiniDocs
 
-React-/TypeScript-Demo zur Verwaltung von Notizen und lokalen PDFs. Daten und Dateien liegen bislang im Arbeitsspeicher; Das D1-Backend-Fundament ist implementiert; PostgreSQL und VIA.Docs-Anbindung sind nicht implementiert. Die KU-Gesamtabnahme ist offen.
+React-/TypeScript-Demo zur Verwaltung von Notizen und lokalen PDFs. Die Demo nutzt Daten im Arbeitsspeicher. Im Backend sind das D1-Fundament und die D2-Persistenz mit PostgreSQL und verbindlichen Schreibgrenzen implementiert. D2 ist im geprüften Stand unabhängig technisch abgenommen (Note 1−, 26.11.2026); der [D2-06-Nachweis](docs/D2-06-VERIFICATION.md) dokumentiert Umfang und Grenzen. Die fachliche API, die VIA.Docs-Anbindung und die KU-Gesamtabnahme stehen aus.
 
 ## Lokal starten
 
@@ -45,6 +45,8 @@ Die Generatorbefehle bauen den tatsächlichen API-Host mit der expliziten Umgebu
 
 Gepinnte Direktabhängigkeiten: Microsoft.AspNetCore.OpenApi 10.0.12, Microsoft.Extensions.ApiDescription.Server 10.0.0, Microsoft.AspNetCore.Mvc.Testing 10.0.12, Microsoft.NET.Test.Sdk 18.0.1 (MIT); xUnit 2.9.3 und xunit.runner.visualstudio 3.1.4 (Apache-2.0); openapi-typescript 7.13.0 und TypeScript 5.9.3 (MIT). NuGet- und npm-Lockdateien sichern transitiven Restore. Die TypeScript-Fixtures werden zusätzlich mit dem Frontend-Compiler geprüft.
 
+Die vollständige Backendsuite umfasst seit D2 PostgreSQL-Integrationstests. Docker muss erreichbar sein und das gepinnte PostgreSQL-18.7-Image bereitstellen können. Die Fixture verwendet eigene Einwegcontainer mit Loopback-Port und nimmt keine externe Datenbankverbindung an. Die Anleitung für den Rollen- und Migrationswechsel steht in der [Architektur](docs/ARCHITECTURE.md#implementierte-schreibgrenze-d2-05).
+
 ## Dokumentationswegweiser
 
 - [AGENTS.md](AGENTS.md): verbindliche Arbeitsregeln.
@@ -53,5 +55,6 @@ Gepinnte Direktabhängigkeiten: Microsoft.AspNetCore.OpenApi 10.0.12, Microsoft.
 - [Architektur](docs/ARCHITECTURE.md): Frontend-Bestand, Backend-Zielbild, Sicherheit und Datenmodell.
 - [Entscheidungen](docs/DECISIONS.md): maßgebliche ADRs und Freigabestatus.
 - [VIA.Docs-API](docs/VIA-DOCS-API.md): statischer Quellstand und nicht verifiziertes Deployment.
+- [D2-06-Nachweis](docs/D2-06-VERIFICATION.md): Korrekturen des unabhängigen Nachreviews, Testabdeckung und Verifikationsprotokolle. [D2-05-Nachweis](docs/D2-05-VERIFICATION.md) dokumentiert den vorherigen Stand.
 
 Die früheren Architekturdateien unter `docs/architecture/` sind historische Ausgangsfassungen beziehungsweise Nachweise. Der [historische Ticketkatalog](docs/TICKETS-ARCHIV.md) bewahrt frühere Detailnachweise; aktuelle Aufgaben stehen in `TICKETS.md`. Die [PDF-Entscheidung](docs/architecture/M6-C-PDF-ENTSCHEIDUNG.md) bleibt als fachlicher Nachweis für Abgrenzung und Abnahme erhalten. Die lokale KU-Originalreferenz wird nicht veröffentlicht.

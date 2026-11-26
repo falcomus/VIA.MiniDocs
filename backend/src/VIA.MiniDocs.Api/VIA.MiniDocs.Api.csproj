@@ -4,6 +4,7 @@
     <ProjectReference Include="../VIA.MiniDocs.Application/VIA.MiniDocs.Application.csproj" />
     <ProjectReference Include="../VIA.MiniDocs.Infrastructure/VIA.MiniDocs.Infrastructure.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all"><IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets></PackageReference>
     <PackageReference Include="Microsoft.Extensions.ApiDescription.Server" PrivateAssets="all" />
   </ItemGroup>
 </Project>
