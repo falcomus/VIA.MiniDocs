@@ -13,7 +13,22 @@ builder.AddMiniDocsSecurity(localOperation);
 if (!localOperation)
     builder.Services.AddTechnicalProvisioning(builder.Configuration, !builder.Environment.IsEnvironment("ContractTests"));
 builder.Services.AddExceptionHandler<SafeExceptionHandler>();
-builder.Services.AddOpenApi(options => options.AddOperationTransformer(async (operation, context, token) =>
+builder.Services.AddOpenApi(options =>
+{
+  options.AddSchemaTransformer((schema, context, _) =>
+  {
+    if (context.JsonTypeInfo.Type == typeof(ProblemDetails))
+    {
+      schema.Properties ??= new Dictionary<string, IOpenApiSchema>();
+      schema.Properties["code"] = new OpenApiSchema { Type = JsonSchemaType.String };
+      schema.Properties["traceId"] = new OpenApiSchema { Type = JsonSchemaType.String };
+      schema.Required ??= new HashSet<string>();
+      schema.Required.Add("code");
+      schema.Required.Add("traceId");
+    }
+    return Task.CompletedTask;
+  });
+  options.AddOperationTransformer(async (operation, context, token) =>
 {
     var body = context.Description.ActionDescriptor.EndpointMetadata.OfType<JsonRequest>().SingleOrDefault()?.Body;
     if (context.Description.RelativePath == "api/v1/session/login") body = typeof(Login);
@@ -44,10 +59,10 @@ builder.Services.AddOpenApi(options => options.AddOperationTransformer(async (op
         operation.Parameters.Add(new OpenApiParameter { Name = "If-Match", In = ParameterLocation.Header, Required = true,
             Schema = new OpenApiSchema { Type = JsonSchemaType.String } });
         ((OpenApiResponse)operation.Responses!["200"]).Headers = new Dictionary<string, IOpenApiHeader>
-        { ["ETag"] = new OpenApiHeader { Schema = new OpenApiSchema { Type = JsonSchemaType.String } } };
+        { ["ETag"] = new OpenApiHeader { Required = true, Schema = new OpenApiSchema { Type = JsonSchemaType.String } } };
     }
     if (context.Description.ActionDescriptor.EndpointMetadata.OfType<ValidateSessionAntiforgery>().Any() &&
-        (context.Description.RelativePath == "api/v1/registration" ||
+        (context.Description.RelativePath is "api/v1/registration" or "api/v1/session/login" or "api/v1/session" ||
          context.Description.RelativePath?.StartsWith("api/v1/admin/", StringComparison.Ordinal) == true))
     {
         operation.Parameters ??= [];
@@ -56,13 +71,26 @@ builder.Services.AddOpenApi(options => options.AddOperationTransformer(async (op
     }
     if (context.Description.HttpMethod == "POST" && context.Description.RelativePath == "api/v1/admin/invitations")
         ((OpenApiResponse)operation.Responses!["201"]).Headers = new Dictionary<string, IOpenApiHeader>
-        { ["Location"] = new OpenApiHeader { Schema = new OpenApiSchema { Type = JsonSchemaType.String } } };
+        { ["Location"] = new OpenApiHeader { Required = true, Schema = new OpenApiSchema { Type = JsonSchemaType.String } } };
     if (context.Description.HttpMethod == "POST" && operation.Responses?.TryGetValue("202", out var accepted) == true)
         ((OpenApiResponse)accepted).Headers = new Dictionary<string, IOpenApiHeader>
         {
-            ["Location"] = new OpenApiHeader { Schema = new OpenApiSchema { Type = JsonSchemaType.String } },
-            ["Retry-After"] = new OpenApiHeader { Schema = new OpenApiSchema { Type = JsonSchemaType.Integer } }
+            ["Location"] = new OpenApiHeader { Required = true, Schema = new OpenApiSchema { Type = JsonSchemaType.String } },
+            ["Retry-After"] = new OpenApiHeader { Required = true, Schema = new OpenApiSchema { Type = JsonSchemaType.Integer } }
         };
+    if (context.Description.ActionDescriptor.EndpointMetadata.OfType<SessionRoute>().Any() && operation.Responses is not null)
+    {
+        foreach (var (status, response) in operation.Responses)
+        {
+            var target = (OpenApiResponse)response;
+            target.Headers ??= new Dictionary<string, IOpenApiHeader>();
+            target.Headers["Cache-Control"] = new OpenApiHeader { Required = true,
+                Schema = new OpenApiSchema { Type = JsonSchemaType.String } };
+            if (status == "429")
+                target.Headers["Retry-After"] = new OpenApiHeader { Required = true,
+                    Schema = new OpenApiSchema { Type = JsonSchemaType.Integer } };
+        }
+    }
     if (context.Description.RelativePath == "api/v1/_contract-fixtures/nullable")
         ((OpenApiResponse)operation.Responses!["200"]).Headers = new Dictionary<string, IOpenApiHeader>
         { ["ETag"] = new OpenApiHeader { Schema = new OpenApiSchema { Type = JsonSchemaType.String } } };
@@ -77,7 +105,8 @@ builder.Services.AddOpenApi(options => options.AddOperationTransformer(async (op
             ((OpenApiResponse)operation.Responses![code]).Headers = new Dictionary<string, IOpenApiHeader>
             { ["Content-Range"] = new OpenApiHeader { Schema = new OpenApiSchema { Type = JsonSchemaType.String } } };
     }
-}));
+  });
+});
 builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 

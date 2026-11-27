@@ -25,6 +25,7 @@ internal static class SecurityRegistration
     services.AddScoped<Registration>();
     services.AddSingleton<RegistrationRateLimits>();
     services.AddSingleton<InvitationIssueLimits>();
+    services.AddSingleton<RecoveryRateLimits>();
     services.AddSingleton<AdministratorCursor>();
     // Database exceptions can contain input values supplied by the server.
     // HTTP reports a safe status and trace identifier after catching the failure.

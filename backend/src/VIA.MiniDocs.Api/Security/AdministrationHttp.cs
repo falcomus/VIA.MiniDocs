@@ -12,7 +12,7 @@ using VIA.MiniDocs.Infrastructure.Identity;
 namespace VIA.MiniDocs.Api.Security;
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-internal sealed record InvitationCreate(DateTime? ExpiresAt);
+internal sealed record InvitationCreate(DateTime? ExpiresAt = null);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 internal sealed record AdminUserPatch([property: JsonRequired] bool IsDisabled);
 internal sealed record Invite(Guid Id, DateTime ExpiresAt, DateTime? RedeemedAt, DateTime? RevokedAt,
@@ -63,7 +63,8 @@ internal static class AdministrationHttp
 {
   internal static void MapD4B(this WebApplication app)
   {
-    var routes = app.MapGroup("/api/v1").WithMetadata(new SessionRoute());
+    var routes = app.MapGroup("/api/v1").WithMetadata(new SessionRoute())
+        .ProducesProblem(StatusCodes.Status500InternalServerError);
     routes.MapPost("/registration", RegistrationHttp.RegisterAsync).AllowAnonymous()
         .WithMetadata(new ValidateSessionAntiforgery(), new JsonRequest(typeof(RegistrationInput)))
         .Produces<RegistrationResult>(201).ProducesProblem(400).ProducesProblem(403).ProducesProblem(409)

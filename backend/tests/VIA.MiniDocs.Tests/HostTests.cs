@@ -225,9 +225,77 @@ public class HostTests
         using var client = host.CreateClient();
         var json = await client.GetFromJsonAsync<JsonElement>("/openapi/v1.json");
         var paths = json.GetProperty("paths");
+        (string Route, string Method, string Success)[] d4 = [
+            ("/api/v1/antiforgery", "get", "200"), ("/api/v1/session/login", "post", "200"),
+            ("/api/v1/session", "get", "200"), ("/api/v1/session", "delete", "204"),
+            ("/api/v1/registration", "post", "201"), ("/api/v1/workspace", "get", "200"),
+            ("/api/v1/admin/invitations", "get", "200"), ("/api/v1/admin/invitations", "post", "201"),
+            ("/api/v1/admin/invitations/{id}", "get", "200"), ("/api/v1/admin/invitations/{id}", "delete", "204"),
+            ("/api/v1/admin/users", "get", "200"), ("/api/v1/admin/users/{id}", "patch", "200"),
+            ("/api/v1/admin/provisioning", "get", "200"),
+            ("/api/v1/admin/workspaces/{id}/technical-invitation", "post", "202"),
+            ("/api/v1/admin/workspaces/{id}/recovery", "post", "202")];
+        Assert.Equal(15, d4.Length);
+        foreach (var (route, method, success) in d4)
+        {
+            Assert.True(paths.GetProperty(route).GetProperty(method).GetProperty("responses").TryGetProperty(success, out _));
+            var operation = paths.GetProperty(route).GetProperty(method);
+            var internalError = operation.GetProperty("responses").GetProperty("500");
+            Assert.Equal("#/components/schemas/ProblemDetails", internalError.GetProperty("content")
+                .GetProperty("application/problem+json").GetProperty("schema").GetProperty("$ref").GetString());
+            Assert.True(internalError.GetProperty("headers").GetProperty("Cache-Control").GetProperty("required").GetBoolean());
+            foreach (var response in operation.GetProperty("responses").EnumerateObject())
+                Assert.True(response.Value.GetProperty("headers").TryGetProperty("Cache-Control", out _));
+            if (method is "post" or "patch" or "delete")
+                Assert.Contains(operation.GetProperty("parameters").EnumerateArray(), p => p.GetProperty("name").GetString() == "X-CSRF-TOKEN" && p.GetProperty("required").GetBoolean());
+        }
+        (string Route, string Method, string[] Errors)[] errors = [
+            ("/api/v1/antiforgery", "get", ["503"]), ("/api/v1/session/login", "post", ["400", "401", "403", "413", "415", "423", "429", "503"]),
+            ("/api/v1/session", "get", ["401", "503"]), ("/api/v1/session", "delete", ["401", "403", "503"]),
+            ("/api/v1/registration", "post", ["400", "403", "409", "410", "413", "415", "429", "503"]), ("/api/v1/workspace", "get", ["401", "404", "503"]),
+            ("/api/v1/admin/invitations", "get", ["400", "401", "403", "503"]), ("/api/v1/admin/invitations", "post", ["400", "401", "403", "409", "413", "415", "429", "503"]),
+            ("/api/v1/admin/invitations/{id}", "get", ["401", "403", "404", "503"]), ("/api/v1/admin/invitations/{id}", "delete", ["400", "401", "403", "404", "409", "503"]),
+            ("/api/v1/admin/users", "get", ["400", "401", "403", "503"]), ("/api/v1/admin/users/{id}", "patch", ["400", "401", "403", "404", "409", "412", "413", "415", "428", "503"]),
+            ("/api/v1/admin/provisioning", "get", ["400", "401", "403", "503"]),
+            ("/api/v1/admin/workspaces/{id}/technical-invitation", "post", ["400", "401", "403", "404", "409", "413", "415", "429", "503"]),
+            ("/api/v1/admin/workspaces/{id}/recovery", "post", ["400", "401", "403", "404", "409", "413", "415", "429", "503"])];
+        foreach (var (route, method, statuses) in errors)
+        {
+            var responses = paths.GetProperty(route).GetProperty(method).GetProperty("responses");
+            Assert.Equal(statuses.Append("500").Order(), responses.EnumerateObject()
+                .Select(response => response.Name).Where(status => status.StartsWith('4') || status.StartsWith('5')).Order());
+            foreach (var status in statuses)
+            {
+                var error = responses.GetProperty(status);
+                Assert.True(error.GetProperty("content").TryGetProperty("application/problem+json", out _));
+                if (status == "429")
+                    Assert.True(error.GetProperty("headers").GetProperty("Retry-After").GetProperty("required").GetBoolean());
+            }
+        }
         Assert.True(paths.TryGetProperty("/api/v1/_contract-fixtures/multipart", out _));
         Assert.True(paths.TryGetProperty("/api/v1/_contract-fixtures/binary", out _));
         Assert.True(json.GetProperty("components").GetProperty("schemas").TryGetProperty("ProblemDetails", out _));
+        var problem = json.GetProperty("components").GetProperty("schemas").GetProperty("ProblemDetails");
+        foreach (var name in new[] { "code", "traceId" })
+        {
+            Assert.Equal("string", problem.GetProperty("properties").GetProperty(name).GetProperty("type").GetString());
+            Assert.Contains(problem.GetProperty("required").EnumerateArray(), item => item.GetString() == name);
+        }
+        var invitation = paths.GetProperty("/api/v1/admin/invitations").GetProperty("post")
+            .GetProperty("requestBody").GetProperty("content").GetProperty("application/json").GetProperty("schema");
+        Assert.False(invitation.TryGetProperty("required", out var required) &&
+            required.EnumerateArray().Any(item => item.GetString() == "expiresAt"));
+        foreach (var (route, method, status, header) in new[] {
+            ("/api/v1/admin/invitations", "post", "201", "Location"),
+            ("/api/v1/admin/users/{id}", "patch", "200", "ETag"),
+            ("/api/v1/admin/workspaces/{id}/technical-invitation", "post", "202", "Location"),
+            ("/api/v1/admin/workspaces/{id}/technical-invitation", "post", "202", "Retry-After"),
+            ("/api/v1/admin/workspaces/{id}/recovery", "post", "202", "Location"),
+            ("/api/v1/admin/workspaces/{id}/recovery", "post", "202", "Retry-After") })
+            Assert.True(paths.GetProperty(route).GetProperty(method).GetProperty("responses")
+                .GetProperty(status).GetProperty("headers").GetProperty(header).GetProperty("required").GetBoolean());
+        Assert.Contains(paths.GetProperty("/api/v1/admin/users/{id}").GetProperty("patch").GetProperty("parameters").EnumerateArray(),
+            p => p.GetProperty("name").GetString() == "If-Match" && p.GetProperty("required").GetBoolean());
         var binary = paths.GetProperty("/api/v1/_contract-fixtures/binary").GetProperty("get");
         Assert.Equal("binary", binary.GetProperty("responses").GetProperty("206").GetProperty("content").GetProperty("application/pdf").GetProperty("schema").GetProperty("format").GetString());
         Assert.True(binary.GetProperty("responses").GetProperty("206").GetProperty("headers").TryGetProperty("Content-Range", out _));

@@ -1,0 +1,355 @@
+/* Shared colors, typography and control dimensions come from the MiniDoc shell. */
+.page {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+.theme,
+.row,
+.actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.theme {
+  margin-left: auto;
+}
+.row {
+  justify-content: space-between;
+}
+.content {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 16px 20px 32px;
+}
+.card {
+  min-width: 0;
+  margin: 0 0 12px;
+  padding: 16px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  overflow-wrap: anywhere;
+}
+.card h1,
+.card h2,
+.card h3 {
+  margin: 0 0 8px;
+  font-size: 17px;
+  font-weight: 650;
+}
+.row h1,
+.row h3 {
+  margin: 0;
+}
+.card p {
+  margin: 8px 0;
+}
+/* Only the signed-out screen receives the atmospheric background and elevated card. */
+.authContent {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(24px, 5vh, 56px) 20px;
+  background:
+    radial-gradient(ellipse at 14% 20%, var(--accent-weak), transparent 54%),
+    radial-gradient(ellipse at 88% 85%, var(--sel), transparent 54%), var(--bg);
+}
+.authArtwork {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
+  color: var(--accent-icon);
+  opacity: 0.18;
+}
+.loginCard {
+  flex: none;
+  width: min(480px, 100%);
+  margin: auto;
+  padding: clamp(24px, 4vw, 36px);
+  border-radius: 16px;
+  box-shadow: var(--shadow-lg);
+}
+.authBrand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 28px;
+}
+.authLogo {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 23px;
+  font-weight: 750;
+  letter-spacing: -0.04em;
+}
+.authIntro {
+  margin-bottom: 24px;
+}
+.loginCard h1 {
+  margin: 0 0 6px;
+  font-size: 25px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+}
+.authIntro p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+.loginCard .form {
+  max-width: none;
+  gap: 18px;
+}
+.loginCard .form label {
+  gap: 8px;
+  font-size: 14px;
+}
+.loginCard .form input:not([type='checkbox']) {
+  height: 44px;
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+.loginCard button {
+  min-height: 44px;
+  border-radius: 8px;
+  padding: 9px 14px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.loginCard .primary {
+  margin-top: 6px;
+}
+.loginCard .secondary {
+  width: 100%;
+  margin-top: 16px;
+}
+.loginCard .error {
+  margin: 0 0 20px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--danger);
+  border-radius: 8px;
+  background: var(--surface-filter);
+  line-height: 1.5;
+}
+.loginCard .form .hint {
+  margin: -10px 0 0;
+  line-height: 1.5;
+}
+.form {
+  display: grid;
+  gap: 10px;
+  max-width: 32rem;
+}
+.form label {
+  display: grid;
+  gap: 4px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.page :where(input:not([type='checkbox']), select, button) {
+  min-height: 34px;
+  min-width: 0;
+  max-width: 100%;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--text);
+  background: var(--panel);
+}
+.form input:not([type='checkbox']) {
+  width: 100%;
+  height: 36px;
+  font-weight: 400;
+}
+.page button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.page button:hover:not(:disabled) {
+  background: var(--surface-hover);
+}
+.page button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.page button.primary:hover:not(:disabled) {
+  background: var(--accent);
+  box-shadow: var(--shadow);
+}
+.page button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+.page :where(button, input, select, a):focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 2px;
+}
+.secondary {
+  margin-top: 12px;
+}
+.error {
+  color: var(--danger);
+}
+.hint {
+  color: var(--muted);
+  font-size: 12.5px;
+}
+.form .hint {
+  margin: -4px 0 0;
+}
+.form .checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 400;
+}
+.checkbox input {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  margin: 2px 0 0;
+  accent-color: var(--accent);
+}
+.adminLayout {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  align-items: start;
+  gap: 16px;
+}
+.adminNav {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 10px 0;
+  position: sticky;
+  top: 0;
+}
+.adminNav h2 {
+  margin: 4px 12px 8px;
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.adminNav a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 6px 12px;
+  color: var(--tree-text);
+  text-decoration: none;
+}
+.adminNav a:hover {
+  background: var(--surface-hover);
+}
+.adminContent {
+  min-width: 0;
+}
+.records {
+  display: grid;
+  gap: 0;
+  padding: 0;
+  margin: 12px 0;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.records:empty {
+  display: none;
+}
+.records li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 12px;
+  min-width: 0;
+}
+.records li + li {
+  border-top: 1px solid var(--line2);
+}
+.recordText {
+  min-width: 0;
+  flex: 1 1 200px;
+  overflow-wrap: anywhere;
+}
+.recordText small {
+  display: block;
+  color: var(--muted);
+}
+.tokenPanel {
+  min-width: 0;
+  margin: 12px 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface-filter);
+}
+.token {
+  display: block;
+  padding: 10px;
+  margin: 8px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  white-space: normal;
+  overflow-wrap: anywhere;
+  user-select: all;
+  font-family: monospace;
+}
+@media (max-width: 720px) {
+  .content {
+    padding: 12px;
+  }
+  .adminLayout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .adminNav {
+    position: static;
+  }
+}
+
+@media (max-width: 480px) {
+  .authContent {
+    padding: 24px 12px;
+  }
+  .authArtwork {
+    opacity: 0.09;
+  }
+  .authBrand {
+    font-size: 18px;
+    margin-bottom: 22px;
+  }
+  .loginCard h1 {
+    font-size: 22px;
+  }
+}

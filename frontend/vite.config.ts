@@ -13,7 +13,7 @@ function demoData(): Plugin {
   return {
     name: 'local-demo-data',
     configResolved(config) {
-      enabled = config.command === 'serve' && config.mode !== 'test';
+      enabled = config.command === 'serve' && config.mode === 'demo';
     },
     resolveId(id) {
       if (id === 'virtual:demo-data') return virtualId;
@@ -38,6 +38,7 @@ function demoData(): Plugin {
       return `export default ${JSON.stringify({ records: enriched, transcripts })}`;
     },
     configureServer(server) {
+      if (!enabled) return;
       const records = JSON.parse(
         readFileSync(resolve(root, 'Dokumentenuebersicht.json'), 'utf8'),
       ) as DemoRecord[];
@@ -77,7 +78,27 @@ function demoData(): Plugin {
     },
   };
 }
-export default defineConfig({
-  plugins: [react(), demoData()],
-  test: { environment: 'jsdom', setupFiles: ['./src/test/setup.ts'], css: true },
+export default defineConfig(() => {
+  const certificate = process.env.MINIDOCS_DEV_CERT;
+  const privateKey = process.env.MINIDOCS_DEV_KEY;
+  const api = process.env.MINIDOCS_DEV_API;
+  if ([certificate, privateKey, api].some(Boolean) && (!certificate || !privateKey || !api)) {
+    throw new Error(
+      'MINIDOCS_DEV_CERT, MINIDOCS_DEV_KEY und MINIDOCS_DEV_API gemeinsam konfigurieren.',
+    );
+  }
+  if (api && (!api.startsWith('https://localhost:') || new URL(api).hostname !== 'localhost')) {
+    throw new Error('MINIDOCS_DEV_API muss eine lokale HTTPS-Adresse sein.');
+  }
+  return {
+    plugins: [react(), demoData()],
+    server:
+      certificate && privateKey && api
+        ? {
+            https: { cert: readFileSync(certificate), key: readFileSync(privateKey) },
+            proxy: { '/api': { target: api, secure: true } },
+          }
+        : undefined,
+    test: { environment: 'jsdom', setupFiles: ['./src/test/setup.ts'], css: true, maxWorkers: 4 },
+  };
 });

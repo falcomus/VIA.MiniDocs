@@ -68,3 +68,7 @@ Prettier 3.10.1 ist als feste Entwicklungsabhängigkeit eingerichtet. `npm run f
 Die Frontend-Konfiguration `.prettierrc.json` legt Single Quotes, 100 Zeichen Zielzeilenlänge und LF fest. Die bestehende `.editorconfig` liefert UTF-8 und zwei Leerzeichen Einrückung. Umfang: `src/**/*.{ts,tsx,css}`, Konfiguration und Einstieg im Frontendroot (`*.{js,ts,json,html}`) sowie `.prettierrc.json`. `.prettierignore` schließt Abhängigkeiten, Build-/Coverage-Ausgaben, Deklarationsdateien, Lockfile und lokale Originalreferenzen aus. Neue generierte Dateitypen müssen bei Bedarf ausdrücklich ergänzt werden. Dokumentation und Dateien außerhalb des Frontends gehören nicht zum Format-Script.
 
 Formatierungsänderungen und fachliche Änderungen in Reviews auseinanderhalten. Nach der einmaligen Einführung keine zusätzlichen Refactorings in Formatierungs-Diffs verstecken.
+
+## Regression als Freigabevoraussetzung
+
+Vor der Änderung Funktionsumfang und Testbestand erfassen. Fehler möglichst zuerst durch einen fehlschlagenden Test reproduzieren. Nach der Änderung Bestand und Ergebnis vergleichen. Das Entfernen oder Abschwächen eines Bestandstests braucht eine ausdrückliche fachliche Begründung. Freigegebene Designs und Bedienabläufe erhalten und Änderungen auf den Auftrag begrenzen. Fehlgeschlagene oder ausstehende Pflichtprüfungen sperren die Freigabe. Referenzbilder nur nach ausdrücklicher Abnahme übernehmen. Abweichungen führen zu einem Prüfungsfehler.

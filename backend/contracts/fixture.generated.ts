@@ -18,15 +18,27 @@ export interface paths {
                 /** @description OK */
                 200: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
                         "application/json": components["schemas"]["AntiForgery"];
                     };
                 };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        "Cache-Control": string;
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
                 /** @description Service Unavailable */
                 503: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -55,7 +67,9 @@ export interface paths {
         post: {
             parameters: {
                 query?: never;
-                header?: never;
+                header: {
+                    "X-CSRF-TOKEN": string;
+                };
                 path?: never;
                 cookie?: never;
             };
@@ -71,6 +85,7 @@ export interface paths {
                 /** @description OK */
                 200: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -80,6 +95,7 @@ export interface paths {
                 /** @description Bad Request */
                 400: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -89,6 +105,7 @@ export interface paths {
                 /** @description Unauthorized */
                 401: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -98,6 +115,7 @@ export interface paths {
                 /** @description Forbidden */
                 403: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -107,6 +125,7 @@ export interface paths {
                 /** @description Payload Too Large */
                 413: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -116,6 +135,7 @@ export interface paths {
                 /** @description Unsupported Media Type */
                 415: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -125,6 +145,7 @@ export interface paths {
                 /** @description Locked */
                 423: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -134,6 +155,18 @@ export interface paths {
                 /** @description Too Many Requests */
                 429: {
                     headers: {
+                        "Cache-Control": string;
+                        "Retry-After": number;
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -143,6 +176,7 @@ export interface paths {
                 /** @description Service Unavailable */
                 503: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -176,6 +210,7 @@ export interface paths {
                 /** @description OK */
                 200: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -185,6 +220,17 @@ export interface paths {
                 /** @description Unauthorized */
                 401: {
                     headers: {
+                        "Cache-Control": string;
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -194,6 +240,7 @@ export interface paths {
                 /** @description Service Unavailable */
                 503: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -207,7 +254,9 @@ export interface paths {
         delete: {
             parameters: {
                 query?: never;
-                header?: never;
+                header: {
+                    "X-CSRF-TOKEN": string;
+                };
                 path?: never;
                 cookie?: never;
             };
@@ -216,6 +265,7 @@ export interface paths {
                 /** @description No Content */
                 204: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content?: never;
@@ -223,6 +273,7 @@ export interface paths {
                 /** @description Unauthorized */
                 401: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -232,6 +283,17 @@ export interface paths {
                 /** @description Forbidden */
                 403: {
                     headers: {
+                        "Cache-Control": string;
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -241,6 +303,7 @@ export interface paths {
                 /** @description Service Unavailable */
                 503: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -285,6 +348,7 @@ export interface paths {
                 /** @description Created */
                 201: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -294,6 +358,7 @@ export interface paths {
                 /** @description Bad Request */
                 400: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -303,6 +368,7 @@ export interface paths {
                 /** @description Forbidden */
                 403: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -312,6 +378,7 @@ export interface paths {
                 /** @description Conflict */
                 409: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -321,6 +388,7 @@ export interface paths {
                 /** @description Gone */
                 410: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -330,6 +398,7 @@ export interface paths {
                 /** @description Payload Too Large */
                 413: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -339,6 +408,7 @@ export interface paths {
                 /** @description Unsupported Media Type */
                 415: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -348,6 +418,18 @@ export interface paths {
                 /** @description Too Many Requests */
                 429: {
                     headers: {
+                        "Cache-Control": string;
+                        "Retry-After": number;
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -357,6 +439,7 @@ export interface paths {
                 /** @description Service Unavailable */
                 503: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -390,6 +473,7 @@ export interface paths {
                 /** @description OK */
                 200: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -399,6 +483,7 @@ export interface paths {
                 /** @description Unauthorized */
                 401: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -408,6 +493,17 @@ export interface paths {
                 /** @description Not Found */
                 404: {
                     headers: {
+                        "Cache-Control": string;
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -417,6 +513,7 @@ export interface paths {
                 /** @description Service Unavailable */
                 503: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -455,6 +552,7 @@ export interface paths {
                 /** @description OK */
                 200: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -464,6 +562,7 @@ export interface paths {
                 /** @description Bad Request */
                 400: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -473,6 +572,7 @@ export interface paths {
                 /** @description Unauthorized */
                 401: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -482,6 +582,17 @@ export interface paths {
                 /** @description Forbidden */
                 403: {
                     headers: {
+                        "Cache-Control": string;
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -491,6 +602,7 @@ export interface paths {
                 /** @description Service Unavailable */
                 503: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -513,7 +625,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         /** Format: date-time */
-                        expiresAt: null | string;
+                        expiresAt?: null | string;
                     };
                 };
             };
@@ -521,7 +633,8 @@ export interface paths {
                 /** @description Created */
                 201: {
                     headers: {
-                        Location?: string;
+                        Location: string;
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -531,6 +644,7 @@ export interface paths {
                 /** @description Bad Request */
                 400: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -540,6 +654,7 @@ export interface paths {
                 /** @description Unauthorized */
                 401: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -549,6 +664,7 @@ export interface paths {
                 /** @description Forbidden */
                 403: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -558,6 +674,7 @@ export interface paths {
                 /** @description Conflict */
                 409: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -567,6 +684,7 @@ export interface paths {
                 /** @description Payload Too Large */
                 413: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -576,6 +694,7 @@ export interface paths {
                 /** @description Unsupported Media Type */
                 415: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -585,6 +704,18 @@ export interface paths {
                 /** @description Too Many Requests */
                 429: {
                     headers: {
+                        "Cache-Control": string;
+                        "Retry-After": number;
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -594,6 +725,7 @@ export interface paths {
                 /** @description Service Unavailable */
                 503: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -629,6 +761,7 @@ export interface paths {
                 /** @description OK */
                 200: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -638,6 +771,7 @@ export interface paths {
                 /** @description Unauthorized */
                 401: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -647,6 +781,7 @@ export interface paths {
                 /** @description Forbidden */
                 403: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -656,6 +791,17 @@ export interface paths {
                 /** @description Not Found */
                 404: {
                     headers: {
+                        "Cache-Control": string;
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -665,6 +811,7 @@ export interface paths {
                 /** @description Service Unavailable */
                 503: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -691,6 +838,7 @@ export interface paths {
                 /** @description No Content */
                 204: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content?: never;
@@ -698,6 +846,7 @@ export interface paths {
                 /** @description Bad Request */
                 400: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -707,6 +856,7 @@ export interface paths {
                 /** @description Unauthorized */
                 401: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -716,6 +866,7 @@ export interface paths {
                 /** @description Forbidden */
                 403: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -725,6 +876,7 @@ export interface paths {
                 /** @description Not Found */
                 404: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -734,6 +886,17 @@ export interface paths {
                 /** @description Conflict */
                 409: {
                     headers: {
+                        "Cache-Control": string;
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -743,6 +906,7 @@ export interface paths {
                 /** @description Service Unavailable */
                 503: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -778,6 +942,7 @@ export interface paths {
                 /** @description OK */
                 200: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -787,6 +952,7 @@ export interface paths {
                 /** @description Bad Request */
                 400: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -796,6 +962,7 @@ export interface paths {
                 /** @description Unauthorized */
                 401: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -805,6 +972,17 @@ export interface paths {
                 /** @description Forbidden */
                 403: {
                     headers: {
+                        "Cache-Control": string;
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -814,6 +992,7 @@ export interface paths {
                 /** @description Service Unavailable */
                 503: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -866,7 +1045,8 @@ export interface paths {
                 /** @description OK */
                 200: {
                     headers: {
-                        ETag?: string;
+                        ETag: string;
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -876,6 +1056,7 @@ export interface paths {
                 /** @description Bad Request */
                 400: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -885,6 +1066,7 @@ export interface paths {
                 /** @description Unauthorized */
                 401: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -894,6 +1076,7 @@ export interface paths {
                 /** @description Forbidden */
                 403: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -903,6 +1086,7 @@ export interface paths {
                 /** @description Not Found */
                 404: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -912,6 +1096,7 @@ export interface paths {
                 /** @description Conflict */
                 409: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -921,6 +1106,7 @@ export interface paths {
                 /** @description Precondition Failed */
                 412: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -930,6 +1116,7 @@ export interface paths {
                 /** @description Payload Too Large */
                 413: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -939,6 +1126,7 @@ export interface paths {
                 /** @description Unsupported Media Type */
                 415: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -948,6 +1136,17 @@ export interface paths {
                 /** @description Precondition Required */
                 428: {
                     headers: {
+                        "Cache-Control": string;
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -957,6 +1156,7 @@ export interface paths {
                 /** @description Service Unavailable */
                 503: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -990,6 +1190,7 @@ export interface paths {
                 /** @description OK */
                 200: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -999,6 +1200,7 @@ export interface paths {
                 /** @description Bad Request */
                 400: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -1008,6 +1210,7 @@ export interface paths {
                 /** @description Unauthorized */
                 401: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -1017,6 +1220,17 @@ export interface paths {
                 /** @description Forbidden */
                 403: {
                     headers: {
+                        "Cache-Control": string;
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -1026,6 +1240,7 @@ export interface paths {
                 /** @description Service Unavailable */
                 503: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -1073,8 +1288,9 @@ export interface paths {
                 /** @description Accepted */
                 202: {
                     headers: {
-                        Location?: string;
-                        "Retry-After"?: number;
+                        Location: string;
+                        "Retry-After": number;
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -1084,6 +1300,7 @@ export interface paths {
                 /** @description Bad Request */
                 400: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -1093,6 +1310,7 @@ export interface paths {
                 /** @description Unauthorized */
                 401: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -1102,6 +1320,7 @@ export interface paths {
                 /** @description Forbidden */
                 403: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -1111,6 +1330,7 @@ export interface paths {
                 /** @description Not Found */
                 404: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -1120,6 +1340,7 @@ export interface paths {
                 /** @description Conflict */
                 409: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -1129,6 +1350,7 @@ export interface paths {
                 /** @description Payload Too Large */
                 413: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -1138,6 +1360,7 @@ export interface paths {
                 /** @description Unsupported Media Type */
                 415: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -1147,6 +1370,18 @@ export interface paths {
                 /** @description Too Many Requests */
                 429: {
                     headers: {
+                        "Cache-Control": string;
+                        "Retry-After": number;
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -1156,6 +1391,7 @@ export interface paths {
                 /** @description Service Unavailable */
                 503: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -1202,8 +1438,9 @@ export interface paths {
                 /** @description Accepted */
                 202: {
                     headers: {
-                        Location?: string;
-                        "Retry-After"?: number;
+                        Location: string;
+                        "Retry-After": number;
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -1213,6 +1450,7 @@ export interface paths {
                 /** @description Bad Request */
                 400: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -1222,6 +1460,7 @@ export interface paths {
                 /** @description Unauthorized */
                 401: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -1231,6 +1470,7 @@ export interface paths {
                 /** @description Forbidden */
                 403: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -1240,6 +1480,7 @@ export interface paths {
                 /** @description Not Found */
                 404: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -1249,6 +1490,7 @@ export interface paths {
                 /** @description Conflict */
                 409: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -1258,6 +1500,7 @@ export interface paths {
                 /** @description Payload Too Large */
                 413: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -1267,6 +1510,28 @@ export interface paths {
                 /** @description Unsupported Media Type */
                 415: {
                     headers: {
+                        "Cache-Control": string;
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Too Many Requests */
+                429: {
+                    headers: {
+                        "Cache-Control": string;
+                        "Retry-After": number;
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -1276,6 +1541,7 @@ export interface paths {
                 /** @description Service Unavailable */
                 503: {
                     headers: {
+                        "Cache-Control": string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -1532,6 +1798,8 @@ export interface components {
             status?: null | number | string;
             detail?: null | string;
             instance?: null | string;
+            code: string;
+            traceId: string;
         };
         Provisioning: {
             /** Format: uuid */

@@ -36,7 +36,8 @@ internal static class SessionHttp
 
   internal static void MapMiniDocsSessions(this WebApplication app)
   {
-    var routes = app.MapGroup("/api/v1").WithMetadata(new SessionRoute());
+    var routes = app.MapGroup("/api/v1").WithMetadata(new SessionRoute())
+        .ProducesProblem(StatusCodes.Status500InternalServerError);
     routes.MapGet("/antiforgery", (HttpContext context, IAntiforgery antiforgery) =>
         TypedResults.Ok(new AntiForgery(antiforgery.GetAndStoreTokens(context).RequestToken!)))
         .AllowAnonymous().ProducesProblem(503);

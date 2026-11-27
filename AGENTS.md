@@ -19,3 +19,10 @@ Die dortigen Regeln zu CSS-Modulzuständigkeit, überprüfbaren Testaussagen, Le
 Für Backendplanung und spätere Umsetzung gelten die [Backend-Architektur](docs/ARCHITECTURE.md), die [Architekturentscheidungen und ihr Freigabestatus](docs/DECISIONS.md) und die dort verlinkten Sicherheits- und Integrationsdokumente. Planung ist keine Implementierungsfreigabe.
 
 Der [Dokumentationswegweiser](README.md#dokumentationswegweiser) unterscheidet aktuelle Regeln, offene Aufgaben und historische Nachweise. Historische Originalbeschreibungen überschreiben keine später bestätigten Entscheidungen oder den aktuellen Implementierungsstand.
+
+## Verbindlicher Bestandsschutz
+
+- Vor Änderungen den bestehenden Funktions- und Teststand festhalten. Fehler möglichst zuerst mit einem fehlschlagenden Regressionstest reproduzieren.
+- Testbestand vor und nach Änderungen vergleichen. Bestandstests nur mit ausdrücklicher fachlicher Begründung entfernen oder abschwächen.
+- Freigegebene Designs und Bedienabläufe erhalten und Änderungen auf den Auftrag begrenzen.
+- Fehlgeschlagene oder ausstehende Pflichtprüfungen sperren die Freigabe.

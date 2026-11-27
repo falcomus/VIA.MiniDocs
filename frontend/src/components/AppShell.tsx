@@ -10,6 +10,7 @@ import type { ReactNode } from 'react';
 import type { Topic, TopicId } from '../features/topics/topic.types';
 import type { TopicDrag } from '../features/topics/useTopicDrag';
 import { Icon } from './Icon';
+import { AppHeader } from './AppHeader';
 import styles from './AppShell.module.css';
 
 export function AppShell({
@@ -76,14 +77,7 @@ function Header({
 }) {
   const fileInput = useRef<HTMLInputElement>(null);
   return (
-    <header className={styles.topbar}>
-      <div className={styles.brand}>
-        <span className={styles.logo}>MD</span>
-        <div>
-          <b>MiniDoc</b>
-          <small>Prototyp · Notizen-Archiv</small>
-        </div>
-      </div>
+    <AppHeader subtitle="Prototyp · Notizen-Archiv">
       <SearchControls search={search} onChange={onSearchChange} tags={tags} />
       <div className={styles.actions}>
         <button className={styles.button} disabled>
@@ -116,7 +110,7 @@ function Header({
           onOpeningModeChange={onOpeningModeChange}
         />
       </div>
-    </header>
+    </AppHeader>
   );
 }
 

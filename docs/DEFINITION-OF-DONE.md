@@ -45,3 +45,10 @@ Gilt für neue Tickets im [Ticketkatalog](TICKETS.md); siehe auch [Masterplan](M
 - Lesbarkeit und nachvollziehbare Formatierung von Code/CSS sowie Kommentare zu fachlichen Entscheidungen geprüft; offene Qualitätsnachweise weiterhin ausgewiesen.
 
 - `npm run format:check` muss für den definierten Frontendumfang erfolgreich sein; es ist in `npm run check` integriert. Formatierung gegebenenfalls mit `npm run format` anwenden und den Diff auf unbeabsichtigte fachliche Änderungen prüfen.
+
+## Verbindliche Regressionsfreigabe
+
+- Funktions- und Teststand vor der Änderung ist dokumentiert. Ein Fehler wurde nach Möglichkeit vor der Korrektur mit einem fehlschlagenden Regressionstest belegt.
+- Der Vergleich vor und nach der Änderung weist erhaltene Bestandstests nach. Entfernung oder Abschwächung ist ausdrücklich fachlich begründet.
+- Freigegebene Designs und Bedienabläufe sind erhalten. Der Diff hält den beauftragten Umfang ein.
+- Alle Pflichtprüfungen einschließlich der einschlägigen Browserregression sind erfolgreich. Visuelle Referenzen sind ausdrücklich abgenommen. Offene oder fehlgeschlagene Prüfungen sperren die Freigabe.

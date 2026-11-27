@@ -32,6 +32,7 @@ public sealed partial class SessionHostTests
     using var keys = new SessionKeyRingFixture();
     using var recorder = new RecordingDiagnostics();
     var lose = new LoseProvisioningCommit();
+    var clock = new RecoveryWindowClock();
     using var host = CreateHost(runtime, keys, lose).WithWebHostBuilder(builder =>
     {
       builder.ConfigureLogging(logging => logging.AddProvider(recorder));
@@ -44,6 +45,7 @@ public sealed partial class SessionHostTests
       }));
       builder.ConfigureServices(services =>
       {
+        services.AddSingleton<TimeProvider>(clock);
         var worker = services.Single(item => item.ServiceType == typeof(IHostedService) &&
             item.ImplementationType == typeof(ProvisioningWorker));
         services.Remove(worker);
@@ -95,6 +97,15 @@ public sealed partial class SessionHostTests
     for (var index = 0; index < 2; index++)
       await AssertAccepted(await Post(recovery, new { action = "retry_if_safe" }), "ready");
     Assert.Equal(ready.Version, (await store.ReadAsync(workspace, default))!.Version);
+    // The existing two accepted requests count toward the five-per-actor budget.
+    for (var index = 0; index < 3; index++)
+      await AssertAccepted(await Post(recovery, new { action = "retry_if_safe" }), "ready");
+    var limited = await Post(recovery, new { action = "retry_if_safe" });
+    Assert.True(limited.Headers.CacheControl?.NoStore);
+    Assert.Equal(TimeSpan.FromSeconds(60), limited.Headers.RetryAfter?.Delta);
+    await AssertProblem(limited, HttpStatusCode.TooManyRequests, "rate_limited");
+    Assert.Equal(ready.Version, (await store.ReadAsync(workspace, default))!.Version);
+    clock.NextWindow();
 
     var operation = ready.OperationId!.Value;
     var begun = await LocalWriteTransaction.ExecuteAsync(runtime, ct => ProvisioningPersistence.TryBeginProvisioningAsync(
@@ -124,6 +135,14 @@ public sealed partial class SessionHostTests
       Assert.DoesNotContain(secret, diagnostic);
       Assert.DoesNotContain(Convert.ToBase64String(protectedSecret), diagnostic);
     }
+  }
+
+  private sealed class RecoveryWindowClock : TimeProvider
+  {
+    private long timestamp;
+    public override long TimestampFrequency => 1;
+    public override long GetTimestamp() => Interlocked.Read(ref timestamp);
+    internal void NextWindow() => Interlocked.Add(ref timestamp, 60);
   }
 
   private sealed class LoseProvisioningCommit : DbTransactionInterceptor

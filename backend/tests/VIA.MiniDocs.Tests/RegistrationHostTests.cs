@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.WebUtilities;
 using Npgsql;
 using VIA.MiniDocs.Api.Security;
 using VIA.MiniDocs.Infrastructure;
@@ -20,6 +22,29 @@ public sealed partial class SessionHostTests
   private const string UsersPath = "/api/v1/admin/users";
   private const string RegistrationPath = "/api/v1/registration";
   private const string WorkspacePath = "/api/v1/workspace";
+
+  [Fact]
+  [Trait("Package", "D4-D")]
+  public async Task RegistrationReturnsHttp429WhenAllTransactionSlotsAreOccupied()
+  {
+    await using var database = await CreateDatabaseAsync();
+    await using var runtime = fixture.CreateRuntimePeer(database);
+    using var keys = new SessionKeyRingFixture();
+    using var host = CreateHost(runtime, keys);
+    using var client = TestClient(host);
+    var csrf = await GetAntiforgeryAsync(client);
+    var limits = host.Services.GetRequiredService<RegistrationRateLimits>();
+    for (var i = 0; i < 8; i++) Assert.True(limits.TryAcquire($"192.0.2.{i + 1}", $"user{i}", out _));
+    try
+    {
+      var token = WebEncoders.Base64UrlEncode(new byte[32]);
+      var response = await RequestAsync(client, HttpMethod.Post, RegistrationPath, null, csrf.Cookie, csrf.Token,
+          new { token, userName = "registration-test", password = "Strong-password-123" });
+      await AssertProblem(response, HttpStatusCode.TooManyRequests, "rate_limited");
+      Assert.NotNull(response.Headers.RetryAfter);
+    }
+    finally { for (var i = 0; i < 8; i++) limits.Release(); }
+  }
 
   [Fact]
   [Trait("Package", "D4-B")]

@@ -41,6 +41,7 @@ internal static class ProvisioningHttp
   internal static void MapD4C(this WebApplication app)
   {
     var admin = app.MapGroup("/api/v1/admin").WithMetadata(new SessionRoute())
+        .ProducesProblem(StatusCodes.Status500InternalServerError)
         .RequireAuthorization(WorkspacePolicies.Administrator);
     admin.MapGet("/provisioning", ListAsync).Produces<Page<Provisioning>>()
         .ProducesProblem(400).ProducesProblem(401).ProducesProblem(403).ProducesProblem(503);
@@ -52,7 +53,8 @@ internal static class ProvisioningHttp
     admin.MapPost("/workspaces/{id:guid}/recovery", RecoverAsync)
         .WithMetadata(new ValidateSessionAntiforgery(), new JsonRequest(typeof(Recovery)))
         .Produces<Provisioning>(202).ProducesProblem(400).ProducesProblem(401).ProducesProblem(403)
-        .ProducesProblem(404).ProducesProblem(409).ProducesProblem(413).ProducesProblem(415).ProducesProblem(503);
+        .ProducesProblem(404).ProducesProblem(409).ProducesProblem(413).ProducesProblem(415)
+        .ProducesProblem(429).ProducesProblem(503);
   }
 
   private static async Task<IResult> ListAsync(HttpContext context, AdministratorCursor cursor,
@@ -92,13 +94,19 @@ internal static class ProvisioningHttp
   }
 
   private static async Task<IResult> RecoverAsync(Guid id, HttpContext context,
-      ProvisioningAdministration service, CancellationToken token)
+      ProvisioningAdministration service, RecoveryRateLimits limits, CancellationToken token)
   {
     var (input, error) = await BoundedJson.ReadAsync<Recovery>(context, token);
     if (error is not null) return error;
     if (id == Guid.Empty || input is null) return BoundedJson.Invalid(context);
+    var actor = SessionHttp.ReadAuthority(context.User)!;
+    if (!limits.Admit(actor.UserId, out var retryAfter))
+    {
+      context.Response.Headers.RetryAfter = retryAfter.ToString(CultureInfo.InvariantCulture);
+      return SessionHttp.Problem(context, 429, "rate_limited", "Too many recovery requests.");
+    }
     var action = input.Action == RecoveryAction.Verify ? ProvisioningAction.Verify : ProvisioningAction.RetryIfSafe;
-    return ToResult(context, await service.RecoverAsync(SessionHttp.ReadAuthority(context.User)!, id, action, token));
+    return ToResult(context, await service.RecoverAsync(actor, id, action, token));
   }
 
   private static IResult ToResult(HttpContext context, ProvisioningAcceptance result)
@@ -128,4 +136,16 @@ internal static class ProvisioningHttp
     "cancelled" => ProvisioningState.Cancelled,
     _ => throw new InvalidOperationException("Unknown technical provisioning status.")
   }, row.UpdatedAt);
+}
+
+// Recovery has its own bounded budget; invitation traffic cannot consume it.
+internal sealed class RecoveryRateLimits(TimeProvider clock)
+{
+  private readonly LoginRateLimits limits = new(clock);
+
+  internal bool Admit(Guid actor, out int retryAfter)
+  {
+    var id = actor.ToString("D");
+    return limits.TryAcquire(id, id, out retryAfter);
+  }
 }

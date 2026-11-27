@@ -1,9 +1,14 @@
-import { StrictMode } from 'react';
+import { lazy, StrictMode, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
-import { App } from './App';
-import { StandaloneViewer } from './features/viewer/StandaloneViewer';
+import { AuthApp } from './features/auth/AuthApp';
 import './styles/global.css';
 
+const DemoApp = lazy(() => import('./App').then(({ App }) => ({ default: App })));
+const DemoViewer = lazy(() =>
+  import('./features/viewer/StandaloneViewer').then(({ StandaloneViewer }) => ({
+    default: StandaloneViewer,
+  })),
+);
 const container = document.getElementById('root');
 
 if (!container) {
@@ -12,11 +17,17 @@ if (!container) {
 
 createRoot(container).render(
   <StrictMode>
-    {new URLSearchParams(window.location.search).has('viewer') ||
-    new URLSearchParams(window.location.search).has('document') ? (
-      <StandaloneViewer />
+    {import.meta.env.MODE !== 'demo' ? (
+      <AuthApp />
     ) : (
-      <App />
+      <Suspense fallback={<p role="status">Demo wird geladen …</p>}>
+        {new URLSearchParams(window.location.search).has('viewer') ||
+        new URLSearchParams(window.location.search).has('document') ? (
+          <DemoViewer />
+        ) : (
+          <DemoApp />
+        )}
+      </Suspense>
     )}
   </StrictMode>,
 );
