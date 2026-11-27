@@ -221,7 +221,7 @@ Restrisiken: Unklare Remote-Dateien benötigen eindeutige Belege oder manuelle K
 | Methode / Route | Request → Response; Autorisierung | Erfolg / Konflikt / Wiederanlauf |
 | --- | --- | --- |
 | POST `/api/v1/session/login` | Zugangsdaten → Session-Cookie, Sessionstatus; P | 200, 401, 423/429 bei Sperre/Limit; nie Secrets zurückgeben. Kein automatischer Login-Retry. |
-| DELETE `/api/v1/session` | Antiforgery → Cookie ungültig; Session | 204; wiederholbar. |
+| DELETE `/api/v1/session` | Antiforgery → serverseitige Sitzung und Cookie ungültig; Session | 204 nach bestätigtem Widerruf oder bestätigtem No-op bei parallelem Entzug nach Requestprüfung; 401 bei neuem Request mit bereits ungültiger, abgelaufener oder fehlender Session; 403 bei ungültiger Antiforgery; 503 bei unklarem DB-Ergebnis. Der fachliche Effekt ist idempotent. |
 | GET `/api/v1/session` | – → Benutzer, Rollen, Workspace-Status ohne Secrets; Session | 200/401; gesperrte Session unmittelbar entziehen. |
 | GET `/api/v1/antiforgery` | – → Request-Token; anonym oder Session | 200 no-store; Cookie und Token gemäß Middleware. |
 | POST `/api/v1/registration` | Einmal-Token, Zugangsdaten → Konto-/Workspace-Status; P | 201, 400/409/410/429; atomare Einlösung, verlorene Antwort über Login klären, Token nicht blind erneut verwenden. |
