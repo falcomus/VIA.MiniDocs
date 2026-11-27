@@ -81,7 +81,7 @@ internal sealed class ViaDocsAccountConfiguration : IEntityTypeConfiguration<Via
     entity.ToTable("via_docs_accounts", table =>
         table.HasCheckConstraint(
             "ck_via_account_verified_pair",
-            "(application_id IS NULL) = (verified_at IS NULL)"));
+              "(application_id IS NULL) = (verified_at IS NULL)"));
     entity.HasKey(account => account.Id);
     entity.HasIndex(account => account.WorkspaceId).IsUnique();
     entity.HasIndex(account => account.ApplicationName).IsUnique();
@@ -91,6 +91,8 @@ internal sealed class ViaDocsAccountConfiguration : IEntityTypeConfiguration<Via
         .HasForeignKey(account => account.WorkspaceId)
         .OnDelete(DeleteBehavior.Restrict);
     entity.Property(value => value.ProtectedSecret).HasColumnName("application_secret_protected");
+    entity.Property(value => value.CredentialGeneration).HasDefaultValue(1L);
+    entity.ToTable(table => table.HasCheckConstraint("ck_via_docs_credential_generation", "credential_generation > 0"));
     entity.Property(value => value.Version).IsConcurrencyToken().HasDefaultValue(1L);
     entity.Property(value => value.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
     entity.Property(value => value.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");

@@ -26,6 +26,7 @@ public sealed class UserInvitation
 
 public sealed class ViaDocsAccount : WorkspaceRecord
 {
+  public long CredentialGeneration { get; private set; } = 1;
   public string ApplicationName { get; private set; } = "";
   public byte[] ProtectedSecret { get; private set; } = [];
   public Guid? ApplicationId { get; private set; }

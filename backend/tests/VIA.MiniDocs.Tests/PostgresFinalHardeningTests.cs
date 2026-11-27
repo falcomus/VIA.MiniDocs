@@ -42,6 +42,9 @@ public sealed partial class PostgresFinalHardeningTests(PostgresTestDatabase fix
   [InlineData("ALTER TABLE minidocs.identity_sessions DROP CONSTRAINT identity_sessions_user_id_fkey, ADD CONSTRAINT identity_sessions_user_id_fkey FOREIGN KEY (user_id) REFERENCES minidocs.workspaces(id)", "unexpected D4 constraint identity_sessions_user_id_fkey")]
   [InlineData("ALTER TABLE minidocs.administrator_bootstrap DROP CONSTRAINT administrator_bootstrap_user_id_fkey, ADD CONSTRAINT administrator_bootstrap_user_id_fkey FOREIGN KEY (user_id) REFERENCES minidocs.identity_users(id) ON DELETE CASCADE", "unexpected D4 constraint administrator_bootstrap_user_id_fkey")]
   [InlineData("ALTER TABLE minidocs.identity_sessions ALTER COLUMN idle_until DROP NOT NULL", "unexpected D4 column identity_sessions.idle_until")]
+  [InlineData("ALTER TABLE minidocs.via_docs_accounts DROP CONSTRAINT ck_via_docs_credential_generation, ADD CONSTRAINT ck_via_docs_credential_generation CHECK (credential_generation >= 0)", "unexpected credential generation invariant")]
+  [InlineData("GRANT UPDATE(credential_generation) ON minidocs.via_docs_accounts TO minidocs_runtime", "column privilege UPDATE")]
+  [InlineData("GRANT EXECUTE ON FUNCTION minidocs.command_replace_technical_invitation(uuid,uuid,bigint,bytea) TO PUBLIC", "function")]
   public async Task GateRejectsCatalogDrift(string change, string expected)
   {
     await using var db = await OpenAsync();
@@ -160,7 +163,7 @@ public sealed partial class PostgresFinalHardeningTests(PostgresTestDatabase fix
         FROM pg_proc p
         WHERE p.pronamespace = 'minidocs'::regnamespace AND has_function_privilege('minidocs_runtime', p.oid, 'EXECUTE')
         """).ToListAsync();
-    Assert.Equal(44, calls.Count);
+    Assert.Equal(45, calls.Count);
     foreach (var call in calls)
     {
       var error = await Assert.ThrowsAsync<PostgresException>(() => runtime.Database.ExecuteSqlRawAsync(call));

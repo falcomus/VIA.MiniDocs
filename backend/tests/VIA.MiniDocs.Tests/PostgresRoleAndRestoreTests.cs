@@ -18,7 +18,7 @@ public sealed class PostgresRoleAndRestoreTests(PostgresTestDatabase fixture) : 
     await using (var migrator = fixture.CreateMigratorPeer(source))
     {
       await migrator.Database.MigrateAsync();
-      Assert.Equal(4, (await migrator.Database.GetAppliedMigrationsAsync()).Count());
+      Assert.Equal(5, (await migrator.Database.GetAppliedMigrationsAsync()).Count());
       await DeniedAsync(migrator, "CREATE SCHEMA forbidden_schema");
       await DeniedAsync(migrator, "CREATE ROLE forbidden_role");
     }
@@ -110,7 +110,7 @@ public sealed class PostgresRoleAndRestoreTests(PostgresTestDatabase fixture) : 
       Assert.Equal("Restored and writable", (await runtime.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync()).Title);
     }
     await using var restoredMigrator = fixture.CreateMigratorPeer(restored);
-    Assert.Equal(4, (await restoredMigrator.Database.GetAppliedMigrationsAsync()).Count());
+    Assert.Equal(5, (await restoredMigrator.Database.GetAppliedMigrationsAsync()).Count());
     Assert.Empty(await restoredMigrator.Database.GetPendingMigrationsAsync());
   }
 
@@ -118,7 +118,7 @@ public sealed class PostgresRoleAndRestoreTests(PostgresTestDatabase fixture) : 
   {
     Assert.Equal("minidocs_runtime", await db.Database.SqlQueryRaw<string>(
         """SELECT current_user::text AS "Value" """).SingleAsync());
-    Assert.Equal(4, (await db.Database.GetAppliedMigrationsAsync()).Count());
+    Assert.Equal(5, (await db.Database.GetAppliedMigrationsAsync()).Count());
 
     await DeniedAsync(db, "CREATE TABLE minidocs.forbidden(id integer)");
     await DeniedAsync(db, "ALTER TABLE minidocs.documents ADD COLUMN forbidden integer");

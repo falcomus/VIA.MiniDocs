@@ -962,6 +962,12 @@ namespace VIA.MiniDocs.Infrastructure.Persistence.Migrations
                         .HasColumnType("bytea")
                         .HasColumnName("application_secret_protected");
 
+                    b.Property<long>("CredentialGeneration")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("credential_generation")
+                        .HasDefaultValue(1L);
+
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
@@ -997,6 +1003,7 @@ namespace VIA.MiniDocs.Infrastructure.Persistence.Migrations
                     b.ToTable("via_docs_accounts", "minidocs", t =>
                         {
                             t.HasCheckConstraint("ck_via_account_verified_pair", "(application_id IS NULL) = (verified_at IS NULL)");
+                            t.HasCheckConstraint("ck_via_docs_credential_generation", "credential_generation > 0");
                         });
                 });
 

@@ -182,6 +182,10 @@ internal sealed class ViaDocsAuthentication(IServiceProvider scope, IOptions<Via
 
             if (application is not Guid applicationId)
             {
+                var attempt = scope.GetService<ProvisioningDispatchContext>()?.Current;
+                if (attempt is not null && (provider is not IProvisioningDispatchCredentialProvider provisioning ||
+                    !await provisioning.AuthorizeDispatchAsync(normalized, attempt, invitation is not null, deadline.Token)))
+                    return Fail(ViaDocsFailureKind.Authentication);
                 var unbound = await transport.SendLimitedAsync(root, name, null, credential.Secret, invitation,
                     cancellation, deadline.Token);
                 if (unbound is not ViaDocsResult<ViaDocsSession>.Success observed)

@@ -10,6 +10,7 @@ DECLARE
   protected_roles oid[] := ARRAY[runtime, writer, migrator];
   readers oid[] := ARRAY[runtime, writer];
   d4 boolean;
+  d4c boolean;
   expected record;
   item record;
   role_id oid;
@@ -24,6 +25,8 @@ BEGIN
   PERFORM pg_catalog.set_config('search_path', 'pg_catalog, pg_temp', true);
   SELECT EXISTS (SELECT 1 FROM public."__EFMigrationsHistory"
     WHERE "MigrationId" = '20261127090000_SessionSecurity') INTO d4;
+  SELECT EXISTS (SELECT 1 FROM public."__EFMigrationsHistory"
+    WHERE "MigrationId" = '20261127100000_TechnicalProvisioning') INTO d4c;
   IF d4 AND bootstrap IS NULL THEN RAISE EXCEPTION 'MiniDocs gate: missing bootstrap principal'; END IF;
   IF bootstrap IS NOT NULL THEN
     protected_roles := array_append(protected_roles, bootstrap);
@@ -192,8 +195,8 @@ BEGIN
     ('minidocs.command_begin_purge(uuid, uuid, bigint, uuid, uuid, interval)', 'writer', 'uuid', 'plpgsql', 'v', true, true, false,'13364da47af01e57f730c485b947e40299bc5d99ce66ab49359b70751f859171'),
     ('minidocs.command_begin_upload(uuid, uuid, uuid, uuid, interval, bigint)', 'writer', 'integer', 'plpgsql', 'v', true, true, false,'94dc764cfe33e1b301aa31464aef507d3df0ee56285e1bc4c21b2c4c9536e650'),
     ('minidocs.command_change_page_count(uuid, uuid, bigint, integer, text)', 'writer', 'boolean', 'plpgsql', 'v', true, true, false,'1854fa373964845f578b668248d6aa7aa5e5cc9a88007568159c5dabaeb1f576'),
-    ('minidocs.command_claim_provisioning_verification(uuid, uuid, bigint, uuid, interval)', 'writer', 'bigint', 'plpgsql', 'v', true, true, false,'b8d47023b20501baf48692bccfe1b47509114d59018bcc822557148125cdcb18'),
-    ('minidocs.command_complete_provisioning(uuid, uuid, bigint, uuid, uuid)', 'writer', 'boolean', 'plpgsql', 'v', true, true, false,'26e160d54d394c755755aa783fa3d0f0d38054fad9827808cc1807285e9d68bc'),
+    ('minidocs.command_claim_provisioning_verification(uuid, uuid, bigint, uuid, interval)', 'writer', 'bigint', 'plpgsql', 'v', true, true, false,CASE WHEN d4c THEN '0ed51e5a6ca4e53fc2ec69c8f7cc7ce3a9e3900da1305768eab68e2b8d9fd411' ELSE 'b8d47023b20501baf48692bccfe1b47509114d59018bcc822557148125cdcb18' END),
+    ('minidocs.command_complete_provisioning(uuid, uuid, bigint, uuid, uuid)', 'writer', 'boolean', 'plpgsql', 'v', true, true, false,CASE WHEN d4c THEN '0530ef43f4df2f618fe6e142bd3609052b396548b5cda5d0f21b24b87d74941c' ELSE '26e160d54d394c755755aa783fa3d0f0d38054fad9827808cc1807285e9d68bc' END),
     ('minidocs.command_complete_purge(uuid, uuid, uuid, uuid, bigint, uuid, boolean)', 'writer', 'boolean', 'plpgsql', 'v', true, true, false,'5cd76b0f36275d28a8ab1896a91e1ac16603afc9e52f5a572b541c6aa8a8364a'),
     ('minidocs.command_complete_upload(uuid, uuid, uuid, bigint, bigint, uuid, uuid, bigint, bytea)', 'writer', 'boolean', 'plpgsql', 'v', true, true, false,'a4e193e240950e16f7329ce4bd3d47f3f9900dd469ea3dcc8fe0fa1d79bab345'),
     ('minidocs.command_create_invitation(uuid, bytea, uuid, timestamptz)', 'writer', 'boolean', 'plpgsql', 'v', true, true, false,'85da2b2f7b2ea1f0f5e8be69c118da2303df8748cdf23101dcd3d34d1becfe09'),
@@ -248,13 +251,15 @@ BEGIN
     ('minidocs.command_revoke_session(bytea, uuid)', 'writer', 'boolean', 'plpgsql', 'v', true, true, false, '4eb9bb28acba4cf19eaf4d51340f93be2cbe6ef6ad764c46dc846a6080bff467'),
     ('minidocs.command_cleanup_sessions(integer)', 'writer', 'integer', 'plpgsql', 'v', true, true, false, '485540fa1f6006612e0f6a27910e06ba60b1987396de54aea838b3c161c7200a'),
     ('minidocs.lock_admin_authority(uuid, text, bytea, uuid, uuid)', 'writer', 'boolean', 'plpgsql', 'v', true, true, false, '416a47cc4cae6e790d8561d4190f197809dd0bf420ddb730a9efd1200216951d'),
-    ('minidocs.command_set_account_disabled(uuid, text, bytea, uuid, text, text[], boolean)', 'writer', 'smallint', 'plpgsql', 'v', true, true, false, '1336a5281d40789ff41f1eb8eda0f39113dec0f1c759000913e2e18a3142bb41'),
-    ('minidocs.command_bootstrap_administrator(uuid, text, text, text)', 'writer', 'boolean', 'plpgsql', 'v', true, false, false, 'ef251e5a94a5981f0bc0000c7121706cb6eadbf76f1bd913887689bd936377f5')
+    ('minidocs.command_set_account_disabled(uuid, text, bytea, uuid, text, text[], boolean)', 'writer', 'smallint', 'plpgsql', 'v', true, true, false, CASE WHEN d4c THEN '518be3fb466b2c484a6807e2e6260f4b0f1a833ffd5a4aaa83fa30eaf619d957' ELSE '1336a5281d40789ff41f1eb8eda0f39113dec0f1c759000913e2e18a3142bb41' END),
+    ('minidocs.command_bootstrap_administrator(uuid, text, text, text)', 'writer', 'boolean', 'plpgsql', 'v', true, false, false, 'ef251e5a94a5981f0bc0000c7121706cb6eadbf76f1bd913887689bd936377f5'),
+    ('minidocs.command_replace_technical_invitation(uuid, uuid, bigint, bytea)', 'writer', 'boolean', 'plpgsql', 'v', true, true, false, '43217b0459b1444ca36020179cccdde3254336c921151d658b5cb2885f6f7c61')
   ) v(signature, owner_name, return_type, language_name, volatility, definer, runtime_execute, writer_grant, source_sha256)
-  WHERE d4 OR signature NOT LIKE 'minidocs.%session%' AND
+  WHERE (d4c OR signature NOT LIKE 'minidocs.command_replace_technical_invitation(%') AND
+    (d4 OR signature NOT LIKE 'minidocs.%session%' AND
     signature NOT LIKE 'minidocs.lock_admin_authority(%' AND
     signature NOT LIKE 'minidocs.command_set_account_disabled(%' AND
-    signature NOT LIKE 'minidocs.command_bootstrap_administrator(%'
+    signature NOT LIKE 'minidocs.command_bootstrap_administrator(%')
   LOOP
     object_id := to_regprocedure(expected.signature);
     SELECT p.*, l.lanname INTO item FROM pg_proc p JOIN pg_language l ON l.oid = p.prolang WHERE p.oid = object_id;
@@ -383,6 +388,15 @@ BEGIN
       AND pg_get_indexdef(i.indexrelid, 2, true) = 'handle_hash')
   THEN RAISE EXCEPTION 'MiniDocs gate: invalid identity session expiry index'; END IF;
   IF d4 THEN
+    IF d4c AND (NOT EXISTS (SELECT 1 FROM pg_attribute a JOIN pg_attrdef d
+        ON d.adrelid = a.attrelid AND d.adnum = a.attnum
+        WHERE a.attrelid = 'minidocs.via_docs_accounts'::regclass AND a.attname = 'credential_generation'
+          AND a.atttypid = 'bigint'::regtype AND a.attnotnull AND NOT a.attisdropped
+          AND pg_get_expr(d.adbin, d.adrelid) = '1')
+      OR NOT EXISTS (SELECT 1 FROM pg_constraint c WHERE c.conrelid = 'minidocs.via_docs_accounts'::regclass
+          AND c.conname = 'ck_via_docs_credential_generation' AND c.contype = 'c' AND c.convalidated AND c.conenforced
+          AND pg_get_expr(c.conbin, c.conrelid) = '(credential_generation > 0)'))
+    THEN RAISE EXCEPTION 'MiniDocs gate: unexpected credential generation invariant'; END IF;
     -- Compare column names and types as well as constraints so that the same
     -- constraint cannot be rebound to differently typed or nullable columns.
     FOR expected IN SELECT * FROM (VALUES

@@ -57,4 +57,11 @@ public static class ProvisioningPersistence
           SELECT minidocs.command_complete_provisioning(
             {workspace}, {operation}, {fence.Version}, {fence.Owner}, {application})
           """, cancellationToken);
+
+  public static Task<bool> TryReplaceInvitationAsync(MiniDocsDbContext db, Guid workspace, Guid operation,
+      long expectedVersion, byte[] protectedInvitation, CancellationToken cancellationToken = default) =>
+      D2Commands.InvokeAsync<bool>(db, $"""
+          SELECT minidocs.command_replace_technical_invitation(
+            {workspace}, {operation}, {expectedVersion}, {protectedInvitation})
+          """, cancellationToken);
 }

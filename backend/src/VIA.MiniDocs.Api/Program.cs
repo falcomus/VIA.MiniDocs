@@ -10,6 +10,8 @@ var builder = WebApplication.CreateBuilder(localOperation ? [] : args);
 builder.Services.AddProblemDetails();
 builder.Services.AddViaDocs(builder.Configuration);
 builder.AddMiniDocsSecurity(localOperation);
+if (!localOperation)
+    builder.Services.AddTechnicalProvisioning(builder.Configuration, !builder.Environment.IsEnvironment("ContractTests"));
 builder.Services.AddExceptionHandler<SafeExceptionHandler>();
 builder.Services.AddOpenApi(options => options.AddOperationTransformer(async (operation, context, token) =>
 {
@@ -25,13 +27,16 @@ builder.Services.AddOpenApi(options => options.AddOperationTransformer(async (op
             }
         };
     if (context.Description.HttpMethod == "GET" &&
-        context.Description.RelativePath is "api/v1/admin/users" or "api/v1/admin/invitations")
+        context.Description.RelativePath is "api/v1/admin/users" or "api/v1/admin/invitations" or "api/v1/admin/provisioning")
     {
         operation.Parameters ??= [];
         operation.Parameters.Add(new OpenApiParameter { Name = "cursor", In = ParameterLocation.Query,
             Schema = new OpenApiSchema { Type = JsonSchemaType.String, MaxLength = 2048 } });
         operation.Parameters.Add(new OpenApiParameter { Name = "limit", In = ParameterLocation.Query,
             Schema = new OpenApiSchema { Type = JsonSchemaType.Integer, Minimum = "1", Maximum = "100" } });
+        if (context.Description.RelativePath == "api/v1/admin/provisioning")
+            operation.Parameters.Add(new OpenApiParameter { Name = "workspaceId", In = ParameterLocation.Query,
+                Schema = new OpenApiSchema { Type = JsonSchemaType.String, Format = "uuid" } });
     }
     if (context.Description.HttpMethod == "PATCH" && context.Description.RelativePath == "api/v1/admin/users/{id:guid}")
     {
@@ -52,6 +57,12 @@ builder.Services.AddOpenApi(options => options.AddOperationTransformer(async (op
     if (context.Description.HttpMethod == "POST" && context.Description.RelativePath == "api/v1/admin/invitations")
         ((OpenApiResponse)operation.Responses!["201"]).Headers = new Dictionary<string, IOpenApiHeader>
         { ["Location"] = new OpenApiHeader { Schema = new OpenApiSchema { Type = JsonSchemaType.String } } };
+    if (context.Description.HttpMethod == "POST" && operation.Responses?.TryGetValue("202", out var accepted) == true)
+        ((OpenApiResponse)accepted).Headers = new Dictionary<string, IOpenApiHeader>
+        {
+            ["Location"] = new OpenApiHeader { Schema = new OpenApiSchema { Type = JsonSchemaType.String } },
+            ["Retry-After"] = new OpenApiHeader { Schema = new OpenApiSchema { Type = JsonSchemaType.Integer } }
+        };
     if (context.Description.RelativePath == "api/v1/_contract-fixtures/nullable")
         ((OpenApiResponse)operation.Responses!["200"]).Headers = new Dictionary<string, IOpenApiHeader>
         { ["ETag"] = new OpenApiHeader { Schema = new OpenApiSchema { Type = JsonSchemaType.String } } };
@@ -87,6 +98,7 @@ app.UseAuthorization();
 app.UseMiddleware<SessionAntiforgeryMiddleware>();
 app.MapMiniDocsSessions();
 app.MapD4B();
+app.MapD4C();
 if (app.Environment.IsEnvironment("ContractTests"))
 {
     app.MapOpenApi();
