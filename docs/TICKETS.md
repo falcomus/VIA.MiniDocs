@@ -319,7 +319,7 @@ Aktuelle Aufgaben und offene Abnahmen; frühere Detailnachweise stehen im [Ticke
 
 - **Folgeaufgabe aus D1:** Die ProblemDetails-Felder `code` und `traceId` im generierten OpenAPI-Fehlerschema ausdrücklich als Strings typisieren und die Übereinstimmung mit den ausgelieferten Fehlerantworten durch Vertrags- und Generatortests nachweisen.
 
-- **BACKEND-QUALITY-GATE-01.** Fehlenden Dispatch-Kontext beim produktiven Credential-Provider für Provisionierungsaufrufe grundsätzlich abweisen. Bestehende Bound-Identity-Pfade dürfen dadurch nicht beeinträchtigt werden.
+- **BACKEND-QUALITY-GATE-01.** Die konsolidierten Befunde zu Dispatch, Bound-Identity, Fehlerklassifikation und D2-Restore-Gate sind in BACKEND-QUALITY-GATE-01-FIX bearbeitet. Nachweise und Abnahmegrenzen stehen im [Auditnachweis](BACKEND-QUALITY-GATE-01-VERIFICATION.md).
 
 - **D4-D-Stand.** D4-D-FIX3 und D4-D-INVITE-LINK sind statisch nachgeprüft und freigegeben. Der automatisierte HTTPS-Browsernachweis mit Testdouble ist bestanden. Die 45 Dateien sind statisch freigegeben. Die manuelle Anmeldung mit Benutzername und Passwort war erfolgreich. Tastatur-, Fokus- und Accessibility-Abnahme sowie Merge und Push stehen aus. [D4-FINAL-Nachweis](D4-FINAL-VERIFICATION.md)
 

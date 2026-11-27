@@ -30,7 +30,8 @@ internal sealed class ViaDocsAuthTransport(IHttpClientFactory factory, IOptions<
     internal bool InvitationUnavailable => Volatile.Read(ref invitationUnavailable) != 0;
 
     internal async Task<ViaDocsResult<ViaDocsSession>> SendLimitedAsync(Uri root, string name, Guid? expected,
-        string secret, string? invitation, CancellationToken cancellation, CancellationToken deadline)
+        string secret, string? invitation, CancellationToken cancellation, CancellationToken deadline,
+        Func<Task<ViaDocsFailureKind?>>? authorize = null)
     {
         if (Interlocked.Increment(ref active) > Settings.ConcurrentLogins)
         {
@@ -41,7 +42,7 @@ internal sealed class ViaDocsAuthTransport(IHttpClientFactory factory, IOptions<
         {
             if (invitation is not null && InvitationUnavailable)
                 return Fail(ViaDocsFailureKind.InvitationUnavailable, false);
-            return await SendAsync(root, name, expected, secret, invitation, cancellation, deadline);
+            return await SendAsync(root, name, expected, secret, invitation, cancellation, deadline, authorize);
         }
         finally
         {
@@ -50,7 +51,8 @@ internal sealed class ViaDocsAuthTransport(IHttpClientFactory factory, IOptions<
     }
 
     private async Task<ViaDocsResult<ViaDocsSession>> SendAsync(Uri root, string name, Guid? expected,
-        string secret, string? invitation, CancellationToken cancellation, CancellationToken deadline)
+        string secret, string? invitation, CancellationToken cancellation, CancellationToken deadline,
+        Func<Task<ViaDocsFailureKind?>>? authorize)
     {
         var dispatched = false;
         try
@@ -68,6 +70,8 @@ internal sealed class ViaDocsAuthTransport(IHttpClientFactory factory, IOptions<
                 ? JsonSerializer.SerializeToUtf8Bytes(new LoginRequest(name, secret), JsonOptions)
                 : JsonSerializer.SerializeToUtf8Bytes(new InvitationRequest(invitation, name, secret), JsonOptions);
             request.Content = SingleSendContent.Json(body);
+            if (authorize is not null && await authorize() is { } rejection)
+                return Fail(rejection, false);
             deadline.ThrowIfCancellationRequested();
             dispatched = true;
             using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, deadline);

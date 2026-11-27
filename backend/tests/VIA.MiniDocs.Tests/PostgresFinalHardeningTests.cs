@@ -34,6 +34,7 @@ public sealed partial class PostgresFinalHardeningTests(PostgresTestDatabase fix
   [InlineData("GRANT CREATE ON SCHEMA public TO minidocs_runtime", "schema rights")]
   [InlineData("ALTER TABLE minidocs.file_operations DISABLE TRIGGER guard_file_transition", "unexpected trigger")]
   [InlineData("ALTER TABLE minidocs.pending_transcripts DROP CONSTRAINT ck_pending_terminal_metadata", "inactive constraint")]
+  [InlineData("ALTER TABLE minidocs.provisioning_operations DROP CONSTRAINT ck_provisioning_lifecycle, ADD CONSTRAINT ck_provisioning_lifecycle CHECK (true)", "unexpected D2 constraint ck_provisioning_lifecycle")]
   [InlineData("DROP INDEX minidocs.ux_provisioning_active_workspace", "invalid active provisioning index")]
   [InlineData("ALTER TABLE minidocs.identity_sessions DROP CONSTRAINT identity_sessions_handle_hash_check, ADD CONSTRAINT identity_sessions_handle_hash_check CHECK (octet_length(handle_hash) <= 32)", "unexpected D4 constraint identity_sessions_handle_hash_check")]
   [InlineData("ALTER TABLE minidocs.identity_sessions DROP CONSTRAINT ck_identity_session_times, ADD CONSTRAINT ck_identity_session_times CHECK (issued_at <= idle_until AND idle_until <= absolute_until AND (revoked_at IS NULL OR revoked_at >= issued_at))", "unexpected D4 constraint ck_identity_session_times")]

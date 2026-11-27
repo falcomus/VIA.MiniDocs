@@ -231,13 +231,16 @@ public sealed partial class TechnicalProvisioningTests(PostgresTestDatabase fixt
       await rig.Worker().RunIterationAsync(default);
       var current = await rig.ObserveAsync();
       var identity = current.Identity();
-      Assert.Equal(1L, (await rig.ResolveAsync(identity))!.Generation);
-      Assert.Null(await rig.ResolveAsync(new(Guid.NewGuid(), identity.Name, identity.Credential)));
-      Assert.Null(await rig.ResolveAsync(new(identity.WorkspaceId, identity.Name, new(Guid.NewGuid()))));
-      Assert.Null(await rig.ResolveAsync(new(identity.WorkspaceId, identity.Name + "x", identity.Credential)));
+      var attempt = new ProvisioningDispatch(rig.Workspace, current.OperationId!.Value, identity.Credential.Value,
+          current.Generation, new(current.LeaseOwner!.Value, current.Version), true, 0,
+          TimeProvider.System.GetTimestamp(), (int)Lease.TotalSeconds);
+      Assert.Equal(1L, (await rig.ResolveAsync(identity, attempt: attempt))!.Generation);
+      Assert.Null(await rig.ResolveAsync(new(Guid.NewGuid(), identity.Name, identity.Credential), attempt: attempt));
+      Assert.Null(await rig.ResolveAsync(new(identity.WorkspaceId, identity.Name, new(Guid.NewGuid())), attempt: attempt));
+      Assert.Null(await rig.ResolveAsync(new(identity.WorkspaceId, identity.Name + "x", identity.Credential), attempt: attempt));
       var admin = new AdministratorAccounts(rig.Runtime);
       Assert.Equal(DeactivationResult.Applied, await PostgresSessionTests.ChangeAsync(admin, rig.Actor, rig.Owner, true));
-      Assert.Null(await rig.ResolveAsync(identity));
+      Assert.Null(await rig.ResolveAsync(identity, attempt: attempt));
       await rig.ExpireLeaseAsync();
       await rig.Worker().RunIterationAsync(default);
       var expired = await rig.ObserveAsync();
@@ -246,7 +249,7 @@ public sealed partial class TechnicalProvisioningTests(PostgresTestDatabase fixt
           ProvisioningPersistence.TryClaimVerificationAsync(rig.Runtime, rig.Workspace, expired.OperationId!.Value,
               expired.Version, Guid.NewGuid(), Lease, ct), value => value is not null);
       Assert.Equal(LocalWriteStatus.Rejected, claim.Status);
-      Assert.Null(await rig.ResolveAsync(identity));
+      Assert.Null(await rig.ResolveAsync(identity, attempt: attempt));
     }
     finally { release.TrySetResult(); }
     await worker;
@@ -257,7 +260,7 @@ public sealed partial class TechnicalProvisioningTests(PostgresTestDatabase fixt
     await rig.Worker().RunIterationAsync(default);
     var active = await rig.ObserveAsync();
     Assert.Equal("active", active.Status);
-    Assert.Equal(1L, (await rig.ResolveAsync(active.Identity()))!.Generation);
+    Assert.Equal(1L, (await rig.ResolveAsync(active.Identity(), active.ApplicationId))!.Generation);
     Assert.Equal(1, rig.Auth.Redeems);
     Assert.Equal(1, rig.Auth.Finds);
   }
@@ -457,12 +460,95 @@ public sealed partial class TechnicalProvisioningTests(PostgresTestDatabase fixt
     for (var repeat = 0; repeat < 2; repeat++)
       Assert.Equal(new[] { first.ApplicationId!.Value, other.ApplicationId!.Value }, await Task.WhenAll(Login(first), Login(other)));
     Assert.Equal(6, calls.Count);
+    await using (var scope = rig.Services.CreateAsyncScope())
+    {
+      var auth = scope.ServiceProvider.GetRequiredService<IViaDocsAuthentication>();
+      var wrongApplication = Assert.IsType<ViaDocsResult<ViaDocsVerifiedIdentity>.Failure>(
+          await auth.LoginAsync(new(first.Identity(), other.ApplicationId!.Value), default));
+      Assert.Equal(ViaDocsFailureKind.Authentication, wrongApplication.Error.Kind);
+      await rig.Database.Database.ExecuteSqlInterpolatedAsync($"""
+          UPDATE minidocs.workspaces SET status = 'suspended', version = version + 1 WHERE id = {second}
+          """);
+      var suspended = Assert.IsType<ViaDocsResult<ViaDocsVerifiedIdentity>.Failure>(
+          await auth.LoginAsync(new(other.Identity(), other.ApplicationId!.Value), default));
+      Assert.Equal(ViaDocsFailureKind.Authentication, suspended.Error.Kind);
+      Assert.Equal(6, calls.Count);
+      Assert.Equal(DeactivationResult.Applied, await PostgresSessionTests.ChangeAsync(
+          new AdministratorAccounts(rig.Runtime), rig.Actor, rig.Owner, true));
+      var disabled = Assert.IsType<ViaDocsResult<ViaDocsVerifiedIdentity>.Failure>(
+          await auth.LoginAsync(new(first.Identity(), first.ApplicationId!.Value), default));
+      Assert.Equal(ViaDocsFailureKind.Authentication, disabled.Error.Kind);
+      Assert.Equal(6, calls.Count);
+      Assert.Equal(DeactivationResult.Applied, await PostgresSessionTests.ChangeAsync(
+          new AdministratorAccounts(rig.Runtime), rig.Actor, rig.Owner, false));
+      await rig.Database.Database.ExecuteSqlInterpolatedAsync($"""
+          UPDATE minidocs.workspaces SET status = 'active', version = version + 1 WHERE id = {second}
+          """);
+    }
     await rig.Database.Database.ExecuteSqlInterpolatedAsync($"""
         UPDATE minidocs.via_docs_accounts SET credential_generation = 2 WHERE workspace_id = {first.WorkspaceId}
         """);
-    await Assert.ThrowsAsync<ViaDocsCredentialUnavailableException>(() => rig.ResolveAsync(first.Identity()));
+    await Assert.ThrowsAsync<ViaDocsCredentialUnavailableException>(() => rig.ResolveAsync(first.Identity(), first.ApplicationId));
     Assert.Equal(other.ApplicationId, await Login(other));
     Assert.Equal(6, calls.Count);
+  }
+
+  [Fact]
+  public async Task ProductionProviderRejectsUnboundCallsWithoutMatchingDispatch()
+  {
+    var calls = 0;
+    var fault = new DispatchReadFault();
+    using var transport = new AuthHandler((_, _) =>
+    {
+      Interlocked.Increment(ref calls);
+      return Task.FromResult(new HttpResponseMessage(HttpStatusCode.Unauthorized));
+    });
+    await using var rig = await CreateRigAsync(transport, null, fault);
+    await rig.PrepareAsync();
+    var ready = await rig.ObserveAsync();
+    var leaseOwner = Guid.NewGuid();
+    var began = await LocalWriteTransaction.ExecuteAsync(rig.Runtime, ct =>
+        ProvisioningPersistence.TryBeginProvisioningAsync(rig.Runtime, rig.Workspace,
+            ready.OperationId!.Value, ready.Version, leaseOwner, Lease, ct), fence => fence is not null);
+    Assert.Equal(LocalWriteStatus.Committed, began.Status);
+    var row = await rig.ObserveAsync();
+    await using var scope = rig.Services.CreateAsyncScope();
+    var auth = scope.ServiceProvider.GetRequiredService<IViaDocsAuthentication>();
+    var context = scope.ServiceProvider.GetRequiredService<ProvisioningDispatchContext>();
+    var attempt = new ProvisioningDispatch(row.WorkspaceId, row.OperationId!.Value, row.AccountId!.Value,
+        row.Generation, new(leaseOwner, row.Version), true, 0, TimeProvider.System.GetTimestamp(), (int)Lease.TotalSeconds);
+    foreach (var invalid in new[] { null, attempt with { Generation = row.Generation + 1 },
+        attempt with { Operation = Guid.NewGuid() }, attempt with { Fence = new(leaseOwner, row.Version - 1) },
+        attempt with { Redeem = false } })
+    {
+      context.Current = invalid;
+      var denied = Assert.IsType<ViaDocsResult<ViaDocsRegistrationCandidate>.Failure>(
+          await auth.RedeemAsync(row.Identity(), new(Token), default));
+      Assert.Equal(ViaDocsFailureKind.Authentication, denied.Error.Kind);
+      Assert.Equal(0, calls);
+    }
+    context.Current = null;
+    var find = Assert.IsType<ViaDocsResult<ViaDocsVerifiedIdentity>.Failure>(await auth.FindAsync(row.Identity(), default));
+    Assert.Equal(ViaDocsFailureKind.Authentication, find.Error.Kind);
+    var bound = Assert.IsType<ViaDocsResult<ViaDocsVerifiedIdentity>.Failure>(
+        await auth.LoginAsync(new(row.Identity(), Guid.NewGuid()), default));
+    Assert.Equal(ViaDocsFailureKind.Authentication, bound.Error.Kind);
+    Assert.Equal(0, calls);
+
+    context.Current = attempt;
+    fault.ReadsUntilFailure = 2;
+    var unavailable = Assert.IsType<ViaDocsResult<ViaDocsRegistrationCandidate>.Failure>(
+        await auth.RedeemAsync(row.Identity(), new(Token), default));
+    Assert.Equal(ViaDocsFailureKind.CredentialUnavailable, unavailable.Error.Kind);
+    Assert.Equal(0, calls);
+
+    using var cancellation = new CancellationTokenSource();
+    fault.Cancel = cancellation.Cancel;
+    fault.ReadsUntilFailure = 2;
+    var cancelled = Assert.IsType<ViaDocsResult<ViaDocsRegistrationCandidate>.Failure>(
+        await auth.RedeemAsync(row.Identity(), new(Token), cancellation.Token));
+    Assert.Equal(ViaDocsFailureKind.Cancellation, cancelled.Error.Kind);
+    Assert.Equal(0, calls);
   }
 
   [Fact]
@@ -772,10 +858,12 @@ public sealed partial class TechnicalProvisioningTests(PostgresTestDatabase fixt
 
     internal ProvisioningWorker Worker() => ActivatorUtilities.CreateInstance<ProvisioningWorker>(Services);
 
-    internal async Task<ViaDocsCredential?> ResolveAsync(ViaDocsPreparedIdentity identity)
+    internal async Task<ViaDocsCredential?> ResolveAsync(ViaDocsPreparedIdentity identity,
+        Guid? application = null, ProvisioningDispatch? attempt = null)
     {
       await using var scope = Services.CreateAsyncScope();
-      return await scope.ServiceProvider.GetRequiredService<IViaDocsCredentialProvider>().ResolveCurrentAsync(identity, default);
+      var provider = (IProvisioningDispatchCredentialProvider)scope.ServiceProvider.GetRequiredService<IViaDocsCredentialProvider>();
+      return await provider.ResolveAuthorizedAsync(identity, application, attempt, attempt?.Redeem ?? false, default);
     }
 
     public async ValueTask DisposeAsync()
@@ -804,6 +892,24 @@ public sealed partial class TechnicalProvisioningTests(PostgresTestDatabase fixt
     internal TaskCompletionSource Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
   }
 
+  private sealed class DispatchReadFault : DbCommandInterceptor
+  {
+    internal int ReadsUntilFailure { get; set; }
+    internal Action? Cancel { get; set; }
+
+    public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(DbCommand command,
+        CommandEventData eventData, InterceptionResult<DbDataReader> result, CancellationToken cancellationToken = default)
+    {
+      if (ReadsUntilFailure > 0 && command.CommandText.Contains("AS \"Generation\"", StringComparison.Ordinal) &&
+          --ReadsUntilFailure == 0)
+      {
+        Cancel?.Invoke();
+        throw new TimeoutException();
+      }
+      return ValueTask.FromResult(result);
+    }
+  }
+
   private sealed class BudgetClock : DbCommandInterceptor
   {
     private readonly AdjustableTimeProvider clock = new();
@@ -823,7 +929,11 @@ public sealed partial class TechnicalProvisioningTests(PostgresTestDatabase fixt
   private sealed class PausedCredentials(ProvisioningCredentialProvider inner, CredentialCheckpoint checkpoint)
       : IProvisioningDispatchCredentialProvider
   {
-    public async ValueTask<ViaDocsCredential?> ResolveCurrentAsync(ViaDocsPreparedIdentity identity, CancellationToken token)
+    public ValueTask<ViaDocsCredential?> ResolveCurrentAsync(ViaDocsPreparedIdentity identity, CancellationToken token) =>
+        inner.ResolveCurrentAsync(identity, token);
+
+    public async ValueTask<ViaDocsCredential?> ResolveAuthorizedAsync(ViaDocsPreparedIdentity identity,
+        Guid? application, ProvisioningDispatch? attempt, bool redeem, CancellationToken token)
     {
       if (checkpoint.Enabled)
       {
@@ -831,11 +941,9 @@ public sealed partial class TechnicalProvisioningTests(PostgresTestDatabase fixt
         checkpoint.Entered.TrySetResult();
         await checkpoint.Release.Task.WaitAsync(TimeSpan.FromSeconds(5), token);
       }
-      return await inner.ResolveCurrentAsync(identity, token);
+      return await inner.ResolveAuthorizedAsync(identity, application, attempt, redeem, token);
     }
 
-    public Task<bool> AuthorizeDispatchAsync(ViaDocsPreparedIdentity identity, ProvisioningDispatch attempt, bool redeem,
-        CancellationToken token) => inner.AuthorizeDispatchAsync(identity, attempt, redeem, token);
   }
 
   private sealed class ObserveAdminGuard(AdminWriteGate gate) : DbCommandInterceptor

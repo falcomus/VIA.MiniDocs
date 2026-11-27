@@ -169,12 +169,15 @@ internal sealed class ViaDocsAuthentication(IServiceProvider scope, IOptions<Via
         var provider = scope.GetService<IViaDocsCredentialProvider>();
         if (provider is null)
             return Fail(ViaDocsFailureKind.Configuration);
+        var attempt = application is null ? scope.GetService<ProvisioningDispatchContext>()?.Current : null;
+        var redeem = invitation is not null;
+        var production = provider is IProvisioningDispatchCredentialProvider;
 
         using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(settings.ShortRequestSeconds), clock);
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellation, timeout.Token);
         try
         {
-            var credential = await provider.ResolveCurrentAsync(normalized, deadline.Token);
+            var credential = await ResolveAsync(provider, normalized, application, attempt, redeem, deadline.Token);
             deadline.Token.ThrowIfCancellationRequested();
             if (credential is null || credential.Generation <= 0 ||
                 string.IsNullOrWhiteSpace(credential.Secret) || credential.Secret.Length is < 6 or > 4096)
@@ -182,15 +185,16 @@ internal sealed class ViaDocsAuthentication(IServiceProvider scope, IOptions<Via
 
             if (application is not Guid applicationId)
             {
-                var attempt = scope.GetService<ProvisioningDispatchContext>()?.Current;
-                if (attempt is not null && (provider is not IProvisioningDispatchCredentialProvider provisioning ||
-                    !await provisioning.AuthorizeDispatchAsync(normalized, attempt, invitation is not null, deadline.Token)))
-                    return Fail(ViaDocsFailureKind.Authentication);
                 var unbound = await transport.SendLimitedAsync(root, name, null, credential.Secret, invitation,
-                    cancellation, deadline.Token);
+                    cancellation, deadline.Token, production
+                        ? () => VerifyCredentialAsync(normalized, null, attempt, redeem, credential.Generation,
+                            cancellation, deadline.Token) : null);
                 if (unbound is not ViaDocsResult<ViaDocsSession>.Success observed)
                     return unbound;
-                var failure = await VerifyCredentialAsync(normalized, credential.Generation, cancellation, deadline.Token);
+                // After HTTP the fence must still be valid. The pre-dispatch reserve has already served its purpose.
+                var verificationAttempt = attempt is null ? null : attempt with { MinimumLeaseSeconds = 0 };
+                var failure = await VerifyCredentialAsync(normalized, null, verificationAttempt, redeem,
+                    credential.Generation, cancellation, deadline.Token);
                 if (failure is null)
                     return unbound;
                 return invitation is null ? Fail(failure.Value) : new ViaDocsResult<ViaDocsSession>.Failure(
@@ -200,11 +204,12 @@ internal sealed class ViaDocsAuthentication(IServiceProvider scope, IOptions<Via
 
             var key = new ViaDocsTokenCache.Key(root, identity.WorkspaceId, applicationId, name);
             var result = await cache.GetAsync(key, identity.Credential, credential.Generation,
-                () => LoginSharedAsync(root, normalized, applicationId, credential), deadline.Token);
+                () => LoginSharedAsync(root, normalized, applicationId, credential, production), deadline.Token);
             if (result is not ViaDocsResult<ViaDocsSession>.Success success)
                 return result;
 
-            var verification = await VerifyCredentialAsync(normalized, credential.Generation, cancellation, deadline.Token);
+            var verification = await VerifyCredentialAsync(normalized, applicationId, null, false,
+                credential.Generation, cancellation, deadline.Token);
             if (verification is not null || success.Value.RenewAt <= clock.GetUtcNow())
             {
                 cache.Invalidate(key, success.Value);
@@ -218,32 +223,43 @@ internal sealed class ViaDocsAuthentication(IServiceProvider scope, IOptions<Via
         }
         catch (ViaDocsCredentialUnavailableException)
         {
-            return Fail(ViaDocsFailureKind.CredentialUnavailable);
+            return Fail(cancellation.IsCancellationRequested ? ViaDocsFailureKind.Cancellation
+                : deadline.IsCancellationRequested ? ViaDocsFailureKind.Timeout : ViaDocsFailureKind.CredentialUnavailable);
         }
     }
 
     private async Task<ViaDocsResult<ViaDocsSession>> LoginSharedAsync(Uri root, ViaDocsPreparedIdentity identity,
-        Guid expected, ViaDocsCredential credential)
+        Guid expected, ViaDocsCredential credential, bool production)
     {
         using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(options.Value.ShortRequestSeconds), clock);
         var result = await transport.SendLimitedAsync(root, identity.Name, expected, credential.Secret, null,
-            CancellationToken.None, timeout.Token);
+            CancellationToken.None, timeout.Token, production
+                ? () => VerifyCredentialAsync(identity, expected, null, false, credential.Generation,
+                    CancellationToken.None, timeout.Token) : null);
         if (result is not ViaDocsResult<ViaDocsSession>.Success)
             return result;
 
-        var failure = await VerifyCredentialAsync(identity, credential.Generation, CancellationToken.None, timeout.Token);
+        var failure = await VerifyCredentialAsync(identity, expected, null, false, credential.Generation,
+            CancellationToken.None, timeout.Token);
         return failure is null ? result : Fail(failure.Value);
     }
 
+    private static ValueTask<ViaDocsCredential?> ResolveAsync(IViaDocsCredentialProvider provider,
+        ViaDocsPreparedIdentity identity, Guid? application, ProvisioningDispatch? attempt, bool redeem,
+        CancellationToken token) => provider is IProvisioningDispatchCredentialProvider authorized
+            ? authorized.ResolveAuthorizedAsync(identity, application, attempt, redeem, token)
+            : attempt is null ? provider.ResolveCurrentAsync(identity, token) : ValueTask.FromResult<ViaDocsCredential?>(null);
+
     private async Task<ViaDocsFailureKind?> VerifyCredentialAsync(ViaDocsPreparedIdentity identity,
-        long generation, CancellationToken cancellation, CancellationToken deadline)
+        Guid? application, ProvisioningDispatch? attempt, bool redeem, long generation,
+        CancellationToken cancellation, CancellationToken deadline)
     {
         await using var verificationScope = scopeFactory.CreateAsyncScope();
         var provider = verificationScope.ServiceProvider.GetRequiredService<IViaDocsCredentialProvider>();
         try
         {
             deadline.ThrowIfCancellationRequested();
-            var current = await provider.ResolveCurrentAsync(identity, deadline);
+            var current = await ResolveAsync(provider, identity, application, attempt, redeem, deadline);
             deadline.ThrowIfCancellationRequested();
             return current?.Generation == generation && !string.IsNullOrWhiteSpace(current.Secret) &&
                 current.Secret.Length is >= 6 and <= 4096 ? null : ViaDocsFailureKind.Authentication;
@@ -254,7 +270,8 @@ internal sealed class ViaDocsAuthentication(IServiceProvider scope, IOptions<Via
         }
         catch (ViaDocsCredentialUnavailableException)
         {
-            return ViaDocsFailureKind.CredentialUnavailable;
+            return cancellation.IsCancellationRequested ? ViaDocsFailureKind.Cancellation
+                : deadline.IsCancellationRequested ? ViaDocsFailureKind.Timeout : ViaDocsFailureKind.CredentialUnavailable;
         }
     }
 

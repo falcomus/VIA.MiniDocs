@@ -349,32 +349,57 @@ BEGIN
                        WHERE c.relnamespace = 'minidocs'::regnamespace AND NOT t.tgisinternal)
   THEN RAISE EXCEPTION 'MiniDocs gate: unexpected trigger inventory'; END IF;
 
+  -- Canonical PostgreSQL expressions also bind the checks to their actual columns.
   FOR expected IN SELECT * FROM (VALUES
-    ('via_docs_accounts', 'ck_via_credentials'),
-    ('provisioning_operations', 'ck_provisioning_lifecycle'),
-    ('documents', 'ck_document_transcript_flags'),
-    ('tags', 'ck_tag_name_key'),
-    ('file_operations', 'ck_file_lifecycle'),
-    ('file_operations', 'ck_file_failure_category'),
-    ('pending_transcripts', 'ck_pending_terminal_metadata'),
-    ('file_operations', 'ck_file_lease_maximum'),
-    ('provisioning_operations', 'ck_provisioning_lease_maximum'),
-    ('workspaces', 'ck_workspaces_positive_version'),
-    ('user_invitations', 'ck_user_invitations_positive_version'),
-    ('via_docs_accounts', 'ck_via_docs_accounts_positive_version'),
-    ('provisioning_operations', 'ck_provisioning_operations_positive_version'),
-    ('topics', 'ck_topics_positive_version'),
-    ('documents', 'ck_documents_positive_version'),
-    ('tags', 'ck_tags_positive_version'),
-    ('transcript_pages', 'ck_transcript_pages_positive_version'),
-    ('pending_transcripts', 'ck_pending_transcripts_positive_version'),
-    ('pending_transcript_pages', 'ck_pending_transcript_pages_positive_version'),
-    ('file_operations', 'ck_file_operations_positive_version')
-  ) v(table_name, constraint_name)
+    ('via_docs_accounts', 'ck_via_credentials', $expr$((length(btrim(application_name)) > 0) AND (octet_length(application_secret_protected) > 0) AND (id <> '00000000-0000-0000-0000-000000000000'::uuid) AND ((application_id IS NULL) OR (application_id <> '00000000-0000-0000-0000-000000000000'::uuid)))$expr$),
+    ('provisioning_operations', 'ck_provisioning_lifecycle', $expr$(((lease_owner IS NULL) OR (lease_owner <> '00000000-0000-0000-0000-000000000000'::uuid)) AND ((candidate_application_id IS NULL) OR (candidate_application_id <> '00000000-0000-0000-0000-000000000000'::uuid)) AND
+CASE status
+    WHEN 'pending_invitation'::text THEN ((attempt_no = 0) AND (lease_owner IS NULL) AND (candidate_application_id IS NULL) AND (invitation_protected IS NULL))
+    WHEN 'ready'::text THEN ((lease_owner IS NULL) AND (candidate_application_id IS NULL) AND (COALESCE(octet_length(invitation_protected), 0) > 0))
+    WHEN 'registering'::text THEN ((attempt_no > 0) AND (lease_owner IS NOT NULL) AND (COALESCE(octet_length(invitation_protected), 0) > 0))
+    WHEN 'recovery_required'::text THEN (attempt_no > 0)
+    WHEN 'active'::text THEN ((attempt_no > 0) AND (lease_owner IS NULL) AND (candidate_application_id IS NOT NULL) AND (invitation_protected IS NULL) AND (failure_category IS NULL))
+    WHEN 'cancelled'::text THEN ((lease_owner IS NULL) AND (candidate_application_id IS NULL) AND (invitation_protected IS NULL))
+    ELSE true
+END)$expr$),
+    ('documents', 'ck_document_transcript_flags', $expr$(transcript_present OR (NOT transcript_edited))$expr$),
+    ('tags', 'ck_tag_name_key', $expr$(length(btrim(name_key)) > 0)$expr$),
+    ('file_operations', 'ck_file_lifecycle', $expr$((id <> '00000000-0000-0000-0000-000000000000'::uuid) AND ((request_id IS NULL) OR (request_id <> '00000000-0000-0000-0000-000000000000'::uuid)) AND ((remote_file_id IS NULL) OR (remote_file_id <> '00000000-0000-0000-0000-000000000000'::uuid)) AND ((lease_owner IS NULL) OR (lease_owner <> '00000000-0000-0000-0000-000000000000'::uuid)) AND ((verified_size IS NULL) OR ((kind = 'upload'::text) AND (verified_size > 0) AND (remote_file_id IS NOT NULL))) AND ((kind <> 'delete'::text) OR (remote_file_id IS NOT NULL)) AND
+CASE state
+    WHEN 'prepared'::text THEN ((attempt_no = 0) AND (lease_owner IS NULL) AND ((kind = 'delete'::text) OR (remote_file_id IS NULL)))
+    WHEN 'in_flight'::text THEN ((attempt_no = 1) AND (lease_owner IS NOT NULL) AND (remote_file_id IS NULL))
+    WHEN 'unknown'::text THEN ((attempt_no = 1) AND (lease_owner IS NULL) AND (remote_file_id IS NULL))
+    WHEN 'remote_known'::text THEN ((attempt_no = 1) AND (remote_file_id IS NOT NULL))
+    WHEN 'delete_in_flight'::text THEN ((attempt_no > 0) AND (lease_owner IS NOT NULL))
+    WHEN 'delete_unknown'::text THEN (attempt_no > 0)
+    WHEN 'completed'::text THEN ((attempt_no > 0) AND (lease_owner IS NULL) AND (remote_file_id IS NOT NULL) AND ((kind = 'delete'::text) OR (verified_size IS NOT NULL)))
+    WHEN 'failed'::text THEN ((attempt_no = 0) AND (lease_owner IS NULL) AND ((kind = 'delete'::text) OR (remote_file_id IS NULL)))
+    ELSE false
+END)$expr$),
+    ('file_operations', 'ck_file_failure_category', $expr$((failure_category IS NULL) OR (failure_category = ANY (ARRAY['not_sent'::text, 'transport_unknown'::text, 'verification_failed'::text, 'manual_review'::text])))$expr$),
+    ('pending_transcripts', 'ck_pending_terminal_metadata', $expr$((status = 'pending'::text) OR ((source_name IS NULL) AND (meta_date IS NULL) AND (meta_topic IS NULL) AND (meta_title IS NULL) AND (meta_tags IS NULL)))$expr$),
+    ('file_operations', 'ck_file_lease_maximum', $expr$((lease_until IS NULL) OR (isfinite(lease_until) AND (lease_until <= (updated_at + minidocs.maximum_lease_duration()))))$expr$),
+    ('provisioning_operations', 'ck_provisioning_lease_maximum', $expr$((lease_until IS NULL) OR (isfinite(lease_until) AND (lease_until <= (updated_at + minidocs.maximum_lease_duration()))))$expr$),
+    ('workspaces', 'ck_workspaces_positive_version', $expr$(version > 0)$expr$),
+    ('user_invitations', 'ck_user_invitations_positive_version', $expr$(version > 0)$expr$),
+    ('via_docs_accounts', 'ck_via_docs_accounts_positive_version', $expr$(version > 0)$expr$),
+    ('provisioning_operations', 'ck_provisioning_operations_positive_version', $expr$(version > 0)$expr$),
+    ('topics', 'ck_topics_positive_version', $expr$(version > 0)$expr$),
+    ('documents', 'ck_documents_positive_version', $expr$(version > 0)$expr$),
+    ('tags', 'ck_tags_positive_version', $expr$(version > 0)$expr$),
+    ('transcript_pages', 'ck_transcript_pages_positive_version', $expr$(version > 0)$expr$),
+    ('pending_transcripts', 'ck_pending_transcripts_positive_version', $expr$(version > 0)$expr$),
+    ('pending_transcript_pages', 'ck_pending_transcript_pages_positive_version', $expr$(version > 0)$expr$),
+    ('file_operations', 'ck_file_operations_positive_version', $expr$(version > 0)$expr$)
+  ) v(table_name, constraint_name, check_expression)
   LOOP
     IF NOT EXISTS (SELECT 1 FROM pg_constraint c WHERE c.conrelid = to_regclass(format('minidocs.%I', expected.table_name))
          AND c.conname = expected.constraint_name AND c.contype = 'c' AND c.convalidated AND c.conenforced)
     THEN RAISE EXCEPTION 'MiniDocs gate: missing or inactive constraint %', expected.constraint_name; END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint c WHERE c.conrelid = to_regclass(format('minidocs.%I', expected.table_name))
+         AND c.conname = expected.constraint_name AND c.contype = 'c' AND NOT c.connoinherit
+         AND pg_get_expr(c.conbin, c.conrelid) = replace(expected.check_expression, chr(13), ''))
+    THEN RAISE EXCEPTION 'MiniDocs gate: unexpected D2 constraint %', expected.constraint_name; END IF;
   END LOOP;
   IF NOT EXISTS (SELECT 1 FROM pg_index i WHERE i.indexrelid = to_regclass('minidocs.ux_provisioning_active_workspace')
       AND i.indrelid = 'minidocs.provisioning_operations'::regclass AND i.indisunique AND i.indisvalid AND i.indisready
