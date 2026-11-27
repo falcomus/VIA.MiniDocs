@@ -72,4 +72,17 @@ public sealed class LoginRateLimitTests
     public override long TimestampFrequency => 1;
     public override long GetTimestamp() => Timestamp;
   }
+
+  [Fact]
+  [Trait("Package", "D4-B")]
+  public void RegistrationCapsSimultaneousTransactionsWithoutQueuing()
+  {
+    var limiter = new RegistrationRateLimits(new TimestampClock());
+    for (var i = 0; i < 8; i++) Assert.True(limiter.TryAcquire("ip", $"NAME-{i}", out _));
+    Assert.False(limiter.TryAcquire("another-ip", "ANOTHER-NAME", out var retry));
+    Assert.Equal(1, retry);
+    limiter.Release();
+    Assert.True(limiter.TryAcquire("another-ip", "ANOTHER-NAME", out _));
+    for (var i = 0; i < 8; i++) limiter.Release();
+  }
 }

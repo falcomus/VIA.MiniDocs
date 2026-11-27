@@ -44,7 +44,7 @@ public sealed class SessionStore(MiniDocsDbContext db)
             s.idle_until <= statement_timestamp() + {idle} / 2) AS "RenewalDue"
           FROM minidocs.identity_sessions s
           JOIN minidocs.identity_users u ON u.id = s.user_id
-          LEFT JOIN minidocs.workspaces w ON w.owner_user_id = u.id
+          LEFT JOIN minidocs.workspaces w ON w.owner_user_id = u.id AND u.account_kind = 'regular'
           WHERE s.handle_hash = {session.HandleHash} AND s.user_id = {session.UserId}
             AND s.security_stamp = {session.Stamp} AND u.security_stamp = s.security_stamp
             AND NOT u.is_disabled AND u.user_name IS NOT NULL AND s.revoked_at IS NULL

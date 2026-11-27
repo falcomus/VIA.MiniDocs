@@ -65,7 +65,7 @@ public sealed partial class PostgresFinalHardeningTests
     Assert.Equal(LocalWriteStatus.Rejected, (await competing).Status);
     Assert.False(await db.Users.AsNoTracking().AnyAsync(user => user.Id == secondUser.Id));
     Assert.Equal(workspace, (await db.Workspaces.AsNoTracking().SingleAsync()).Id);
-    Assert.Single(await db.Topics.AsNoTracking().ToListAsync());
+    Assert.Single(await db.Topics.ObserveAllWorkspaces().AsNoTracking().ToListAsync());
     Assert.Equal(firstUser.Id, (await db.UserInvitations.AsNoTracking().SingleAsync(i => i.Id == invite)).RedeemedUserId);
     Assert.False(await ChangeAsync(first, ct => InvitationPersistence.TryRevokeAsync(first, invite, 2, admin, ct)));
   }
@@ -175,8 +175,8 @@ public sealed partial class PostgresFinalHardeningTests
         runtime, workspace, failed.Document, failed.Operation, 2, ct)));
     Assert.True(await ChangeAsync(runtime, ct => OperationLeasePersistence.TryFailUnstartedUploadAsync(
         runtime, workspace, failed.Document, failed.Operation, 1, ct)));
-    var complete = await db.FileOperations.AsNoTracking().SingleAsync(o => o.Id == first.Operation);
-    var rejected = await db.FileOperations.AsNoTracking().SingleAsync(o => o.Id == failed.Operation);
+    var complete = await db.FileOperations.ObserveAllWorkspaces().AsNoTracking().SingleAsync(o => o.Id == first.Operation);
+    var rejected = await db.FileOperations.ObserveAllWorkspaces().AsNoTracking().SingleAsync(o => o.Id == failed.Operation);
     Assert.Equal(first.Request, complete.RequestId);
     Assert.Equal(FileOperationState.Completed, complete.State);
     Assert.Equal(hash, complete.VerifiedSha256);
@@ -185,8 +185,8 @@ public sealed partial class PostgresFinalHardeningTests
     Assert.Equal(FileOperationFailureCategory.NotSent, rejected.FailureCategory);
     Assert.Equal(0, rejected.AttemptNo);
     Assert.Equal(DocumentAvailability.UploadFailed,
-        (await db.Documents.AsNoTracking().SingleAsync(d => d.Id == failed.Document)).Availability);
-    Assert.Equal(remote, (await db.Documents.AsNoTracking().SingleAsync(d => d.Id == first.Document)).ViaFileId);
+        (await db.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync(d => d.Id == failed.Document)).Availability);
+    Assert.Equal(remote, (await db.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync(d => d.Id == first.Document)).ViaFileId);
   }
 
   [Theory]
@@ -236,9 +236,9 @@ public sealed partial class PostgresFinalHardeningTests
         runtime, workspace, upload.Document, delete, reservation.Fence.Version + 1, worker, TimeSpan.FromMinutes(1), ct));
     Assert.True(await ChangeAsync(runtime, ct => TrashPersistence.TryCompleteConfirmedPurgeAsync(
         runtime, workspace, upload.Document, delete, verification, ct)));
-    Assert.Empty(await db.Documents.AsNoTracking().ToListAsync());
-    Assert.Equal(upload.Request, (await db.UploadRequestTombstones.AsNoTracking().SingleAsync()).RequestId);
-    Assert.Equal(delete, (await db.FileOperationReceipts.AsNoTracking().SingleAsync()).OperationId);
+    Assert.Empty(await db.Documents.ObserveAllWorkspaces().AsNoTracking().ToListAsync());
+    Assert.Equal(upload.Request, (await db.UploadRequestTombstones.ObserveAllWorkspaces().AsNoTracking().SingleAsync()).RequestId);
+    Assert.Equal(delete, (await db.FileOperationReceipts.ObserveAllWorkspaces().AsNoTracking().SingleAsync()).OperationId);
 
     Assert.Equal(0, await CountAsync(runtime, ct => OperationRetentionPersistence.RemoveExpiredReceiptsAsync(runtime, workspace, 1, ct)));
     await db.Database.ExecuteSqlInterpolatedAsync($"""
@@ -246,8 +246,8 @@ public sealed partial class PostgresFinalHardeningTests
         WHERE operation_id = {delete}
         """);
     Assert.Equal(1, await CountAsync(runtime, ct => OperationRetentionPersistence.RemoveExpiredReceiptsAsync(runtime, workspace, 1, ct)));
-    Assert.Empty(await db.FileOperationReceipts.AsNoTracking().ToListAsync());
-    Assert.Single(await db.UploadRequestTombstones.AsNoTracking().ToListAsync());
+    Assert.Empty(await db.FileOperationReceipts.ObserveAllWorkspaces().AsNoTracking().ToListAsync());
+    Assert.Single(await db.UploadRequestTombstones.ObserveAllWorkspaces().AsNoTracking().ToListAsync());
   }
 
 
@@ -259,7 +259,7 @@ public sealed partial class PostgresFinalHardeningTests
     var (workspace, topic) = await ActiveWorkspaceAsync(db, runtime);
     var (foreign, _) = await ActiveWorkspaceAsync(db, runtime);
     var upload = await ReserveUploadAsync(runtime, workspace, topic);
-    Assert.Equal("Runtime PDF", (await db.Documents.AsNoTracking().SingleAsync()).Title);
+    Assert.Equal("Runtime PDF", (await db.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync()).Title);
 
     await Assert.ThrowsAsync<ArgumentException>(() => ChangeAsync(runtime, ct =>
         OperationLeasePersistence.TryReserveUploadAsync(runtime, workspace, Guid.Empty, topic, Guid.NewGuid(),
@@ -277,7 +277,7 @@ public sealed partial class PostgresFinalHardeningTests
         """);
     Assert.False(await ChangeAsync(runtime, ct => TopicPersistence.TryDeleteAsync(runtime, workspace, regularTopic, 2, ct)));
     Assert.True(await ChangeAsync(runtime, ct => TopicPersistence.TryDeleteAsync(runtime, workspace, regularTopic, 1, ct)));
-    Assert.False(await db.Topics.AsNoTracking().AnyAsync(t => t.Id == regularTopic));
+    Assert.False(await db.Topics.ObserveAllWorkspaces().AsNoTracking().AnyAsync(t => t.Id == regularTopic));
 
     Assert.True(await ChangeAsync(runtime, ct => TranscriptPersistence.TryReplaceAsync(
         runtime, workspace, upload.Document, 0, true, false, [new(1, "Original", false)], ct)));
@@ -285,10 +285,10 @@ public sealed partial class PostgresFinalHardeningTests
         runtime, workspace, upload.Document, 1, 1, 2, "Stale", ct)));
     Assert.True(await ChangeAsync(runtime, ct => TranscriptPersistence.TryEditPageAsync(
         runtime, workspace, upload.Document, 1, 1, 1, "Edited", ct)));
-    var page = await db.TranscriptPages.AsNoTracking().SingleAsync();
+    var page = await db.TranscriptPages.ObserveAllWorkspaces().AsNoTracking().SingleAsync();
     Assert.Equal("Edited", page.Text);
     Assert.Equal(2L, page.Version);
-    Assert.Equal(2L, (await db.Documents.AsNoTracking().SingleAsync()).TranscriptRevision);
+    Assert.Equal(2L, (await db.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync()).TranscriptRevision);
   }
 
   [Fact]
@@ -307,9 +307,9 @@ public sealed partial class PostgresFinalHardeningTests
     Assert.Equal(1, await CountAsync(runtime, ct => OperationRetentionPersistence.RetireCompletedUploadsAsync(runtime, workspace, 1, ct)));
     Assert.False(await ChangeAsync(runtime, ct => OperationLeasePersistence.TryReserveUploadAsync(
         runtime, workspace, Guid.NewGuid(), topic, Guid.NewGuid(), upload.Request, "Duplicate", DocumentKind.Note, ct)));
-    Assert.Empty(await db.FileOperations.AsNoTracking().ToListAsync());
-    Assert.Equal(upload.Request, (await db.UploadRequestTombstones.AsNoTracking().SingleAsync()).RequestId);
-    Assert.Equal(remote, (await db.Documents.AsNoTracking().SingleAsync()).ViaFileId);
+    Assert.Empty(await db.FileOperations.ObserveAllWorkspaces().AsNoTracking().ToListAsync());
+    Assert.Equal(upload.Request, (await db.UploadRequestTombstones.ObserveAllWorkspaces().AsNoTracking().SingleAsync()).RequestId);
+    Assert.Equal(remote, (await db.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync()).ViaFileId);
   }
 
   private static async Task<(Guid Workspace, Guid Topic)> ActiveWorkspaceAsync(MiniDocsDbContext db, MiniDocsDbContext runtime)

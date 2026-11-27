@@ -19,7 +19,8 @@ public static class LocalWriteTransaction
   /// <remarks>The callback is limited to local database work. The caller decides whether a conflict is safe to retry.</remarks>
   public static async Task<LocalWriteResult<T>> ExecuteAsync<T>(MiniDocsDbContext db,
       Func<CancellationToken, Task<T>> command, Predicate<T> accepted,
-      IsolationLevel isolationLevel = IsolationLevel.ReadCommitted, CancellationToken cancellationToken = default)
+      IsolationLevel isolationLevel = IsolationLevel.ReadCommitted, CancellationToken cancellationToken = default,
+      Action? committing = null)
   {
     if (db.ChangeTracker.HasChanges())
       throw new InvalidOperationException("Start a local write with a clean change tracker.");
@@ -38,6 +39,7 @@ public static class LocalWriteTransaction
         throw new InvalidOperationException("A local write cannot commit pending tracked changes.");
       // A lost commit acknowledgement must escape without a lease result or
       // retry. The caller reconciles it by the previously allocated operation ID.
+      committing?.Invoke();
       await tx.CommitAsync(cancellationToken);
       db.ChangeTracker.Clear();
       return new(LocalWriteStatus.Committed, value);

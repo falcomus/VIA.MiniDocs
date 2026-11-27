@@ -13,15 +13,45 @@ builder.AddMiniDocsSecurity(localOperation);
 builder.Services.AddExceptionHandler<SafeExceptionHandler>();
 builder.Services.AddOpenApi(options => options.AddOperationTransformer(async (operation, context, token) =>
 {
-    if (context.Description.RelativePath == "api/v1/session/login")
+    var body = context.Description.ActionDescriptor.EndpointMetadata.OfType<JsonRequest>().SingleOrDefault()?.Body;
+    if (context.Description.RelativePath == "api/v1/session/login") body = typeof(Login);
+    if (body is not null)
         operation.RequestBody = new OpenApiRequestBody
         {
             Required = true,
             Content = new Dictionary<string, OpenApiMediaType>
             {
-                ["application/json"] = new() { Schema = await context.GetOrCreateSchemaAsync(typeof(Login), cancellationToken: token) }
+                ["application/json"] = new() { Schema = await context.GetOrCreateSchemaAsync(body, cancellationToken: token) }
             }
         };
+    if (context.Description.HttpMethod == "GET" &&
+        context.Description.RelativePath is "api/v1/admin/users" or "api/v1/admin/invitations")
+    {
+        operation.Parameters ??= [];
+        operation.Parameters.Add(new OpenApiParameter { Name = "cursor", In = ParameterLocation.Query,
+            Schema = new OpenApiSchema { Type = JsonSchemaType.String, MaxLength = 2048 } });
+        operation.Parameters.Add(new OpenApiParameter { Name = "limit", In = ParameterLocation.Query,
+            Schema = new OpenApiSchema { Type = JsonSchemaType.Integer, Minimum = "1", Maximum = "100" } });
+    }
+    if (context.Description.HttpMethod == "PATCH" && context.Description.RelativePath == "api/v1/admin/users/{id:guid}")
+    {
+        operation.Parameters ??= [];
+        operation.Parameters.Add(new OpenApiParameter { Name = "If-Match", In = ParameterLocation.Header, Required = true,
+            Schema = new OpenApiSchema { Type = JsonSchemaType.String } });
+        ((OpenApiResponse)operation.Responses!["200"]).Headers = new Dictionary<string, IOpenApiHeader>
+        { ["ETag"] = new OpenApiHeader { Schema = new OpenApiSchema { Type = JsonSchemaType.String } } };
+    }
+    if (context.Description.ActionDescriptor.EndpointMetadata.OfType<ValidateSessionAntiforgery>().Any() &&
+        (context.Description.RelativePath == "api/v1/registration" ||
+         context.Description.RelativePath?.StartsWith("api/v1/admin/", StringComparison.Ordinal) == true))
+    {
+        operation.Parameters ??= [];
+        operation.Parameters.Add(new OpenApiParameter { Name = SessionHttp.AntiforgeryHeader, In = ParameterLocation.Header,
+            Required = true, Schema = new OpenApiSchema { Type = JsonSchemaType.String } });
+    }
+    if (context.Description.HttpMethod == "POST" && context.Description.RelativePath == "api/v1/admin/invitations")
+        ((OpenApiResponse)operation.Responses!["201"]).Headers = new Dictionary<string, IOpenApiHeader>
+        { ["Location"] = new OpenApiHeader { Schema = new OpenApiSchema { Type = JsonSchemaType.String } } };
     if (context.Description.RelativePath == "api/v1/_contract-fixtures/nullable")
         ((OpenApiResponse)operation.Responses!["200"]).Headers = new Dictionary<string, IOpenApiHeader>
         { ["ETag"] = new OpenApiHeader { Schema = new OpenApiSchema { Type = JsonSchemaType.String } } };
@@ -56,6 +86,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseMiddleware<SessionAntiforgeryMiddleware>();
 app.MapMiniDocsSessions();
+app.MapD4B();
 if (app.Environment.IsEnvironment("ContractTests"))
 {
     app.MapOpenApi();

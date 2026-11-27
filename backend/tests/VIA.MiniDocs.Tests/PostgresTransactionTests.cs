@@ -99,9 +99,9 @@ public sealed class PostgresTransactionTests(PostgresTestDatabase fixture) : ICl
     }
     Assert.False(await replace);
     await tx2.RollbackAsync();
-    Assert.Equal(2, await observer.TranscriptPages.CountAsync());
-    Assert.Equal(1L, (await observer.Documents.AsNoTracking().SingleAsync()).TranscriptRevision);
-    Assert.Equal("Inserted page", (await observer.TranscriptPages.AsNoTracking()
+    Assert.Equal(2, await observer.TranscriptPages.ObserveAllWorkspaces().CountAsync());
+    Assert.Equal(1L, (await observer.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync()).TranscriptRevision);
+    Assert.Equal("Inserted page", (await observer.TranscriptPages.ObserveAllWorkspaces().AsNoTracking()
         .SingleAsync(page => page.PageNo == 2)).Text);
   }
 
@@ -122,7 +122,7 @@ public sealed class PostgresTransactionTests(PostgresTestDatabase fixture) : ICl
           true, true, [new(1, "New", true), new(2, "Stable", false)]));
       await tx.CommitAsync();
     }
-    var pages = await db.TranscriptPages.AsNoTracking().OrderBy(page => page.PageNo).ToListAsync();
+    var pages = await db.TranscriptPages.ObserveAllWorkspaces().AsNoTracking().OrderBy(page => page.PageNo).ToListAsync();
     Assert.Equal(2L, pages[0].Version);
     Assert.Equal(1L, pages[1].Version);
     await using (var tx = await db.Database.BeginTransactionAsync())
@@ -130,15 +130,15 @@ public sealed class PostgresTransactionTests(PostgresTestDatabase fixture) : ICl
       Assert.True(await TranscriptPersistence.TryReplaceAsync(db, workspace, document, 2, false, false, []));
       await tx.RollbackAsync();
     }
-    Assert.Equal(2, await db.TranscriptPages.CountAsync());
-    Assert.Equal(2L, (await db.Documents.AsNoTracking().SingleAsync()).TranscriptRevision);
+    Assert.Equal(2, await db.TranscriptPages.ObserveAllWorkspaces().CountAsync());
+    Assert.Equal(2L, (await db.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync()).TranscriptRevision);
     await using (var tx = await db.Database.BeginTransactionAsync())
     {
       await Assert.ThrowsAsync<ArgumentException>(() => TranscriptPersistence.TryReplaceAsync(
           db, workspace, document, 2, true, false, [new(3, "Outside range", false)]));
       await tx.RollbackAsync();
     }
-    Assert.Equal(2, await db.TranscriptPages.CountAsync());
+    Assert.Equal(2, await db.TranscriptPages.ObserveAllWorkspaces().CountAsync());
   }
 
   [Fact]
@@ -159,11 +159,11 @@ public sealed class PostgresTransactionTests(PostgresTestDatabase fixture) : ICl
       Assert.True(await TranscriptPersistence.TryEditPageAsync(db, workspace, document, 1, 1, 1, "Edited"));
       await tx.CommitAsync();
     }
-    var page = await db.TranscriptPages.AsNoTracking().SingleAsync();
+    var page = await db.TranscriptPages.ObserveAllWorkspaces().AsNoTracking().SingleAsync();
     Assert.Equal("Edited", page.Text);
     Assert.Equal(2L, page.Version);
     Assert.True(page.Edited);
-    var saved = await db.Documents.AsNoTracking().SingleAsync();
+    var saved = await db.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync();
     Assert.True(saved.TranscriptEdited);
     Assert.Equal(2L, saved.TranscriptRevision);
   }
@@ -256,8 +256,8 @@ public sealed class PostgresTransactionTests(PostgresTestDatabase fixture) : ICl
       second = fence.GetValueOrDefault();
       await tx.CommitAsync();
     }
-    Assert.Null((await db.Documents.AsNoTracking().SingleAsync()).ViaFileId);
-    var known = await db.FileOperations.AsNoTracking().SingleAsync();
+    Assert.Null((await db.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync()).ViaFileId);
+    var known = await db.FileOperations.ObserveAllWorkspaces().AsNoTracking().SingleAsync();
     Assert.Equal(remote, known.RemoteFileId);
     Assert.Null(known.VerifiedSha256);
     await db.Database.ExecuteSqlInterpolatedAsync($"""
@@ -291,10 +291,10 @@ public sealed class PostgresTransactionTests(PostgresTestDatabase fixture) : ICl
           db, workspace, document, operation, 1, second, remote, 3, hash));
       await tx.CommitAsync();
     }
-    var saved = await db.Documents.AsNoTracking().SingleAsync();
+    var saved = await db.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync();
     Assert.Equal(remote, saved.ViaFileId);
     Assert.Equal(DocumentAvailability.Available, saved.Availability);
-    var file = await db.FileOperations.AsNoTracking().SingleAsync();
+    var file = await db.FileOperations.ObserveAllWorkspaces().AsNoTracking().SingleAsync();
     Assert.Equal(FileOperationState.Completed, file.State);
     Assert.NotNull(file.CompletedAt);
     Assert.Null(file.LeaseOwner);
@@ -329,7 +329,7 @@ public sealed class PostgresTransactionTests(PostgresTestDatabase fixture) : ICl
     }
     Assert.Null(await contender);
     await tx2.RollbackAsync();
-    var saved = await observer.FileOperations.AsNoTracking().SingleAsync();
+    var saved = await observer.FileOperations.ObserveAllWorkspaces().AsNoTracking().SingleAsync();
     Assert.Equal(FileOperationState.InFlight, saved.State);
     Assert.Equal(1, saved.AttemptNo);
     Assert.Equal(2L, saved.Version);
@@ -364,8 +364,8 @@ public sealed class PostgresTransactionTests(PostgresTestDatabase fixture) : ICl
           db, workspace, document, operation, first, Guid.NewGuid()));
       await tx.CommitAsync();
     }
-    Assert.Equal(FileOperationState.Unknown, (await db.FileOperations.AsNoTracking().SingleAsync()).State);
-    Assert.Equal(DocumentAvailability.PendingUpload, (await db.Documents.AsNoTracking().SingleAsync()).Availability);
+    Assert.Equal(FileOperationState.Unknown, (await db.FileOperations.ObserveAllWorkspaces().AsNoTracking().SingleAsync()).State);
+    Assert.Equal(DocumentAvailability.PendingUpload, (await db.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync()).Availability);
   }
 
   private async Task<MiniDocsDbContext> CreateDatabaseAsync()

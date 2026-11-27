@@ -24,7 +24,7 @@ public sealed partial class PostgresFinalHardeningTests
         first, workspace, upload.Document, 0, pending, 2, false, ct)));
     Assert.False(await ChangeAsync(first, ct => TranscriptPersistence.TryAssignPendingAsync(
         first, workspace, upload.Document, 1, pending, 1, false, ct)));
-    Assert.Equal(2, await db.PendingTranscriptPages.CountAsync());
+    Assert.Equal(2, await db.PendingTranscriptPages.ObserveAllWorkspaces().CountAsync());
 
     await using var held = await first.Database.BeginTransactionAsync();
     Assert.True(await TranscriptPersistence.TryAssignPendingAsync(first, workspace, upload.Document, 0, pending, 1, false));
@@ -38,17 +38,17 @@ public sealed partial class PostgresFinalHardeningTests
     await held.CommitAsync();
 
     Assert.Equal(LocalWriteStatus.Rejected, (await competing).Status);
-    var head = await db.PendingTranscripts.AsNoTracking().SingleAsync();
+    var head = await db.PendingTranscripts.ObserveAllWorkspaces().AsNoTracking().SingleAsync();
     Assert.Equal(PendingTranscriptStatus.Matched, head.Status);
     Assert.Equal(2L, head.Version);
     Assert.Equal("pending.pdf", head.FileName);
     Assert.Null(head.SourceName);
     Assert.Null(head.MetaTitle);
     Assert.Null(head.MetaTags);
-    Assert.Empty(await db.PendingTranscriptPages.AsNoTracking().ToListAsync());
-    var pages = await db.TranscriptPages.AsNoTracking().OrderBy(p => p.PageNo).ToArrayAsync();
+    Assert.Empty(await db.PendingTranscriptPages.ObserveAllWorkspaces().AsNoTracking().ToListAsync());
+    var pages = await db.TranscriptPages.ObserveAllWorkspaces().AsNoTracking().OrderBy(p => p.PageNo).ToArrayAsync();
     Assert.Equal(new[] { "One", "Two" }, pages.Select(p => p.Text));
-    var doc = await db.Documents.AsNoTracking().SingleAsync();
+    var doc = await db.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync();
     Assert.Equal(1L, doc.TranscriptRevision);
     Assert.Equal(3L, doc.Version);
     Assert.True(doc.TranscriptPresent);
@@ -91,15 +91,15 @@ public sealed partial class PostgresFinalHardeningTests
           TranscriptPersistence.TryAssignPendingAsync(runtime, workspace, upload.Document, 1, pending, 1, true, ct)));
     }
 
-    var head = await db.PendingTranscripts.AsNoTracking().SingleAsync();
+    var head = await db.PendingTranscripts.ObserveAllWorkspaces().AsNoTracking().SingleAsync();
     Assert.Equal(PendingTranscriptStatus.Pending, head.Status);
     Assert.Equal(1L, head.Version);
     Assert.Equal("source.md", head.SourceName);
-    Assert.Equal(failAtHeadUpdate ? 1 : 2, await db.PendingTranscriptPages.CountAsync());
-    var page = await db.TranscriptPages.AsNoTracking().SingleAsync();
+    Assert.Equal(failAtHeadUpdate ? 1 : 2, await db.PendingTranscriptPages.ObserveAllWorkspaces().CountAsync());
+    var page = await db.TranscriptPages.ObserveAllWorkspaces().AsNoTracking().SingleAsync();
     Assert.Equal("Original", page.Text);
     Assert.Equal(1L, page.Version);
-    Assert.Equal(1L, (await db.Documents.AsNoTracking().SingleAsync()).TranscriptRevision);
+    Assert.Equal(1L, (await db.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync()).TranscriptRevision);
     var forbidden = await Assert.ThrowsAsync<PostgresException>(() => runtime.Database.ExecuteSqlRawAsync(
         "DELETE FROM minidocs.pending_transcript_pages"));
     Assert.Equal(PostgresErrorCodes.InsufficientPrivilege, forbidden.SqlState);

@@ -25,14 +25,14 @@ public sealed class PostgresTrashTests(PostgresTestDatabase fixture) : IClassFix
       Assert.True(await TrashPersistence.TryRestoreAsync(db, seed.Workspace, seed.Document, 2));
       await tx.CommitAsync();
     }
-    var document = await db.Documents.AsNoTracking().SingleAsync();
+    var document = await db.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync();
     Assert.Null(document.DeletedAt);
     Assert.Equal(seed.Topic, document.TopicId);
     Assert.Equal(seed.Remote, document.ViaFileId);
     Assert.Equal(3L, document.Version);
-    Assert.Equal(1, await db.DocumentTags.CountAsync());
-    Assert.Equal("Retained text", (await db.TranscriptPages.AsNoTracking().SingleAsync()).Text);
-    Assert.Equal(1, await db.FileOperations.CountAsync());
+    Assert.Equal(1, await db.DocumentTags.ObserveAllWorkspaces().CountAsync());
+    Assert.Equal("Retained text", (await db.TranscriptPages.ObserveAllWorkspaces().AsNoTracking().SingleAsync()).Text);
+    Assert.Equal(1, await db.FileOperations.ObserveAllWorkspaces().CountAsync());
   }
 
   [Theory]
@@ -74,12 +74,12 @@ public sealed class PostgresTrashTests(PostgresTestDatabase fixture) : IClassFix
     }
     Assert.False(await contender);
     await tx2.RollbackAsync();
-    var saved = await observer.Documents.AsNoTracking().SingleAsync();
+    var saved = await observer.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync();
     Assert.Equal(purgeFirst ? DocumentAvailability.DeletePending : DocumentAvailability.Available,
         saved.Availability);
     Assert.Equal(purgeFirst, saved.DeletedAt.HasValue);
     Assert.Equal(3L, saved.Version);
-    Assert.Equal(purgeFirst ? 1 : 0, await observer.FileOperations.CountAsync(
+    Assert.Equal(purgeFirst ? 1 : 0, await observer.FileOperations.ObserveAllWorkspaces().CountAsync(
         op => op.Kind == FileOperationKind.Delete));
   }
 
@@ -102,13 +102,13 @@ public sealed class PostgresTrashTests(PostgresTestDatabase fixture) : IClassFix
           Guid.NewGuid(), Guid.NewGuid(), TimeSpan.FromMinutes(1)));
       await tx.CommitAsync();
     }
-    var pending = await db.Documents.AsNoTracking().SingleAsync();
+    var pending = await db.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync();
     Assert.Equal(seed.Remote, pending.ViaFileId);
     Assert.Equal(DocumentAvailability.DeletePending, pending.Availability);
-    Assert.Equal(FileOperationState.DeleteUnknown, (await db.FileOperations.AsNoTracking()
+    Assert.Equal(FileOperationState.DeleteUnknown, (await db.FileOperations.ObserveAllWorkspaces().AsNoTracking()
         .SingleAsync(op => op.Id == operation)).State);
-    Assert.Equal(0, await db.FileOperationReceipts.CountAsync());
-    Assert.Equal(1, await db.TranscriptPages.CountAsync());
+    Assert.Equal(0, await db.FileOperationReceipts.ObserveAllWorkspaces().CountAsync());
+    Assert.Equal(1, await db.TranscriptPages.ObserveAllWorkspaces().CountAsync());
 
     await using (var tx = await db.Database.BeginTransactionAsync())
     {
@@ -122,8 +122,8 @@ public sealed class PostgresTrashTests(PostgresTestDatabase fixture) : IClassFix
           operation, verification.GetValueOrDefault()));
       await tx.CommitAsync();
     }
-    Assert.Equal(0, await db.Documents.CountAsync());
-    Assert.Equal(1, await db.FileOperationReceipts.CountAsync());
+    Assert.Equal(0, await db.Documents.ObserveAllWorkspaces().CountAsync());
+    Assert.Equal(1, await db.FileOperationReceipts.ObserveAllWorkspaces().CountAsync());
   }
 
   [Fact]
@@ -150,10 +150,10 @@ public sealed class PostgresTrashTests(PostgresTestDatabase fixture) : IClassFix
           operation, first.Fence.Version + 1, Guid.NewGuid(), TimeSpan.FromMinutes(1)));
       await tx.CommitAsync();
     }
-    var pending = await db.FileOperations.AsNoTracking().SingleAsync(op => op.Id == operation);
+    var pending = await db.FileOperations.ObserveAllWorkspaces().AsNoTracking().SingleAsync(op => op.Id == operation);
     Assert.Equal(FileOperationState.DeleteUnknown, pending.State);
     Assert.Equal(1, pending.AttemptNo);
-    Assert.Equal(0, await db.FileOperationReceipts.CountAsync());
+    Assert.Equal(0, await db.FileOperationReceipts.ObserveAllWorkspaces().CountAsync());
   }
 
   [Fact]
@@ -170,28 +170,28 @@ public sealed class PostgresTrashTests(PostgresTestDatabase fixture) : IClassFix
           seed.Document, operation, reservation));
       await tx.RollbackAsync();
     }
-    Assert.Equal(1, await db.Documents.CountAsync());
-    Assert.Equal(2, await db.FileOperations.CountAsync());
-    Assert.Equal(1, await db.TranscriptPages.CountAsync());
-    Assert.Equal(1, await db.DocumentTags.CountAsync());
-    Assert.Equal(0, await db.UploadRequestTombstones.CountAsync());
-    Assert.Equal(0, await db.FileOperationReceipts.CountAsync());
+    Assert.Equal(1, await db.Documents.ObserveAllWorkspaces().CountAsync());
+    Assert.Equal(2, await db.FileOperations.ObserveAllWorkspaces().CountAsync());
+    Assert.Equal(1, await db.TranscriptPages.ObserveAllWorkspaces().CountAsync());
+    Assert.Equal(1, await db.DocumentTags.ObserveAllWorkspaces().CountAsync());
+    Assert.Equal(0, await db.UploadRequestTombstones.ObserveAllWorkspaces().CountAsync());
+    Assert.Equal(0, await db.FileOperationReceipts.ObserveAllWorkspaces().CountAsync());
     await using (var tx = await db.Database.BeginTransactionAsync())
     {
       Assert.True(await TrashPersistence.TryCompleteConfirmedPurgeAsync(db, seed.Workspace,
           seed.Document, operation, reservation));
       await tx.CommitAsync();
     }
-    Assert.Equal(0, await db.Documents.CountAsync());
-    Assert.Equal(0, await db.FileOperations.CountAsync());
-    Assert.Equal(0, await db.TranscriptPages.CountAsync());
-    Assert.Equal(0, await db.DocumentTags.CountAsync());
-    Assert.Equal(1, await db.Tags.CountAsync());
-    Assert.Equal(1, await db.Topics.CountAsync());
-    var tombstone = await db.UploadRequestTombstones.AsNoTracking().SingleAsync();
+    Assert.Equal(0, await db.Documents.ObserveAllWorkspaces().CountAsync());
+    Assert.Equal(0, await db.FileOperations.ObserveAllWorkspaces().CountAsync());
+    Assert.Equal(0, await db.TranscriptPages.ObserveAllWorkspaces().CountAsync());
+    Assert.Equal(0, await db.DocumentTags.ObserveAllWorkspaces().CountAsync());
+    Assert.Equal(1, await db.Tags.ObserveAllWorkspaces().CountAsync());
+    Assert.Equal(1, await db.Topics.ObserveAllWorkspaces().CountAsync());
+    var tombstone = await db.UploadRequestTombstones.ObserveAllWorkspaces().AsNoTracking().SingleAsync();
     Assert.Equal(seed.Workspace, tombstone.WorkspaceId);
     Assert.Equal(seed.Request, tombstone.RequestId);
-    var receipt = await db.FileOperationReceipts.AsNoTracking().SingleAsync();
+    var receipt = await db.FileOperationReceipts.ObserveAllWorkspaces().AsNoTracking().SingleAsync();
     Assert.Equal(seed.Workspace, receipt.WorkspaceId);
     Assert.Equal(operation, receipt.OperationId);
     Assert.Equal(FileOperationOutcome.RemoteDeleted, receipt.Outcome);
@@ -211,8 +211,8 @@ public sealed class PostgresTrashTests(PostgresTestDatabase fixture) : IClassFix
       Assert.Equal(1, await OperationRetentionPersistence.RemoveExpiredReceiptsAsync(db, seed.Workspace, 10));
       await tx.CommitAsync();
     }
-    Assert.Equal(0, await db.FileOperationReceipts.CountAsync());
-    Assert.Equal(1, await db.UploadRequestTombstones.CountAsync());
+    Assert.Equal(0, await db.FileOperationReceipts.ObserveAllWorkspaces().CountAsync());
+    Assert.Equal(1, await db.UploadRequestTombstones.ObserveAllWorkspaces().CountAsync());
   }
 
   [Fact]
@@ -250,21 +250,21 @@ public sealed class PostgresTrashTests(PostgresTestDatabase fixture) : IClassFix
       Assert.Equal(1, await OperationRetentionPersistence.RetireCompletedUploadsAsync(db, first.Workspace, 1));
       await tx.RollbackAsync();
     }
-    Assert.Equal(0, await db.UploadRequestTombstones.CountAsync());
+    Assert.Equal(0, await db.UploadRequestTombstones.ObserveAllWorkspaces().CountAsync());
     await using (var tx = await db.Database.BeginTransactionAsync())
     {
       Assert.Equal(1, await OperationRetentionPersistence.RetireCompletedUploadsAsync(db, first.Workspace, 1));
-      Assert.Equal(1, await db.UploadRequestTombstones.CountAsync());
+      Assert.Equal(1, await db.UploadRequestTombstones.ObserveAllWorkspaces().CountAsync());
       Assert.Equal(1, await OperationRetentionPersistence.RetireCompletedUploadsAsync(db, first.Workspace, 1));
       Assert.Equal(0, await OperationRetentionPersistence.RetireCompletedUploadsAsync(db, first.Workspace, 1));
       Assert.Equal(0, await OperationRetentionPersistence.RetireCompletedUploadsAsync(db, third.Workspace, 1));
       await tx.CommitAsync();
     }
-    Assert.Equal(5, await db.Documents.CountAsync());
-    Assert.Equal(3, await db.FileOperations.CountAsync());
-    Assert.Equal(FileOperationState.Unknown, (await db.FileOperations.AsNoTracking()
+    Assert.Equal(5, await db.Documents.ObserveAllWorkspaces().CountAsync());
+    Assert.Equal(3, await db.FileOperations.ObserveAllWorkspaces().CountAsync());
+    Assert.Equal(FileOperationState.Unknown, (await db.FileOperations.ObserveAllWorkspaces().AsNoTracking()
         .SingleAsync(op => op.RequestId == unknownRequest)).State);
-    var markers = await db.UploadRequestTombstones.AsNoTracking().ToListAsync();
+    var markers = await db.UploadRequestTombstones.ObserveAllWorkspaces().AsNoTracking().ToListAsync();
     Assert.Equal(2, markers.Count);
     Assert.All(markers, marker => Assert.Equal(first.Workspace, marker.WorkspaceId));
     Assert.Contains(markers, marker => marker.RequestId == first.Request);
@@ -287,8 +287,8 @@ public sealed class PostgresTrashTests(PostgresTestDatabase fixture) : IClassFix
           Guid.NewGuid(), Guid.NewGuid(), TimeSpan.FromMinutes(1)));
       await tx.RollbackAsync();
     }
-    Assert.Equal(0, await db.FileOperations.CountAsync(op => op.Kind == FileOperationKind.Delete));
-    Assert.NotNull((await db.Documents.AsNoTracking().SingleAsync(d => d.Id == seed.Document)).DeletedAt);
+    Assert.Equal(0, await db.FileOperations.ObserveAllWorkspaces().CountAsync(op => op.Kind == FileOperationKind.Delete));
+    Assert.NotNull((await db.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync(d => d.Id == seed.Document)).DeletedAt);
   }
 
   [Fact]
@@ -314,7 +314,7 @@ public sealed class PostgresTrashTests(PostgresTestDatabase fixture) : IClassFix
       Assert.True(await TrashPersistence.TryRestoreAsync(db, seed.Workspace, seed.Document, 2));
       await tx.CommitAsync();
     }
-    Assert.Equal(topic, (await db.Documents.AsNoTracking().SingleAsync()).TopicId);
+    Assert.Equal(topic, (await db.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync()).TopicId);
   }
 
   private static async Task<bool> TryStartPurgeAsync(MiniDocsDbContext db, Seed seed, Guid operation) =>

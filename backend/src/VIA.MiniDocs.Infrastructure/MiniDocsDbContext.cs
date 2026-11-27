@@ -8,6 +8,16 @@ namespace VIA.MiniDocs.Infrastructure;
 public sealed class MiniDocsDbContext(DbContextOptions<MiniDocsDbContext> options)
     : IdentityDbContext<MiniDocsUser, IdentityRole<Guid>, Guid>(options)
 {
+  public const string WorkspaceIsolationFilter = "WorkspaceIsolation";
+  public Guid? AuthorizedWorkspaceId { get; private set; }
+
+  public void BindActiveWorkspace(Guid workspaceId)
+  {
+    if (workspaceId == Guid.Empty || (AuthorizedWorkspaceId.HasValue && AuthorizedWorkspaceId != workspaceId))
+      throw new InvalidOperationException("A context can only be bound to one active workspace.");
+    AuthorizedWorkspaceId = workspaceId;
+  }
+
   public DbSet<Workspace> Workspaces => Set<Workspace>();
   public DbSet<UserInvitation> UserInvitations => Set<UserInvitation>();
   public DbSet<ViaDocsAccount> ViaDocsAccounts => Set<ViaDocsAccount>();
@@ -60,6 +70,19 @@ public sealed class MiniDocsDbContext(DbContextOptions<MiniDocsDbContext> option
     builder.ApplyConfiguration(new FileOperationConfiguration());
     builder.ApplyConfiguration(new UploadRequestTombstoneConfiguration());
     builder.ApplyConfiguration(new FileOperationReceiptConfiguration());
+
+    // EF parameterizes instance members at execution time. The nullable
+    // parameter is deliberately unset for anonymous and administrative scopes.
+    builder.Entity<Topic>().HasQueryFilter(WorkspaceIsolationFilter, row => row.WorkspaceId == AuthorizedWorkspaceId);
+    builder.Entity<Document>().HasQueryFilter(WorkspaceIsolationFilter, row => row.WorkspaceId == AuthorizedWorkspaceId);
+    builder.Entity<Tag>().HasQueryFilter(WorkspaceIsolationFilter, row => row.WorkspaceId == AuthorizedWorkspaceId);
+    builder.Entity<DocumentTag>().HasQueryFilter(WorkspaceIsolationFilter, row => row.WorkspaceId == AuthorizedWorkspaceId);
+    builder.Entity<TranscriptPage>().HasQueryFilter(WorkspaceIsolationFilter, row => row.WorkspaceId == AuthorizedWorkspaceId);
+    builder.Entity<PendingTranscript>().HasQueryFilter(WorkspaceIsolationFilter, row => row.WorkspaceId == AuthorizedWorkspaceId);
+    builder.Entity<PendingTranscriptPage>().HasQueryFilter(WorkspaceIsolationFilter, row => row.WorkspaceId == AuthorizedWorkspaceId);
+    builder.Entity<FileOperation>().HasQueryFilter(WorkspaceIsolationFilter, row => row.WorkspaceId == AuthorizedWorkspaceId);
+    builder.Entity<FileOperationReceipt>().HasQueryFilter(WorkspaceIsolationFilter, row => row.WorkspaceId == AuthorizedWorkspaceId);
+    builder.Entity<UploadRequestTombstone>().HasQueryFilter(WorkspaceIsolationFilter, row => row.WorkspaceId == AuthorizedWorkspaceId);
   }
 
   private static string ToSnakeCase(string value) => string.Concat(

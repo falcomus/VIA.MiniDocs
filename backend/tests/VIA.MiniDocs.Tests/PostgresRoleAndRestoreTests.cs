@@ -91,12 +91,12 @@ public sealed class PostgresRoleAndRestoreTests(PostgresTestDatabase fixture) : 
       var technicalIdentity = await runtime.ViaDocsAccounts.AsNoTracking().SingleAsync();
       Assert.Equal(applicationId, technicalIdentity.ApplicationId);
       Assert.Equal(protectedBytes, technicalIdentity.ProtectedSecret);
-      Assert.Equal(document, (await runtime.Documents.AsNoTracking().SingleAsync()).Id);
-      var unresolved = await runtime.FileOperations.AsNoTracking().SingleAsync();
+      Assert.Equal(document, (await runtime.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync()).Id);
+      var unresolved = await runtime.FileOperations.ObserveAllWorkspaces().AsNoTracking().SingleAsync();
       Assert.Equal(operation, unresolved.Id);
       Assert.Equal(unknownRequest, unresolved.RequestId);
       Assert.Equal(FileOperationState.Unknown, unresolved.State);
-      Assert.Equal(retiredRequest, (await runtime.UploadRequestTombstones.AsNoTracking().SingleAsync()).RequestId);
+      Assert.Equal(retiredRequest, (await runtime.UploadRequestTombstones.ObserveAllWorkspaces().AsNoTracking().SingleAsync()).RequestId);
 
       // Deferred triggers must still reject invalid state after restoration.
       var orphan = await Assert.ThrowsAsync<PostgresException>(() =>
@@ -107,7 +107,7 @@ public sealed class PostgresRoleAndRestoreTests(PostgresTestDatabase fixture) : 
           SELECT minidocs.command_rename_document({workspace}, {document}, 1::bigint, 'Restored and writable')
           """));
       await tx.CommitAsync();
-      Assert.Equal("Restored and writable", (await runtime.Documents.AsNoTracking().SingleAsync()).Title);
+      Assert.Equal("Restored and writable", (await runtime.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync()).Title);
     }
     await using var restoredMigrator = fixture.CreateMigratorPeer(restored);
     Assert.Equal(4, (await restoredMigrator.Database.GetAppliedMigrationsAsync()).Count());

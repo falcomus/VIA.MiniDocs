@@ -28,7 +28,7 @@ namespace VIA.MiniDocs.Tests;
 
 [Trait("Package", "D4-A")]
 [Trait("Category", "PostgreSQL")]
-public sealed class SessionHostTests(PostgresTestDatabase fixture) : IClassFixture<PostgresTestDatabase>
+public sealed partial class SessionHostTests(PostgresTestDatabase fixture) : IClassFixture<PostgresTestDatabase>
 {
   private const string SessionPath = "/api/v1/session";
   private const string AntiforgeryPath = "/api/v1/antiforgery";

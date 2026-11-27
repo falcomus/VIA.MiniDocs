@@ -163,14 +163,16 @@ internal static class SessionHttp
       new CookieOptions { HttpOnly = true, Secure = true, SameSite = SameSiteMode.Strict, Path = "/" });
 
   private static Session ToResponse(SessionSnapshot snapshot) =>
-      new(snapshot.UserId, snapshot.UserName, snapshot.Roles, snapshot.WorkspaceId, snapshot.WorkspaceStatus switch
+      new(snapshot.UserId, snapshot.UserName, snapshot.Roles, snapshot.WorkspaceId, ParseWorkspaceStatus(snapshot.WorkspaceStatus));
+
+  internal static SessionWorkspaceStatus? ParseWorkspaceStatus(string? value) => value switch
       {
         null => null,
         "pending" => SessionWorkspaceStatus.Pending,
         "active" => SessionWorkspaceStatus.Active,
         "suspended" => SessionWorkspaceStatus.Suspended,
         _ => throw new InvalidOperationException("Invalid stored workspace status.")
-      });
+      };
 
   private static IResult InvalidInput(HttpContext context) =>
       Problem(context, 400, "validation_failed", "The login request is invalid.");

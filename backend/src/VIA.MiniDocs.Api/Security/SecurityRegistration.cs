@@ -14,7 +14,18 @@ internal static class SecurityRegistration
   internal static void AddMiniDocsSecurity(this WebApplicationBuilder builder, bool localOperation)
   {
     var services = builder.Services;
-    services.AddAuthorization();
+    services.AddAuthorizationBuilder()
+        .AddPolicy(WorkspacePolicies.Session, policy => policy.RequireAuthenticatedUser())
+        .AddPolicy(WorkspacePolicies.Administrator, policy => policy.RequireAuthenticatedUser()
+            .RequireRole(AdministratorAccounts.Role))
+        .AddPolicy(WorkspacePolicies.ActiveWorkspace, policy => policy.RequireAuthenticatedUser()
+            .AddRequirements(new ActiveWorkspaceRequirement()));
+    services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, ActiveWorkspaceHandler>();
+    services.AddScoped<AdministratorInvitations>();
+    services.AddScoped<Registration>();
+    services.AddSingleton<RegistrationRateLimits>();
+    services.AddSingleton<InvitationIssueLimits>();
+    services.AddSingleton<AdministratorCursor>();
     // Database exceptions can contain input values supplied by the server.
     // HTTP reports a safe status and trace identifier after catching the failure.
     builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.None);

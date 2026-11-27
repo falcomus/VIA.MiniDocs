@@ -67,10 +67,10 @@ public sealed class PostgresIsolationTests(PostgresTestDatabase fixture) : IClas
         INSERT INTO minidocs.pending_transcript_pages(workspace_id, pending_id, page_no, text)
         VALUES ({b}, {pending}, 1, 'Own pending page');
         """);
-    Assert.Single(await db.DocumentTags.ToListAsync());
-    Assert.Single(await db.TranscriptPages.ToListAsync());
-    Assert.Single(await db.PendingTranscriptPages.ToListAsync());
-    Assert.Empty(await db.FileOperations.ToListAsync());
+    Assert.Single(await db.DocumentTags.ObserveAllWorkspaces().ToListAsync());
+    Assert.Single(await db.TranscriptPages.ObserveAllWorkspaces().ToListAsync());
+    Assert.Single(await db.PendingTranscriptPages.ObserveAllWorkspaces().ToListAsync());
+    Assert.Empty(await db.FileOperations.ObserveAllWorkspaces().ToListAsync());
   }
 
   [Fact]
@@ -86,8 +86,8 @@ public sealed class PostgresIsolationTests(PostgresTestDatabase fixture) : IClas
         VALUES ({document}, {workspace}, {topic}, 'Before', 'meeting', 'pending_upload')
         """);
     await using var peer = fixture.CreatePeer(db);
-    var first = await db.Documents.SingleAsync(d => d.WorkspaceId == workspace && d.Id == document);
-    var stale = await peer.Documents.SingleAsync(d => d.WorkspaceId == workspace && d.Id == document);
+    var first = await db.Documents.ObserveAllWorkspaces().SingleAsync(d => d.WorkspaceId == workspace && d.Id == document);
+    var stale = await peer.Documents.ObserveAllWorkspaces().SingleAsync(d => d.WorkspaceId == workspace && d.Id == document);
     Assert.Equal(first.Version, stale.Version);
     first.Title = "First writer";
     db.Entry(first).Property(d => d.Version).CurrentValue++;
@@ -96,7 +96,7 @@ public sealed class PostgresIsolationTests(PostgresTestDatabase fixture) : IClas
     peer.Entry(stale).Property(d => d.Version).CurrentValue++;
     await Assert.ThrowsAsync<DbUpdateConcurrencyException>(() => peer.SaveChangesAsync());
     await using var observer = fixture.CreatePeer(db);
-    var saved = await observer.Documents.AsNoTracking().SingleAsync();
+    var saved = await observer.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync();
     Assert.Equal("First writer", saved.Title);
     Assert.Equal(2L, saved.Version);
   }
@@ -143,8 +143,8 @@ public sealed class PostgresIsolationTests(PostgresTestDatabase fixture) : IClas
     Assert.Equal(PostgresErrorCodes.RestrictViolation, error.SqlState);
     Assert.Equal("FK_documents_topics_workspace_id_topic_id", error.ConstraintName);
     await second.RollbackAsync();
-    Assert.True(await observer.Topics.AnyAsync(t => t.Id == topic));
-    Assert.Equal(topic, (await observer.Documents.AsNoTracking().SingleAsync()).TopicId);
+    Assert.True(await observer.Topics.ObserveAllWorkspaces().AnyAsync(t => t.Id == topic));
+    Assert.Equal(topic, (await observer.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync()).TopicId);
   }
 
   private static async Task ForeignKeyAsync(Func<Task> write, string constraint)

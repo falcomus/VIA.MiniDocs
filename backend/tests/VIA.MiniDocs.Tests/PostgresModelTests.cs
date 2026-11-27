@@ -160,7 +160,7 @@ public sealed class PostgresModelTests(PostgresTestDatabase fixture) : IClassFix
         INSERT INTO minidocs.documents(id, workspace_id, topic_id, title, kind, availability)
         VALUES ({documentId}, {workspaceA}, {topicId}, 'Defaults', 'meeting', 'pending_upload')
         """);
-    var document = await db.Documents.AsNoTracking().SingleAsync(value => value.Id == documentId);
+    var document = await db.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync(value => value.Id == documentId);
     Assert.False(document.TranscriptPresent);
     Assert.False(document.TranscriptEdited);
     Assert.Equal(0L, document.TranscriptRevision);
@@ -177,7 +177,7 @@ public sealed class PostgresModelTests(PostgresTestDatabase fixture) : IClassFix
         new UploadRequestTombstone { WorkspaceId = workspaceA, RequestId = requestId },
         new UploadRequestTombstone { WorkspaceId = workspaceB, RequestId = requestId });
     await db.SaveChangesAsync();
-    Assert.Equal(2, await db.UploadRequestTombstones.CountAsync());
+    Assert.Equal(2, await db.UploadRequestTombstones.ObserveAllWorkspaces().CountAsync());
 
     var duplicate = await Assert.ThrowsAsync<Npgsql.PostgresException>(() =>
         db.Database.ExecuteSqlInterpolatedAsync($"""

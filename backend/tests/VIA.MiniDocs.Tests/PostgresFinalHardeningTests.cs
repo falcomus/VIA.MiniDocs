@@ -112,8 +112,8 @@ public sealed partial class PostgresFinalHardeningTests(PostgresTestDatabase fix
     var saved = await observer.ProvisioningOperations.AsNoTracking().SingleAsync();
     Assert.Equal(provisioning ? ProvisioningStatus.Ready : ProvisioningStatus.Active, saved.Status);
     Assert.Null(saved.LeaseOwner);
-    Assert.Empty(await observer.FileOperations.AsNoTracking().ToListAsync());
-    Assert.Empty(await observer.Documents.AsNoTracking().ToListAsync());
+    Assert.Empty(await observer.FileOperations.ObserveAllWorkspaces().AsNoTracking().ToListAsync());
+    Assert.Empty(await observer.Documents.ObserveAllWorkspaces().AsNoTracking().ToListAsync());
   }
 
   [Fact]
@@ -143,7 +143,7 @@ public sealed partial class PostgresFinalHardeningTests(PostgresTestDatabase fix
     await blocker.CommitAsync();
     Assert.Equal(LocalWriteStatus.Committed, (await contender).Status);
     Assert.Equal(WorkspaceStatus.Suspended, (await observer.Workspaces.AsNoTracking().SingleAsync()).Status);
-    Assert.Equal(operation, (await observer.FileOperations.AsNoTracking().SingleAsync()).Id);
+    Assert.Equal(operation, (await observer.FileOperations.ObserveAllWorkspaces().AsNoTracking().SingleAsync()).Id);
   }
 
   [Fact]
@@ -168,7 +168,7 @@ public sealed partial class PostgresFinalHardeningTests(PostgresTestDatabase fix
           error.ConstraintName == "ck_command_argument", $"Wrong error contract for {call}: {error.SqlState}");
     }
     Assert.Empty(await db.Workspaces.AsNoTracking().ToListAsync());
-    Assert.Empty(await db.FileOperations.AsNoTracking().ToListAsync());
+    Assert.Empty(await db.FileOperations.ObserveAllWorkspaces().AsNoTracking().ToListAsync());
   }
 
   [Fact]
@@ -198,11 +198,11 @@ public sealed partial class PostgresFinalHardeningTests(PostgresTestDatabase fix
       Assert.Equal(PostgresErrorCodes.InvalidParameterValue, error.SqlState);
       Assert.Equal("ck_command_argument", error.ConstraintName);
     }
-    Assert.Equal(FileOperationState.Prepared, (await db.FileOperations.AsNoTracking().SingleAsync()).State);
+    Assert.Equal(FileOperationState.Prepared, (await db.FileOperations.ObserveAllWorkspaces().AsNoTracking().SingleAsync()).State);
     var lease = await LocalWriteTransaction.ExecuteAsync(runtime, ct => OperationLeasePersistence.TryBeginUploadAsync(
         runtime, workspace, doc, op, 1, worker, TimeSpan.FromMinutes(15), ct), value => value.HasValue);
     Assert.Equal(LocalWriteStatus.Committed, lease.Status);
-    var saved = await db.FileOperations.AsNoTracking().SingleAsync();
+    var saved = await db.FileOperations.ObserveAllWorkspaces().AsNoTracking().SingleAsync();
     Assert.Equal(FileOperationState.InFlight, saved.State);
     Assert.InRange(saved.LeaseUntil!.Value - saved.UpdatedAt, TimeSpan.FromMinutes(14), TimeSpan.FromMinutes(15));
   }

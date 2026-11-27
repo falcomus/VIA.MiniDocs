@@ -44,7 +44,7 @@ public sealed class PostgresWriteBoundaryTests(PostgresTestDatabase fixture) : I
     await runtime.Database.ExecuteSqlRawAsync("SET LOCAL search_path = fixture_shadow, pg_catalog");
     Assert.True(await DocumentPersistence.TryRenameAsync(runtime, seed.Workspace, seed.Document, 1, "Qualified"));
     await tx.CommitAsync();
-    Assert.Equal("Qualified", (await db.Documents.AsNoTracking().SingleAsync()).Title);
+    Assert.Equal("Qualified", (await db.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync()).Title);
   }
 
   [Fact]
@@ -53,20 +53,20 @@ public sealed class PostgresWriteBoundaryTests(PostgresTestDatabase fixture) : I
     await using var db = await OpenDatabaseAsync();
     var seed = await SeedDocumentAsync(db);
     await using var runtime = fixture.CreateRuntimePeer(db);
-    var document = await runtime.Documents.SingleAsync();
+    var document = await runtime.Documents.ObserveAllWorkspaces().SingleAsync();
     document.Title = "Unversioned EF update";
     var error = await Assert.ThrowsAsync<DbUpdateException>(() => runtime.SaveChangesAsync());
     Assert.Equal(PostgresErrorCodes.InsufficientPrivilege, Assert.IsType<PostgresException>(error.InnerException).SqlState);
     runtime.ChangeTracker.Clear();
 
-    var before = await runtime.Documents.AsNoTracking().SingleAsync();
+    var before = await runtime.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync();
     var changed = await LocalWriteTransaction.ExecuteAsync(runtime, ct =>
         DocumentPersistence.TryRenameAsync(runtime, seed.Workspace, seed.Document, 1, "Versioned", ct), value => value);
     Assert.Equal(LocalWriteStatus.Committed, changed.Status);
     var stale = await LocalWriteTransaction.ExecuteAsync(runtime, ct =>
         DocumentPersistence.TryRenameAsync(runtime, seed.Workspace, seed.Document, 1, "Stale", ct), value => value);
     Assert.Equal(LocalWriteStatus.Rejected, stale.Status);
-    var after = await runtime.Documents.AsNoTracking().SingleAsync();
+    var after = await runtime.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync();
     Assert.Equal("Versioned", after.Title);
     Assert.Equal(2, after.Version);
     Assert.Equal(before.CreatedAt, after.CreatedAt);
@@ -93,8 +93,8 @@ public sealed class PostgresWriteBoundaryTests(PostgresTestDatabase fixture) : I
     Assert.False(await TranscriptPersistence.TryReplaceAsync(other, seed.Workspace, seed.Document, 0,
         true, false, [new(1, "stale", false)]));
     await stale.RollbackAsync();
-    Assert.Equal("current", (await other.TranscriptPages.AsNoTracking().SingleAsync()).Text);
-    Assert.Equal(1, (await other.Documents.AsNoTracking().SingleAsync()).TranscriptRevision);
+    Assert.Equal("current", (await other.TranscriptPages.ObserveAllWorkspaces().AsNoTracking().SingleAsync()).Text);
+    Assert.Equal(1, (await other.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync()).TranscriptRevision);
   }
 
   [Theory]
@@ -179,8 +179,8 @@ public sealed class PostgresWriteBoundaryTests(PostgresTestDatabase fixture) : I
         .WaitAsync(TimeSpan.FromSeconds(5)));
     await parallel.CommitAsync();
     await hold.RollbackAsync();
-    Assert.Equal("Independent", (await db.Documents.AsNoTracking().SingleAsync(d => d.Id == second.Document)).Title);
-    Assert.Equal("PDF", (await db.Documents.AsNoTracking().SingleAsync(d => d.Id == first.Document)).Title);
+    Assert.Equal("Independent", (await db.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync(d => d.Id == second.Document)).Title);
+    Assert.Equal("PDF", (await db.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync(d => d.Id == first.Document)).Title);
   }
 
   [Fact]
@@ -204,8 +204,8 @@ public sealed class PostgresWriteBoundaryTests(PostgresTestDatabase fixture) : I
     }, value => value, IsolationLevel.RepeatableRead);
 
     Assert.Equal(LocalWriteStatus.ConcurrencyConflict, result.Status);
-    Assert.Equal("PDF", (await db.Documents.AsNoTracking().SingleAsync(d => d.Id == independent.Document)).Title);
-    Assert.Equal("Committed", (await db.Documents.AsNoTracking().SingleAsync(d => d.Id == seed.Document)).Title);
+    Assert.Equal("PDF", (await db.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync(d => d.Id == independent.Document)).Title);
+    Assert.Equal("Committed", (await db.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync(d => d.Id == seed.Document)).Title);
   }
 
   [Fact]
@@ -279,8 +279,8 @@ public sealed class PostgresWriteBoundaryTests(PostgresTestDatabase fixture) : I
     await blocker.CommitAsync();
 
     Assert.Equal(LocalWriteStatus.ConcurrencyConflict, (await result).Status);
-    Assert.Equal("Committed", (await db.Documents.AsNoTracking().SingleAsync(d => d.Id == seedA.Document)).Title);
-    Assert.Equal("Other wins", (await db.Documents.AsNoTracking().SingleAsync(d => d.Id == seedB.Document)).Title);
+    Assert.Equal("Committed", (await db.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync(d => d.Id == seedA.Document)).Title);
+    Assert.Equal("Other wins", (await db.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync(d => d.Id == seedB.Document)).Title);
   }
 
   [Theory]
@@ -291,7 +291,7 @@ public sealed class PostgresWriteBoundaryTests(PostgresTestDatabase fixture) : I
     await using var db = await OpenDatabaseAsync();
     var seed = await SeedDocumentAsync(db);
     var operation = await SeedUploadAsync(db, seed, "completed");
-    var request = (await db.FileOperations.AsNoTracking().SingleAsync()).RequestId!.Value;
+    var request = (await db.FileOperations.ObserveAllWorkspaces().AsNoTracking().SingleAsync()).RequestId!.Value;
     await db.Database.ExecuteSqlInterpolatedAsync($"""
         UPDATE minidocs.file_operations SET completed_at = clock_timestamp() - interval '31 days'
         WHERE id = {operation}
@@ -318,9 +318,9 @@ public sealed class PostgresWriteBoundaryTests(PostgresTestDatabase fixture) : I
       Assert.Equal(1, await (Task<int>)rival);
     await tx2.CommitAsync();
 
-    Assert.Equal(request, (await db.UploadRequestTombstones.AsNoTracking().SingleAsync()).RequestId);
-    Assert.Empty(await db.FileOperations.AsNoTracking().ToListAsync());
-    Assert.Single(await db.Documents.AsNoTracking().ToListAsync());
+    Assert.Equal(request, (await db.UploadRequestTombstones.ObserveAllWorkspaces().AsNoTracking().SingleAsync()).RequestId);
+    Assert.Empty(await db.FileOperations.ObserveAllWorkspaces().AsNoTracking().ToListAsync());
+    Assert.Single(await db.Documents.ObserveAllWorkspaces().AsNoTracking().ToListAsync());
   }
 
   [Theory]
@@ -376,12 +376,12 @@ public sealed class PostgresWriteBoundaryTests(PostgresTestDatabase fixture) : I
         value => value));
     Assert.Equal("P0001", result.SqlState);
 
-    var saved = await db.FileOperations.AsNoTracking().SingleAsync(op => op.Id == operation);
-    var document = await db.Documents.AsNoTracking().SingleAsync();
+    var saved = await db.FileOperations.ObserveAllWorkspaces().AsNoTracking().SingleAsync(op => op.Id == operation);
+    var document = await db.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync();
     Assert.Equal(purge ? FileOperationState.DeleteInFlight : FileOperationState.RemoteKnown, saved.State);
     Assert.Equal(purge ? DocumentAvailability.DeletePending : DocumentAvailability.PendingUpload, document.Availability);
-    Assert.Empty(await db.FileOperationReceipts.AsNoTracking().ToListAsync());
-    Assert.Empty(await db.UploadRequestTombstones.AsNoTracking().ToListAsync());
+    Assert.Empty(await db.FileOperationReceipts.ObserveAllWorkspaces().AsNoTracking().ToListAsync());
+    Assert.Empty(await db.UploadRequestTombstones.ObserveAllWorkspaces().AsNoTracking().ToListAsync());
   }
 
 
@@ -406,9 +406,9 @@ public sealed class PostgresWriteBoundaryTests(PostgresTestDatabase fixture) : I
     Assert.True(await DocumentPersistence.TryDeleteTagAsync(runtime, seed.Workspace, tag, 1));
     await tx.CommitAsync();
 
-    Assert.Empty(await db.DocumentTags.AsNoTracking().ToListAsync());
-    Assert.Equal(3, (await db.Documents.AsNoTracking().SingleAsync(d => d.Id == seed.Document)).Version);
-    Assert.Equal(1, (await db.Documents.AsNoTracking().SingleAsync(d => d.Id == unrelated)).Version);
+    Assert.Empty(await db.DocumentTags.ObserveAllWorkspaces().AsNoTracking().ToListAsync());
+    Assert.Equal(3, (await db.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync(d => d.Id == seed.Document)).Version);
+    Assert.Equal(1, (await db.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync(d => d.Id == unrelated)).Version);
   }
 
   [Fact]
@@ -439,10 +439,10 @@ public sealed class PostgresWriteBoundaryTests(PostgresTestDatabase fixture) : I
         3, 1, PageCountSource.Viewer));
     await tx.CommitAsync();
 
-    var page = await db.TranscriptPages.AsNoTracking().SingleAsync();
+    var page = await db.TranscriptPages.ObserveAllWorkspaces().AsNoTracking().SingleAsync();
     Assert.Equal(2, page.PageNo);
     Assert.Equal("Imported page", page.Text);
-    Assert.Equal(PendingTranscriptStatus.Matched, (await db.PendingTranscripts.AsNoTracking().SingleAsync()).Status);
+    Assert.Equal(PendingTranscriptStatus.Matched, (await db.PendingTranscripts.ObserveAllWorkspaces().AsNoTracking().SingleAsync()).Status);
   }
 
   [Fact]
@@ -465,7 +465,7 @@ public sealed class PostgresWriteBoundaryTests(PostgresTestDatabase fixture) : I
     Assert.False(await TopicPersistence.TryDeleteAsync(runtime, seed.Workspace, first, 2));
     Assert.False(await TopicPersistence.TryDeleteAsync(runtime, seed.Workspace, seed.Topic, 1));
     await tx.CommitAsync();
-    Assert.Equal(first, (await db.Documents.AsNoTracking().SingleAsync()).TopicId);
+    Assert.Equal(first, (await db.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync()).TopicId);
   }
 
   [Fact]

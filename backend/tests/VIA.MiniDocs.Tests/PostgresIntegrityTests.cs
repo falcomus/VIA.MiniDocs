@@ -118,7 +118,7 @@ public sealed class PostgresIntegrityTests(PostgresTestDatabase fixture) : IClas
         UPDATE minidocs.topics SET parent_id = CASE WHEN id = {first} THEN {second} ELSE {first} END
         WHERE workspace_id = {workspace} AND id IN ({first}, {second})
         """), "ck_topic_tree_acyclic");
-    Assert.Equal(0, await db.Topics.CountAsync(topic => topic.WorkspaceId == workspace && topic.ParentId != null));
+    Assert.Equal(0, await db.Topics.ObserveAllWorkspaces().CountAsync(topic => topic.WorkspaceId == workspace && topic.ParentId != null));
   }
 
   [Theory]
@@ -161,7 +161,7 @@ public sealed class PostgresIntegrityTests(PostgresTestDatabase fixture) : IClas
       await move;
       await RejectAsync(() => tx2.CommitAsync(), "ck_topic_tree_acyclic");
     }
-    Assert.Equal(1, await observer.Topics.CountAsync(topic => topic.ParentId != null));
+    Assert.Equal(1, await observer.Topics.ObserveAllWorkspaces().CountAsync(topic => topic.ParentId != null));
   }
 
   [Fact]
@@ -222,8 +222,8 @@ public sealed class PostgresIntegrityTests(PostgresTestDatabase fixture) : IClas
     }
     await reserve;
     await RejectAsync(() => tx2.CommitAsync(), "ck_upload_request_exclusive");
-    Assert.Equal(1, await observer.UploadRequestTombstones.CountAsync());
-    Assert.Equal(0, await observer.FileOperations.CountAsync());
+    Assert.Equal(1, await observer.UploadRequestTombstones.ObserveAllWorkspaces().CountAsync());
+    Assert.Equal(0, await observer.FileOperations.ObserveAllWorkspaces().CountAsync());
   }
 
   [Fact]

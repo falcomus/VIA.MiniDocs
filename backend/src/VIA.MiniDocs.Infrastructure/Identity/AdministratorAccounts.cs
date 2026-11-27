@@ -26,15 +26,23 @@ public sealed class AdministratorAccounts(MiniDocsDbContext db)
 {
   public const string Role = "ADMINISTRATOR";
 
-  public Task<AdministratorAccountVersion?> ReadVersionAsync(Guid target, CancellationToken cancellationToken) =>
-      db.Users.AsNoTracking().Where(u => u.Id == target)
-          .Select(u => new AdministratorAccountVersion(u.Id, u.UserName, u.AccountKind, u.IsDisabled,
+  private IQueryable<AdministratorAccountVersion> Project(IQueryable<MiniDocsUser> query) =>
+      query.Select(u => new AdministratorAccountVersion(u.Id, u.UserName, u.AccountKind, u.IsDisabled,
               u.ConcurrencyStamp, (from membership in db.UserRoles
                                   join role in db.Roles on membership.RoleId equals role.Id
                                   where membership.UserId == u.Id && role.NormalizedName != null
                                   orderby role.NormalizedName
-                                  select role.NormalizedName!).ToArray()))
-          .SingleOrDefaultAsync(cancellationToken);
+                                  select role.NormalizedName!).ToArray()));
+
+  public Task<AdministratorAccountVersion?> ReadVersionAsync(Guid target, CancellationToken cancellationToken) =>
+      Project(db.Users.AsNoTracking().Where(u => u.Id == target)).SingleOrDefaultAsync(cancellationToken);
+
+  public Task<List<AdministratorAccountVersion>> ReadPageAsync(Guid? after, int count, CancellationToken token)
+  {
+    var query = db.Users.AsNoTracking();
+    if (after is { } id) query = query.Where(user => user.Id.CompareTo(id) > 0);
+    return Project(query.OrderBy(user => user.Id).Take(count)).ToListAsync(token);
+  }
 
   public async Task<DeactivationResult> SetDisabledAsync(SessionAuthority actor, Guid target, string ifMatch,
       bool disabled, CancellationToken cancellationToken)
