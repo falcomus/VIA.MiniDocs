@@ -9,5 +9,9 @@ BEGIN
       pg_catalog.current_database());
   EXECUTE pg_catalog.format('GRANT CONNECT ON DATABASE %I TO minidocs_migrator, minidocs_runtime',
       pg_catalog.current_database());
+  IF pg_catalog.to_regrole('minidocs_bootstrap') IS NOT NULL THEN
+    EXECUTE pg_catalog.format('REVOKE ALL ON DATABASE %I FROM minidocs_bootstrap', pg_catalog.current_database());
+    EXECUTE pg_catalog.format('GRANT CONNECT ON DATABASE %I TO minidocs_bootstrap', pg_catalog.current_database());
+  END IF;
 END;
 $$;

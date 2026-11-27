@@ -1,5 +1,6 @@
 -- DBA step, ONLY on the explicitly selected, dedicated MiniDocs database.
--- The operator provisions two distinct LOGIN roles and their credentials separately.
+-- The operator provisions the distinct LOGIN roles and their credentials separately.
+-- D4 also requires an isolated LOGIN NOINHERIT minidocs_bootstrap role.
 -- The non-login owner exists solely to limit the privileges of the writing functions.
 -- Run before EF migration. For an archive restore with pre-existing roles use
 -- RestoreDatabaseConnect.sql and check the archive ACLs with the read-only gate.
@@ -35,6 +36,18 @@ BEGIN
       current_database());
   EXECUTE format('GRANT CONNECT ON DATABASE %I TO minidocs_migrator, minidocs_runtime',
       current_database());
+  IF to_regrole('minidocs_bootstrap') IS NOT NULL THEN
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'minidocs_bootstrap'
+        AND (NOT rolcanlogin OR rolinherit OR rolsuper OR rolcreatedb OR rolcreaterole
+             OR rolreplication OR rolbypassrls))
+       OR EXISTS (SELECT 1 FROM pg_auth_members
+         WHERE member = 'minidocs_bootstrap'::regrole OR roleid = 'minidocs_bootstrap'::regrole)
+       OR EXISTS (SELECT 1 FROM pg_database
+         WHERE datname = current_database() AND datdba = 'minidocs_bootstrap'::regrole)
+    THEN RAISE EXCEPTION 'Expected an isolated bootstrap principal.'; END IF;
+    EXECUTE format('REVOKE ALL ON DATABASE %I FROM minidocs_bootstrap', current_database());
+    EXECUTE format('GRANT CONNECT ON DATABASE %I TO minidocs_bootstrap', current_database());
+  END IF;
 END;
 $$;
 
@@ -56,6 +69,14 @@ END;
 $$;
 REVOKE ALL ON SCHEMA minidocs FROM PUBLIC, minidocs_runtime;
 GRANT USAGE ON SCHEMA minidocs TO minidocs_runtime;
+DO $$
+BEGIN
+  IF to_regrole('minidocs_bootstrap') IS NOT NULL THEN
+    REVOKE ALL ON SCHEMA public, minidocs FROM minidocs_bootstrap;
+    GRANT USAGE ON SCHEMA minidocs TO minidocs_bootstrap;
+  END IF;
+END;
+$$;
 ALTER DEFAULT PRIVILEGES FOR ROLE minidocs_migrator REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC;
 ALTER DEFAULT PRIVILEGES FOR ROLE minidocs_command_owner REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC;
 GRANT minidocs_command_owner TO minidocs_migrator WITH INHERIT FALSE, SET TRUE;

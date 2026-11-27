@@ -35,6 +35,13 @@ public sealed partial class PostgresFinalHardeningTests(PostgresTestDatabase fix
   [InlineData("ALTER TABLE minidocs.file_operations DISABLE TRIGGER guard_file_transition", "unexpected trigger")]
   [InlineData("ALTER TABLE minidocs.pending_transcripts DROP CONSTRAINT ck_pending_terminal_metadata", "inactive constraint")]
   [InlineData("DROP INDEX minidocs.ux_provisioning_active_workspace", "invalid active provisioning index")]
+  [InlineData("ALTER TABLE minidocs.identity_sessions DROP CONSTRAINT identity_sessions_handle_hash_check, ADD CONSTRAINT identity_sessions_handle_hash_check CHECK (octet_length(handle_hash) <= 32)", "unexpected D4 constraint identity_sessions_handle_hash_check")]
+  [InlineData("ALTER TABLE minidocs.identity_sessions DROP CONSTRAINT ck_identity_session_times, ADD CONSTRAINT ck_identity_session_times CHECK (issued_at <= idle_until AND idle_until <= absolute_until AND (revoked_at IS NULL OR revoked_at >= issued_at))", "unexpected D4 constraint ck_identity_session_times")]
+  [InlineData("ALTER TABLE minidocs.administrator_bootstrap DROP CONSTRAINT administrator_bootstrap_singleton_check, ADD CONSTRAINT administrator_bootstrap_singleton_check CHECK (singleton IS NOT NULL)", "unexpected D4 constraint administrator_bootstrap_singleton_check")]
+  [InlineData("ALTER TABLE minidocs.identity_sessions DROP CONSTRAINT identity_sessions_pkey, ADD CONSTRAINT identity_sessions_pkey PRIMARY KEY (user_id)", "unexpected D4 constraint identity_sessions_pkey")]
+  [InlineData("ALTER TABLE minidocs.identity_sessions DROP CONSTRAINT identity_sessions_user_id_fkey, ADD CONSTRAINT identity_sessions_user_id_fkey FOREIGN KEY (user_id) REFERENCES minidocs.workspaces(id)", "unexpected D4 constraint identity_sessions_user_id_fkey")]
+  [InlineData("ALTER TABLE minidocs.administrator_bootstrap DROP CONSTRAINT administrator_bootstrap_user_id_fkey, ADD CONSTRAINT administrator_bootstrap_user_id_fkey FOREIGN KEY (user_id) REFERENCES minidocs.identity_users(id) ON DELETE CASCADE", "unexpected D4 constraint administrator_bootstrap_user_id_fkey")]
+  [InlineData("ALTER TABLE minidocs.identity_sessions ALTER COLUMN idle_until DROP NOT NULL", "unexpected D4 column identity_sessions.idle_until")]
   public async Task GateRejectsCatalogDrift(string change, string expected)
   {
     await using var db = await OpenAsync();
@@ -153,7 +160,7 @@ public sealed partial class PostgresFinalHardeningTests(PostgresTestDatabase fix
         FROM pg_proc p
         WHERE p.pronamespace = 'minidocs'::regnamespace AND has_function_privilege('minidocs_runtime', p.oid, 'EXECUTE')
         """).ToListAsync();
-    Assert.Equal(38, calls.Count);
+    Assert.Equal(44, calls.Count);
     foreach (var call in calls)
     {
       var error = await Assert.ThrowsAsync<PostgresException>(() => runtime.Database.ExecuteSqlRawAsync(call));

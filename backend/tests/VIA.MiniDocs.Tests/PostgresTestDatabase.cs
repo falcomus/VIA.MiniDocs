@@ -14,6 +14,7 @@ public sealed class PostgresTestDatabase : IAsyncLifetime
   private readonly string password = Guid.NewGuid().ToString("N");
   private readonly string runtimePassword = Guid.NewGuid().ToString("N");
   private readonly string migratorPassword = Guid.NewGuid().ToString("N");
+  private readonly string bootstrapPassword = Guid.NewGuid().ToString("N");
   private string? containerId;
   private string? adminConnectionString;
 
@@ -86,6 +87,9 @@ public sealed class PostgresTestDatabase : IAsyncLifetime
   internal MiniDocsDbContext CreateMigratorPeer(MiniDocsDbContext db) =>
       CreateRoleContext(db, "minidocs_migrator", migratorPassword);
 
+  internal MiniDocsDbContext CreateBootstrapPeer(MiniDocsDbContext db) =>
+      CreateRoleContext(db, "minidocs_bootstrap", bootstrapPassword);
+
   internal static Task VerifyPermissionsAsync(MiniDocsDbContext db) =>
       db.Database.ExecuteSqlRawAsync(PostgresRoleAndRestoreTests.ReadRoleScript("GrantRuntimePrivileges.sql"));
 
@@ -99,6 +103,7 @@ public sealed class PostgresTestDatabase : IAsyncLifetime
           IF NOT EXISTS (SELECT 1 FROM pg_catalog.pg_roles WHERE rolname = 'minidocs_runtime') THEN
             CREATE ROLE minidocs_runtime LOGIN NOINHERIT PASSWORD '{runtimePassword}';
             CREATE ROLE minidocs_migrator LOGIN NOINHERIT PASSWORD '{migratorPassword}';
+            CREATE ROLE minidocs_bootstrap LOGIN NOINHERIT PASSWORD '{bootstrapPassword}';
           END IF;
         END;
         $$
@@ -111,7 +116,7 @@ public sealed class PostgresTestDatabase : IAsyncLifetime
 
   internal MiniDocsDbContext CreateRoleContext(MiniDocsDbContext db, string role, string rolePassword)
   {
-    if (role is not ("minidocs_migrator" or "minidocs_runtime"))
+    if (role is not ("minidocs_migrator" or "minidocs_runtime" or "minidocs_bootstrap"))
       throw new ArgumentException("Expected a dedicated MiniDocs test role.", nameof(role));
     return CreateContext(db.Database.GetDbConnection().Database, role, rolePassword);
   }

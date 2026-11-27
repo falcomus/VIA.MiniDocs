@@ -14,30 +14,11 @@ public sealed class PostgresRoleAndRestoreTests(PostgresTestDatabase fixture) : 
   public async Task RestrictedRolesMigrateOperateAndRestoreWithoutGrantingDdlToRuntime()
   {
     await using var source = await fixture.CreateDatabaseAsync();
-    // Generated test-only credentials in the fixture-owned container; never use external credentials.
-    var migrationPassword = Guid.NewGuid().ToString("N");
-    var runtimePassword = Guid.NewGuid().ToString("N");
-    await source.Database.OpenConnectionAsync();
-    try
-    {
-      // PostgreSQL utility statements do not accept bind parameters for passwords.
-      // Only fixed role names and locally generated hexadecimal credentials are used.
-      await using var createRoles = source.Database.GetDbConnection().CreateCommand();
-      createRoles.CommandText =
-          $"CREATE ROLE minidocs_migrator LOGIN NOINHERIT PASSWORD '{migrationPassword}'; " +
-          $"CREATE ROLE minidocs_runtime LOGIN NOINHERIT PASSWORD '{runtimePassword}';";
-      await createRoles.ExecuteNonQueryAsync();
-    }
-    finally
-    {
-      await source.Database.CloseConnectionAsync();
-    }
-
-    await source.Database.ExecuteSqlRawAsync(ReadRoleScript("PrepareDatabaseRoles.sql"));
-    await using (var migrator = fixture.CreateRoleContext(source, "minidocs_migrator", migrationPassword))
+    await fixture.PrepareRuntimeAsync(source);
+    await using (var migrator = fixture.CreateMigratorPeer(source))
     {
       await migrator.Database.MigrateAsync();
-      Assert.Equal(3, (await migrator.Database.GetAppliedMigrationsAsync()).Count());
+      Assert.Equal(4, (await migrator.Database.GetAppliedMigrationsAsync()).Count());
       await DeniedAsync(migrator, "CREATE SCHEMA forbidden_schema");
       await DeniedAsync(migrator, "CREATE ROLE forbidden_role");
     }
@@ -55,7 +36,7 @@ public sealed class PostgresRoleAndRestoreTests(PostgresTestDatabase fixture) : 
     var topic = await PostgresSeed.InsertUserAndWorkspace(source, owner, workspace, "role-restore");
     var provisioning = Guid.NewGuid();
     var worker = Guid.NewGuid();
-    await using (var runtime = fixture.CreateRoleContext(source, "minidocs_runtime", runtimePassword))
+    await using (var runtime = fixture.CreateRuntimePeer(source))
     {
       await AssertRuntimePrivilegesAsync(runtime);
       await using (var tx = await runtime.Database.BeginTransactionAsync())
@@ -100,7 +81,7 @@ public sealed class PostgresRoleAndRestoreTests(PostgresTestDatabase fixture) : 
     await restored.Database.ExecuteSqlRawAsync(ReadRoleScript("RestoreDatabaseConnect.sql"));
     await PostgresTestDatabase.VerifyPermissionsAsync(restored);
 
-    await using (var runtime = fixture.CreateRoleContext(restored, "minidocs_runtime", runtimePassword))
+    await using (var runtime = fixture.CreateRuntimePeer(restored))
     {
       await AssertRuntimePrivilegesAsync(runtime);
       var restoredWorkspace = await runtime.Workspaces.AsNoTracking().SingleAsync();
@@ -128,8 +109,8 @@ public sealed class PostgresRoleAndRestoreTests(PostgresTestDatabase fixture) : 
       await tx.CommitAsync();
       Assert.Equal("Restored and writable", (await runtime.Documents.AsNoTracking().SingleAsync()).Title);
     }
-    await using var restoredMigrator = fixture.CreateRoleContext(restored, "minidocs_migrator", migrationPassword);
-    Assert.Equal(3, (await restoredMigrator.Database.GetAppliedMigrationsAsync()).Count());
+    await using var restoredMigrator = fixture.CreateMigratorPeer(restored);
+    Assert.Equal(4, (await restoredMigrator.Database.GetAppliedMigrationsAsync()).Count());
     Assert.Empty(await restoredMigrator.Database.GetPendingMigrationsAsync());
   }
 
@@ -137,7 +118,7 @@ public sealed class PostgresRoleAndRestoreTests(PostgresTestDatabase fixture) : 
   {
     Assert.Equal("minidocs_runtime", await db.Database.SqlQueryRaw<string>(
         """SELECT current_user::text AS "Value" """).SingleAsync());
-    Assert.Equal(3, (await db.Database.GetAppliedMigrationsAsync()).Count());
+    Assert.Equal(4, (await db.Database.GetAppliedMigrationsAsync()).Count());
 
     await DeniedAsync(db, "CREATE TABLE minidocs.forbidden(id integer)");
     await DeniedAsync(db, "ALTER TABLE minidocs.documents ADD COLUMN forbidden integer");

@@ -12,8 +12,12 @@ namespace VIA.MiniDocs.Tests;
 
 public class HostTests
 {
-    private static WebApplicationFactory<Program> Host(string environment) =>
-        new WebApplicationFactory<Program>().WithWebHostBuilder(b => b.UseEnvironment(environment));
+    private static WebApplicationFactory<Program> Host(string environment, SessionKeyRingFixture? keys = null) =>
+        new WebApplicationFactory<Program>().WithWebHostBuilder(b =>
+        {
+            b.UseEnvironment(environment);
+            keys?.Configure(b);
+        });
 
     [Fact]
     public void FixtureJsonPreservesNullAndStringEnum()
@@ -27,7 +31,8 @@ public class HostTests
     [Fact]
     public async Task ProductionDoesNotExposeFixtures()
     {
-        using var host = Host("Production");
+        using var keys = new SessionKeyRingFixture();
+        using var host = Host("Production", keys);
         using var client = host.CreateClient();
         Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync("/api/v1/_contract-fixtures/nullable")).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync("/openapi/v1.json")).StatusCode);
@@ -36,8 +41,76 @@ public class HostTests
     [Fact]
     public void ErrorHandlerRegisteredInDependencyInjection()
     {
-        using var host = Host("Production");
+        using var keys = new SessionKeyRingFixture();
+        using var host = Host("Production", keys);
         Assert.Contains(host.Services.GetServices<IExceptionHandler>(), x => x is SafeExceptionHandler);
+    }
+
+    [Fact]
+    [Trait("Package", "D4-A")]
+    public void ProductionStartupRejectsMissingRing()
+    {
+        using var host = Host("Production");
+        var error = Assert.Throws<InvalidOperationException>(() => host.CreateClient());
+        Assert.Contains("key ring directory", error.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    [Trait("Package", "D4-A")]
+    public void ProductionStartupRejectsMissingCertificateAndUninitializedRing()
+    {
+        using var keys = new SessionKeyRingFixture();
+        using var uninitialized = Host("Production").WithWebHostBuilder(builder => keys.Configure(builder, allowCreation: false));
+        Assert.Contains("key ring is empty", Assert.Throws<InvalidOperationException>(() => uninitialized.CreateClient()).Message);
+
+        using var invalid = Host("Production").WithWebHostBuilder(builder =>
+            keys.Configure(builder, active: Path.Combine(keys.KeyDirectory, "missing.pfx")));
+        Assert.Contains("certificate cannot be used", Assert.Throws<InvalidOperationException>(() => invalid.CreateClient()).Message);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    [Trait("Package", "D4-A")]
+    public void ProductionStartupRejectsMalformedAndExpiredCertificates(bool expired)
+    {
+        using var keys = new SessionKeyRingFixture();
+        var certificate = expired ? keys.AddCertificate(expired: true) : keys.CertificatePath;
+        if (!expired) File.WriteAllText(certificate, "invalid PKCS#12");
+        using var host = Host("Production").WithWebHostBuilder(builder => keys.Configure(builder, active: certificate));
+        Assert.Contains("certificate cannot be used", Assert.Throws<InvalidOperationException>(() => host.CreateClient()).Message);
+    }
+
+    [Theory]
+    [InlineData("<key")]
+    [InlineData("<unrecognized />")]
+    [Trait("Package", "D4-A")]
+    public void ProductionStartupRejectsCorruptedKeyFiles(string damagedXml)
+    {
+        using var keys = new SessionKeyRingFixture();
+        using (var original = Host("Production", keys))
+        using (original.CreateClient())
+        {
+            var key = Assert.Single(Directory.GetFiles(keys.KeyDirectory, "key-*.xml"));
+            File.WriteAllText(key, damagedXml);
+        }
+        using var restart = Host("Production").WithWebHostBuilder(builder => keys.Configure(builder, allowCreation: false));
+        Assert.Contains("could not be initialized", Assert.Throws<InvalidOperationException>(() => restart.CreateClient()).Message);
+    }
+
+    [Fact]
+    [Trait("Package", "D4-A")]
+    public async Task ForwardedProtocolFromUnknownProxyCannotEnableAnInsecureRequest()
+    {
+        using var keys = new SessionKeyRingFixture();
+        using var host = Host("Production", keys);
+        using var client = host.CreateClient(new() { AllowAutoRedirect = false });
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/api/v1/antiforgery");
+        request.Headers.Add("X-Forwarded-For", "192.0.2.20");
+        request.Headers.Add("X-Forwarded-Proto", "https");
+        var response = await client.SendAsync(request);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.False(response.Headers.Contains("Set-Cookie"));
     }
 
     [Fact]

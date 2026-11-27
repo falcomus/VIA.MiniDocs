@@ -1,6 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
-  <PropertyGroup><OpenApiGenerateDocumentsOnBuild>true</OpenApiGenerateDocumentsOnBuild></PropertyGroup>
+  <PropertyGroup>
+    <OpenApiGenerateDocumentsOnBuild>false</OpenApiGenerateDocumentsOnBuild>
+    <OpenApiGenerateDocumentsOnBuild Condition="'$(ASPNETCORE_ENVIRONMENT)' == 'ContractTests'">true</OpenApiGenerateDocumentsOnBuild>
+  </PropertyGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="VIA.MiniDocs.Tests" />
     <ProjectReference Include="../VIA.MiniDocs.Application/VIA.MiniDocs.Application.csproj" />
     <ProjectReference Include="../VIA.MiniDocs.Infrastructure/VIA.MiniDocs.Infrastructure.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />

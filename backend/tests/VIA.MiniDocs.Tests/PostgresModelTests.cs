@@ -29,6 +29,8 @@ public sealed class PostgresModelTests(PostgresTestDatabase fixture) : IClassFix
             "identity_user_logins",
             "identity_user_tokens",
             "identity_role_claims",
+            "identity_sessions",
+            "administrator_bootstrap",
             "workspaces",
             "user_invitations",
             "via_docs_accounts",

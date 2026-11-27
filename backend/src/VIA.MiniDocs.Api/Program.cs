@@ -2,14 +2,26 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi;
+using VIA.MiniDocs.Api.Security;
 using VIA.MiniDocs.Infrastructure.ViaDocs;
 
-var builder = WebApplication.CreateBuilder(args);
+var localOperation = args is ["--bootstrap-administrator"] or ["--cleanup-sessions"];
+var builder = WebApplication.CreateBuilder(localOperation ? [] : args);
 builder.Services.AddProblemDetails();
 builder.Services.AddViaDocs(builder.Configuration);
+builder.AddMiniDocsSecurity(localOperation);
 builder.Services.AddExceptionHandler<SafeExceptionHandler>();
-builder.Services.AddOpenApi(options => options.AddOperationTransformer((operation, context, _) =>
+builder.Services.AddOpenApi(options => options.AddOperationTransformer(async (operation, context, token) =>
 {
+    if (context.Description.RelativePath == "api/v1/session/login")
+        operation.RequestBody = new OpenApiRequestBody
+        {
+            Required = true,
+            Content = new Dictionary<string, OpenApiMediaType>
+            {
+                ["application/json"] = new() { Schema = await context.GetOrCreateSchemaAsync(typeof(Login), cancellationToken: token) }
+            }
+        };
     if (context.Description.RelativePath == "api/v1/_contract-fixtures/nullable")
         ((OpenApiResponse)operation.Responses!["200"]).Headers = new Dictionary<string, IOpenApiHeader>
         { ["ETag"] = new OpenApiHeader { Schema = new OpenApiSchema { Type = JsonSchemaType.String } } };
@@ -24,13 +36,26 @@ builder.Services.AddOpenApi(options => options.AddOperationTransformer((operatio
             ((OpenApiResponse)operation.Responses![code]).Headers = new Dictionary<string, IOpenApiHeader>
             { ["Content-Range"] = new OpenApiHeader { Schema = new OpenApiSchema { Type = JsonSchemaType.String } } };
     }
-    return Task.CompletedTask;
 }));
 builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 var app = builder.Build();
+if (localOperation)
+{
+    await using (app)
+        Environment.ExitCode = await LocalSecurityOperations.RunAsync(app.Services, args[0]);
+    return;
+}
+app.UseForwardedHeaders();
 app.UseExceptionHandler();
+if (app.Environment.IsProduction()) app.UseHsts();
+app.UseRouting();
+app.UseMiddleware<SessionMiddleware>();
+app.UseAuthentication();
+app.UseAuthorization();
+app.UseMiddleware<SessionAntiforgeryMiddleware>();
+app.MapMiniDocsSessions();
 if (app.Environment.IsEnvironment("ContractTests"))
 {
     app.MapOpenApi();

@@ -4,6 +4,7 @@
     <InternalsVisibleTo Include="VIA.MiniDocs.Tests" />
     <EmbeddedResource Include="Persistence/Migrations/WriteBoundary/*.sql" />
     <EmbeddedResource Include="Persistence/Migrations/FinalHardening/*" />
+    <EmbeddedResource Include="Persistence/Migrations/D4/*.sql" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />

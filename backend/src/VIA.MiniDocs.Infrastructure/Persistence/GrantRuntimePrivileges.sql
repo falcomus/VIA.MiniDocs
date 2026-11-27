@@ -1,4 +1,4 @@
--- D2-06 deployment and restore gate. Catalog reads only.
+-- MiniDocs deployment and restore gate. Catalog reads and migration-history read only.
 -- This authored inventory comes from the checked-in migrations. Never use the
 -- target database to establish expected rights or object identities.
 DO $gate$
@@ -6,7 +6,10 @@ DECLARE
   runtime oid := pg_catalog.to_regrole('minidocs_runtime');
   writer oid := pg_catalog.to_regrole('minidocs_command_owner');
   migrator oid := pg_catalog.to_regrole('minidocs_migrator');
+  bootstrap oid := pg_catalog.to_regrole('minidocs_bootstrap');
   protected_roles oid[] := ARRAY[runtime, writer, migrator];
+  readers oid[] := ARRAY[runtime, writer];
+  d4 boolean;
   expected record;
   item record;
   role_id oid;
@@ -19,6 +22,13 @@ DECLARE
   trigger_count integer := 0;
 BEGIN
   PERFORM pg_catalog.set_config('search_path', 'pg_catalog, pg_temp', true);
+  SELECT EXISTS (SELECT 1 FROM public."__EFMigrationsHistory"
+    WHERE "MigrationId" = '20261127090000_SessionSecurity') INTO d4;
+  IF d4 AND bootstrap IS NULL THEN RAISE EXCEPTION 'MiniDocs gate: missing bootstrap principal'; END IF;
+  IF bootstrap IS NOT NULL THEN
+    protected_roles := array_append(protected_roles, bootstrap);
+    readers := array_append(readers, bootstrap);
+  END IF;
   IF current_setting('server_version_num')::integer NOT BETWEEN 180000 AND 189999 THEN
     RAISE EXCEPTION 'MiniDocs gate: PostgreSQL 18 required';
   END IF;
@@ -36,13 +46,13 @@ BEGIN
        AND NOT (member = migrator AND roleid = writer AND set_option AND NOT inherit_option AND NOT admin_option))
   THEN RAISE EXCEPTION 'MiniDocs gate: unexpected role membership'; END IF;
   IF EXISTS (SELECT 1 FROM pg_parameter_acl p CROSS JOIN LATERAL aclexplode(p.paracl) a
-      WHERE a.grantee = ANY(ARRAY[0::oid, runtime, writer, migrator]))
+      WHERE a.grantee = 0 OR a.grantee = ANY(protected_roles))
   THEN RAISE EXCEPTION 'MiniDocs gate: unexpected administrative parameter privilege'; END IF;
 
   SELECT oid, datdba, datacl INTO STRICT item FROM pg_database WHERE datname = current_database();
   IF item.datdba = ANY(protected_roles) OR EXISTS (
     SELECT 1 FROM aclexplode(coalesce(item.datacl, acldefault('d', item.datdba))) a
-    WHERE a.grantee NOT IN (item.datdba, runtime, migrator)
+    WHERE a.grantee NOT IN (item.datdba, runtime, migrator) AND a.grantee IS DISTINCT FROM bootstrap
   ) THEN RAISE EXCEPTION 'MiniDocs gate: unsafe database ownership or PUBLIC rights'; END IF;
   FOREACH role_id IN ARRAY protected_roles LOOP
     IF has_database_privilege(role_id, item.oid, 'CONNECT') <> (role_id <> writer)
@@ -56,9 +66,9 @@ BEGIN
     IF (item.nspname = 'minidocs' AND item.nspowner <> migrator)
        OR (item.nspname <> 'minidocs' AND item.nspowner = ANY(protected_roles))
        OR EXISTS (SELECT 1 FROM aclexplode(coalesce(item.nspacl, acldefault('n', item.nspowner))) a
-                  WHERE a.grantee NOT IN (item.nspowner, runtime, writer, migrator))
+                  WHERE a.grantee <> item.nspowner AND NOT a.grantee = ANY(protected_roles))
     THEN RAISE EXCEPTION 'MiniDocs gate: unsafe schema ownership or PUBLIC rights: %', item.nspname; END IF;
-    FOREACH role_id IN ARRAY ARRAY[runtime, writer] LOOP
+    FOREACH role_id IN ARRAY readers LOOP
       wanted := item.nspname = 'minidocs' OR (item.nspname = 'public' AND role_id = runtime);
       IF has_schema_privilege(role_id, item.oid, 'USAGE') <> wanted
          OR has_schema_privilege(role_id, item.oid, 'CREATE, USAGE WITH GRANT OPTION')
@@ -70,9 +80,9 @@ BEGIN
 
   FOR expected IN SELECT * FROM (VALUES
     ('minidocs', 'identity_users', 'SELECT', 'SELECT'),
-    ('minidocs', 'identity_roles', 'SELECT', 'SELECT'),
+    ('minidocs', 'identity_roles', 'SELECT', CASE WHEN d4 THEN 'SELECT INSERT' ELSE 'SELECT' END),
     ('minidocs', 'identity_role_claims', 'SELECT', ''),
-    ('minidocs', 'identity_user_roles', 'SELECT', 'SELECT'),
+    ('minidocs', 'identity_user_roles', 'SELECT', CASE WHEN d4 THEN 'SELECT INSERT' ELSE 'SELECT' END),
     ('minidocs', 'identity_user_claims', 'SELECT', ''),
     ('minidocs', 'identity_user_logins', 'SELECT', ''),
     ('minidocs', 'identity_user_tokens', 'SELECT INSERT UPDATE DELETE', ''),
@@ -90,8 +100,11 @@ BEGIN
     ('minidocs', 'file_operations', 'SELECT', 'SELECT INSERT UPDATE DELETE'),
     ('minidocs', 'file_operation_receipts', 'SELECT', 'SELECT INSERT DELETE'),
     ('minidocs', 'upload_request_tombstones', 'SELECT', 'SELECT INSERT'),
-    ('public', '__EFMigrationsHistory', 'SELECT', '')
+    ('public', '__EFMigrationsHistory', 'SELECT', ''),
+    ('minidocs', 'identity_sessions', 'SELECT', 'SELECT INSERT DELETE'),
+    ('minidocs', 'administrator_bootstrap', '', 'SELECT INSERT')
   ) v(schema_name, table_name, runtime_rights, writer_rights)
+  WHERE d4 OR table_name NOT IN ('identity_sessions', 'administrator_bootstrap')
   LOOP
     object_id := to_regclass(format('%I.%I', expected.schema_name, expected.table_name));
     SELECT relkind, relowner, relacl INTO item FROM pg_class WHERE oid = object_id;
@@ -100,10 +113,11 @@ BEGIN
                   WHERE a.grantee NOT IN (migrator, runtime, writer))
     THEN RAISE EXCEPTION 'MiniDocs gate: unexpected table ownership, existence or PUBLIC rights on %', expected.table_name; END IF;
     table_count := table_count + 1;
-    FOREACH role_id IN ARRAY ARRAY[runtime, writer] LOOP
+    FOREACH role_id IN ARRAY readers LOOP
       FOREACH right_name IN ARRAY ARRAY['SELECT','INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER','MAINTAIN'] LOOP
         wanted := right_name = ANY(string_to_array(
-            CASE WHEN role_id = runtime THEN expected.runtime_rights ELSE expected.writer_rights END, ' '));
+            CASE WHEN role_id = runtime THEN expected.runtime_rights
+                 WHEN role_id = writer THEN expected.writer_rights ELSE '' END, ' '));
         IF has_table_privilege(role_id, object_id, right_name) <> wanted
             OR has_table_privilege(role_id, object_id, right_name || ' WITH GRANT OPTION')
         THEN RAISE EXCEPTION 'MiniDocs gate: unexpected table privilege % on % for %', right_name, expected.table_name, role_id::regrole; END IF;
@@ -112,12 +126,16 @@ BEGIN
           ('user_invitations', 'runtime', 'SELECT', 'id created_by created_at updated_at expires_at revoked_at redeemed_at version'),
           ('identity_users', 'runtime', 'INSERT', 'id account_kind is_disabled user_name normalized_user_name email normalized_email email_confirmed password_hash security_stamp concurrency_stamp phone_number phone_number_confirmed two_factor_enabled lockout_end lockout_enabled access_failed_count'),
           ('identity_users', 'runtime', 'UPDATE', 'user_name normalized_user_name email normalized_email email_confirmed password_hash security_stamp concurrency_stamp phone_number phone_number_confirmed two_factor_enabled lockout_end lockout_enabled access_failed_count'),
-          ('identity_users', 'writer', 'UPDATE', 'account_kind'),
+          ('identity_users', 'writer', 'UPDATE', CASE WHEN d4
+            THEN 'account_kind is_disabled security_stamp concurrency_stamp' ELSE 'account_kind' END),
+          ('identity_users', 'writer', 'INSERT', CASE WHEN d4 THEN
+            'id account_kind is_disabled user_name normalized_user_name email_confirmed password_hash security_stamp concurrency_stamp phone_number_confirmed two_factor_enabled lockout_enabled access_failed_count' END),
+          ('identity_sessions', 'writer', 'UPDATE', 'idle_until revoked_at'),
           ('tags', 'writer', 'UPDATE', 'version'),
           ('pending_transcripts', 'writer', 'UPDATE', 'version status updated_at source_name meta_date meta_topic meta_title meta_tags')
         ) c(table_name, principal, privilege, rights)
         WHERE c.table_name = expected.table_name AND c.privilege = right_name
-          AND c.principal = CASE WHEN role_id = runtime THEN 'runtime' ELSE 'writer' END;
+          AND c.principal = CASE WHEN role_id = runtime THEN 'runtime' WHEN role_id = writer THEN 'writer' END;
         FOR item IN SELECT attnum, attname, attacl FROM pg_attribute
                     WHERE attrelid = object_id AND attnum > 0 AND NOT attisdropped
         LOOP
@@ -224,8 +242,19 @@ BEGIN
     ('minidocs.serialize_workspace(uuid)', 'migrator', 'void', 'plpgsql', 'v', false, false, true,'18db661deb7f8502708b0e0d87426f775c81eae02af101d91a912ee60546d24e'),
     ('minidocs.valid_lease_duration(interval)', 'migrator', 'boolean', 'sql', 'i', false, false, true,'1d2b33c431d08b94fbe7c6c2ac4ad263feb15b8d309e9a837180b3ce8e5e200a'),
     ('minidocs.workspace_accepts_new_work(uuid)', 'migrator', 'boolean', 'plpgsql', 'v', false, false, true,'01f9ddd8902cb6f3c768b0979a27f1f92668cb74f4257701654787aa42cd63f6'),
-    ('minidocs.workspace_accepts_provisioning(uuid)', 'migrator', 'boolean', 'plpgsql', 'v', false, false, true,'a1ba68b18362d69e7f6684342cdd3103abc9b2ad1c137b4ad33ebd5b171b3d9b')
+    ('minidocs.workspace_accepts_provisioning(uuid)', 'migrator', 'boolean', 'plpgsql', 'v', false, false, true,'a1ba68b18362d69e7f6684342cdd3103abc9b2ad1c137b4ad33ebd5b171b3d9b'),
+    ('minidocs.command_create_session(bytea, uuid, text, interval, interval)', 'writer', 'boolean', 'plpgsql', 'v', true, true, false, '5e50a86a327a14b65259b43ddb103659b910442edfffdbd041f29664c7a04fba'),
+    ('minidocs.command_renew_session(bytea, uuid, interval)', 'writer', 'boolean', 'plpgsql', 'v', true, true, false, '878186c1db8802a9a9f1a0817b6c8faf874bba94fa59d8ae144f2d844bef5351'),
+    ('minidocs.command_revoke_session(bytea, uuid)', 'writer', 'boolean', 'plpgsql', 'v', true, true, false, '4eb9bb28acba4cf19eaf4d51340f93be2cbe6ef6ad764c46dc846a6080bff467'),
+    ('minidocs.command_cleanup_sessions(integer)', 'writer', 'integer', 'plpgsql', 'v', true, true, false, '485540fa1f6006612e0f6a27910e06ba60b1987396de54aea838b3c161c7200a'),
+    ('minidocs.lock_admin_authority(uuid, text, bytea, uuid, uuid)', 'writer', 'boolean', 'plpgsql', 'v', true, true, false, '416a47cc4cae6e790d8561d4190f197809dd0bf420ddb730a9efd1200216951d'),
+    ('minidocs.command_set_account_disabled(uuid, text, bytea, uuid, text, text[], boolean)', 'writer', 'smallint', 'plpgsql', 'v', true, true, false, '1336a5281d40789ff41f1eb8eda0f39113dec0f1c759000913e2e18a3142bb41'),
+    ('minidocs.command_bootstrap_administrator(uuid, text, text, text)', 'writer', 'boolean', 'plpgsql', 'v', true, false, false, 'ef251e5a94a5981f0bc0000c7121706cb6eadbf76f1bd913887689bd936377f5')
   ) v(signature, owner_name, return_type, language_name, volatility, definer, runtime_execute, writer_grant, source_sha256)
+  WHERE d4 OR signature NOT LIKE 'minidocs.%session%' AND
+    signature NOT LIKE 'minidocs.lock_admin_authority(%' AND
+    signature NOT LIKE 'minidocs.command_set_account_disabled(%' AND
+    signature NOT LIKE 'minidocs.command_bootstrap_administrator(%'
   LOOP
     object_id := to_regprocedure(expected.signature);
     SELECT p.*, l.lanname INTO item FROM pg_proc p JOIN pg_language l ON l.oid = p.prolang WHERE p.oid = object_id;
@@ -243,15 +272,20 @@ BEGIN
     IF has_function_privilege(runtime, object_id, 'EXECUTE') <> expected.runtime_execute
        OR has_function_privilege(runtime, object_id, 'EXECUTE WITH GRANT OPTION')
        OR has_function_privilege(writer, object_id, 'EXECUTE') <> (expected.owner_name = 'writer' OR expected.writer_grant)
+       OR (bootstrap IS NOT NULL AND
+           (has_function_privilege(bootstrap, object_id, 'EXECUTE') <>
+               (expected.signature LIKE 'minidocs.command_bootstrap_administrator(%')
+            OR has_function_privilege(bootstrap, object_id, 'EXECUTE WITH GRANT OPTION')))
        OR EXISTS (SELECT 1 FROM aclexplode(coalesce(item.proacl, acldefault('f', item.proowner))) a
-                  WHERE a.grantee NOT IN (item.proowner, runtime, writer)
+                  WHERE (a.grantee NOT IN (item.proowner, runtime, writer) AND a.grantee IS DISTINCT FROM bootstrap)
                       OR (a.grantee = writer AND item.proowner <> writer AND a.is_grantable))
     THEN RAISE EXCEPTION 'MiniDocs gate: unexpected function privilege on %', expected.signature; END IF;
     function_count := function_count + 1;
   END LOOP;
   IF function_count <> (SELECT count(*) FROM pg_proc WHERE pronamespace = 'minidocs'::regnamespace)
      OR EXISTS (SELECT 1 FROM pg_proc WHERE pronamespace = 'public'::regnamespace
-         AND (has_function_privilege(runtime, oid, 'EXECUTE') OR has_function_privilege(writer, oid, 'EXECUTE')))
+         AND (has_function_privilege(runtime, oid, 'EXECUTE') OR has_function_privilege(writer, oid, 'EXECUTE')
+              OR coalesce(has_function_privilege(bootstrap, oid, 'EXECUTE'), false)))
   THEN RAISE EXCEPTION 'MiniDocs gate: unexpected function outside the approved inventory'; END IF;
 
   -- No non-owner grants may be introduced by defaults. The absent global
@@ -342,5 +376,66 @@ BEGIN
       AND i.indnatts = 1 AND pg_get_indexdef(i.indexrelid, 1, true) = 'workspace_id'
       AND pg_get_expr(i.indpred, i.indrelid) = '(status = ''active''::text)')
   THEN RAISE EXCEPTION 'MiniDocs gate: invalid active provisioning index'; END IF;
+  IF d4 AND NOT EXISTS (SELECT 1 FROM pg_index i WHERE
+      i.indexrelid = to_regclass('minidocs.ix_identity_sessions_expiry')
+      AND i.indrelid = to_regclass('minidocs.identity_sessions') AND i.indisvalid AND i.indisready
+      AND i.indnatts = 2 AND i.indpred IS NULL AND pg_get_indexdef(i.indexrelid, 1, true) = 'idle_until'
+      AND pg_get_indexdef(i.indexrelid, 2, true) = 'handle_hash')
+  THEN RAISE EXCEPTION 'MiniDocs gate: invalid identity session expiry index'; END IF;
+  IF d4 THEN
+    -- Compare column names and types as well as constraints so that the same
+    -- constraint cannot be rebound to differently typed or nullable columns.
+    FOR expected IN SELECT * FROM (VALUES
+      ('identity_sessions', 'handle_hash', 'bytea', true),
+      ('identity_sessions', 'user_id', 'uuid', true),
+      ('identity_sessions', 'security_stamp', 'text', true),
+      ('identity_sessions', 'issued_at', 'timestamp with time zone', true),
+      ('identity_sessions', 'idle_until', 'timestamp with time zone', true),
+      ('identity_sessions', 'absolute_until', 'timestamp with time zone', true),
+      ('identity_sessions', 'revoked_at', 'timestamp with time zone', false),
+      ('administrator_bootstrap', 'singleton', 'boolean', true),
+      ('administrator_bootstrap', 'user_id', 'uuid', true),
+      ('administrator_bootstrap', 'completed_at', 'timestamp with time zone', true)
+    ) v(table_name, column_name, column_type, not_null)
+    LOOP
+      IF NOT EXISTS (SELECT 1 FROM pg_attribute a
+          WHERE a.attrelid = to_regclass(format('minidocs.%I', expected.table_name))
+          AND a.attname = expected.column_name AND a.attnum > 0 AND NOT a.attisdropped
+          AND format_type(a.atttypid, a.atttypmod) = expected.column_type
+          AND a.attnotnull = expected.not_null)
+      THEN RAISE EXCEPTION 'MiniDocs gate: unexpected D4 column %.%', expected.table_name, expected.column_name; END IF;
+    END LOOP;
+
+    FOR expected IN SELECT * FROM (VALUES
+      ('identity_sessions', 'identity_sessions_pkey', 'p', ARRAY['handle_hash'], NULL),
+      ('identity_sessions', 'identity_sessions_handle_hash_check', 'c', ARRAY['handle_hash'],
+        '(octet_length(handle_hash) = 32)'),
+      ('identity_sessions', 'identity_sessions_user_id_fkey', 'f', ARRAY['user_id'], NULL),
+      ('identity_sessions', 'ck_identity_session_times', 'c', ARRAY['issued_at','idle_until','absolute_until','revoked_at'],
+        '((issued_at < idle_until) AND (idle_until <= absolute_until) AND ((revoked_at IS NULL) OR (revoked_at >= issued_at)))'),
+      ('administrator_bootstrap', 'administrator_bootstrap_pkey', 'p', ARRAY['singleton'], NULL),
+      ('administrator_bootstrap', 'administrator_bootstrap_singleton_check', 'c', ARRAY['singleton'], 'singleton'),
+      ('administrator_bootstrap', 'administrator_bootstrap_user_id_fkey', 'f', ARRAY['user_id'], NULL)
+    ) v(table_name, constraint_name, constraint_type, columns, check_expression)
+    LOOP
+      IF NOT EXISTS (SELECT 1 FROM pg_constraint c WHERE
+          c.conrelid = to_regclass(format('minidocs.%I', expected.table_name))
+          AND c.conname = expected.constraint_name AND c.contype::text = expected.constraint_type
+          AND c.convalidated AND c.conenforced AND NOT c.condeferrable AND NOT c.condeferred
+          AND ARRAY(SELECT a.attname::text FROM unnest(c.conkey) WITH ORDINALITY AS k(attnum, position)
+              JOIN pg_attribute a ON a.attrelid = c.conrelid AND a.attnum = k.attnum
+              ORDER BY k.position) = expected.columns
+          AND CASE expected.constraint_type
+            WHEN 'c' THEN pg_get_expr(c.conbin, c.conrelid) = expected.check_expression
+            WHEN 'f' THEN c.confrelid = 'minidocs.identity_users'::regclass
+                AND c.confkey = ARRAY[(SELECT a.attnum FROM pg_attribute a
+                  WHERE a.attrelid = c.confrelid AND a.attname = 'id' AND NOT a.attisdropped)]
+                AND c.confmatchtype = 's' AND c.confupdtype = 'a' AND c.confdeltype = 'a'
+            WHEN 'p' THEN EXISTS (SELECT 1 FROM pg_index i WHERE i.indexrelid = c.conindid
+                AND i.indisprimary AND i.indisvalid AND i.indisready)
+          END)
+      THEN RAISE EXCEPTION 'MiniDocs gate: unexpected D4 constraint %', expected.constraint_name; END IF;
+    END LOOP;
+  END IF;
 END;
 $gate$ LANGUAGE plpgsql;
