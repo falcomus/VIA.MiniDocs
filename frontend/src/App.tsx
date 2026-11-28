@@ -10,6 +10,7 @@ import {
   deleteEmptyTopic,
   topicDeleteBlockReason,
   topicPath,
+  topicNameError,
 } from './features/topics/topicUtils';
 import type { Topic, TopicId } from './features/topics/topic.types';
 import { initialDocuments, initialTopics, initialTags } from './features/documents/demoDataset';
@@ -35,19 +36,44 @@ import type { ViewerSession } from './features/viewer/viewerModel';
 import { SelectionBar } from './features/documents/SelectionBar';
 import { TagDialog } from './features/documents/TagDialog';
 import type { TagDialogState } from './features/documents/TagDialog';
+import type { PersistentWorkspace } from './features/documents/usePersistentWorkspace';
+import type { ReactNode } from 'react';
 
-export function App() {
+export function App({
+  persistent,
+  accountActions,
+}: {
+  readonly persistent?: PersistentWorkspace;
+  readonly accountActions?: ReactNode;
+} = {}) {
+  const isPersistent = persistent !== undefined;
   const [view, setView] = useState<DocumentView>('grid');
-  const [topics, setTopics] = useState<readonly Topic[]>(initialTopics);
-  const [selectedTopicId, setSelectedTopicId] = useState<TopicId>(
-    initialDocuments[0]?.topicId ?? 'unassigned',
+  const [demoTopics, setTopics] = useState<readonly Topic[]>(() =>
+    isPersistent ? [] : initialTopics,
   );
-  const search = useSearchState();
+  const topics = persistent?.topics ?? demoTopics;
+  const [topicSelection, setSelectedTopicId] = useState<TopicId>(
+    persistent
+      ? (persistent.topics.find((topic) => topic.systemKey)?.id ?? '')
+      : (initialDocuments[0]?.topicId ?? 'unassigned'),
+  );
+  const selectedTopicId =
+    isPersistent && !topics.some((topic) => topic.id === topicSelection)
+      ? (topics.find((topic) => topic.systemKey)?.id ?? '')
+      : topicSelection;
   const opening = useOpeningMode();
   const [viewer, setViewer] = useState<ViewerSession | null>(null);
-  const [tags, setTags] = useState(initialTags);
+  const [demoTags, setTags] = useState(() => (isPersistent ? [] : initialTags));
+  const tags = persistent?.tags ?? demoTags;
+  const search = useSearchState(isPersistent ? tags.map((tag) => tag.id) : undefined);
   const [tagDialog, setTagDialog] = useState<TagDialogState | null>(null);
-  const workspace = useDocumentWorkspace(initialDocuments, topics, selectedTopicId, search);
+  const workspace = useDocumentWorkspace(
+    persistent ? [] : initialDocuments,
+    topics,
+    selectedTopicId,
+    search,
+    persistent,
+  );
   const [owner] = useState(() => crypto.randomUUID());
   const pendingAcks = useRef<string[]>([]);
   const pendingRequests = useRef<PdfRequest[]>([]);
@@ -61,7 +87,9 @@ export function App() {
     editTranscript.current = workspace.editTranscript;
     moveDocument.current = workspace.move;
   }, [workspace.editTranscript, workspace.move]);
+  const navigationRevision = useRef(0);
   function changeSearch(next: SearchState) {
+    navigationRevision.current++;
     workspace.clear();
     search.setCriteria(next);
   }
@@ -101,7 +129,7 @@ export function App() {
     }
   }, [documents, topics, tags, ackSequence, owner]);
   useEffect(() => {
-    if (typeof BroadcastChannel === 'undefined') return;
+    if (isPersistent || typeof BroadcastChannel === 'undefined') return;
     const channel = new BroadcastChannel(channelName);
     transferChannel.current = channel;
     channel.onmessage = (event: MessageEvent<unknown>) => {
@@ -154,7 +182,7 @@ export function App() {
       transferChannel.current = null;
       channel.close();
     };
-  }, [owner]);
+  }, [owner, isPersistent]);
   const importRef = useRef<(files: File[]) => void>(() => {});
   useEffect(() => {
     importRef.current = (files) => {
@@ -169,6 +197,7 @@ export function App() {
     };
   });
   useEffect(() => {
+    if (isPersistent) return;
     function isFiles(event: DragEvent) {
       return Array.from(event.dataTransfer?.types ?? []).includes('Files');
     }
@@ -187,16 +216,25 @@ export function App() {
       window.removeEventListener('dragover', over, true);
       window.removeEventListener('drop', drop, true);
     };
-  }, []);
-  const [dialog, setDialog] = useState<TopicDialogState | null>(null);
+  }, [isPersistent]);
+  const [dialog, setDialog] = useState<
+    (TopicDialogState & { etag?: string; documentVersions?: ReadonlyMap<string, string> }) | null
+  >(null);
   const [dialogError, setDialogError] = useState('');
   const drag = useTopicDrag(topics, moveTopic, rejectMove);
   const [dropNavigation, setDropNavigation] = useState<{ id: TopicId } | null>(null);
-  const documentDrag = useDocumentDrag(workspace, topics, drag.cancel, (id) => {
-    setSelectedTopicId(id);
-    setDropNavigation({ id });
-  });
+  const documentDrag = useDocumentDrag(
+    workspace,
+    topics,
+    drag.cancel,
+    (id) => {
+      setSelectedTopicId(id);
+      setDropNavigation({ id });
+    },
+    navigationRevision,
+  );
   function navigate(id: TopicId) {
+    navigationRevision.current++;
     workspace.clear();
     search.setCriteria({ ...emptySearch, mode: search.criteria.mode });
     workspace.setMessage('');
@@ -213,6 +251,10 @@ export function App() {
     dialog?.kind === 'delete' ? topicDeleteBlockReason(topics, documents, dialog.id) : null;
 
   function openDocument(id: string, forceTab = false) {
+    if (persistent) {
+      workspace.setMessage('PDF-Dateien sind in diesem Ausbaustand noch nicht verfügbar.');
+      return;
+    }
     const doc = workspace.visible.find((item) => item.id === id);
     if (!doc) return;
     const hits = Object.fromEntries(
@@ -235,6 +277,7 @@ export function App() {
     setViewer({ id, ids: workspace.visible.map((item) => item.id), hits });
   }
   function openTags(next: TagDialogState) {
+    navigationRevision.current++;
     returnFocus.current =
       document.activeElement instanceof HTMLElement ? document.activeElement : null;
     fallbackFocus.current = selectedTopicId;
@@ -245,11 +288,23 @@ export function App() {
     setTagDialog(null);
   }
   function openDialog(next: TopicDialogState) {
+    navigationRevision.current++;
     setDialogError('');
     returnFocus.current =
       document.activeElement instanceof HTMLElement ? document.activeElement : null;
     fallbackFocus.current = selectedTopicId;
-    setDialog(next);
+    setDialog({
+      ...next,
+      etag: 'id' in next ? topics.find((topic) => topic.id === next.id)?.etag : undefined,
+      documentVersions:
+        next.kind === 'documents'
+          ? new Map(
+              documents
+                .filter((doc) => next.ids.includes(doc.id))
+                .map((doc) => [doc.id, doc.etag ?? '']),
+            )
+          : undefined,
+    });
   }
   function closeDialog() {
     restoreFocus.current = true;
@@ -275,11 +330,25 @@ export function App() {
   }, [dialog, tagDialog, viewer, documents, workspace.selected.length]);
 
   function rejectMove() {
-    workspace.setMessage('Ein Thema kann nicht dorthin verschoben werden.');
+    const problem = 'Ein Thema kann nicht dorthin verschoben werden.';
+    setDialogError(problem);
+    workspace.setMessage(problem);
   }
-  function moveTopic(id: TopicId, parentId: TopicId | null): boolean {
+  function moveTopic(id: TopicId, parentId: TopicId | null, expectedEtag?: string): boolean {
     if (!canMoveTopic(topics, id, parentId)) {
       rejectMove();
+      return false;
+    }
+    if (persistent) {
+      if (persistent.busy) return false;
+      void persistent.saveTopic(id, { parentId }, expectedEtag);
+      return true;
+    }
+    const source = topics.find((topic) => topic.id === id)!;
+    const problem = topicNameError(topics, source.name, parentId, id);
+    if (problem) {
+      setDialogError(problem);
+      workspace.setMessage(problem);
       return false;
     }
     setTopics((previous) =>
@@ -290,6 +359,35 @@ export function App() {
   }
   function submit(value: string) {
     if (!dialog) return;
+    if (persistent) {
+      if (persistent.busy) return;
+      const action = dialog;
+      const inbox = topics.find((topic) => topic.systemKey)?.id ?? '';
+      void (async () => {
+        if (action.kind === 'documents') {
+          if (!(await persistent.move(action.ids, value, action.documentVersions))) return;
+        } else if (action.kind === 'delete') {
+          if (!(await persistent.deleteTopic(action.id, action.etag))) return;
+          if (selectedTopicId === action.id) navigate(dialogTopic?.parentId ?? inbox);
+        } else if (action.kind === 'new') {
+          const topic = await persistent.saveTopic(null, {
+            name: value,
+            parentId: action.parentId,
+          });
+          if (!topic) return;
+          navigate(topic.id);
+        } else if (
+          !(await persistent.saveTopic(
+            action.id,
+            action.kind === 'rename' ? { name: value } : { parentId: value || null },
+            action.etag,
+          ))
+        )
+          return;
+        closeDialog();
+      })();
+      return;
+    }
     if (dialog.kind === 'documents') {
       if (!topics.some((topic) => topic.id === value)) {
         setDialogError('Das gewählte Ziel ist nicht zulässig.');
@@ -299,21 +397,28 @@ export function App() {
     } else if (dialog.kind === 'new') {
       const parent = dialog.parentId && topics.find((topic) => topic.id === dialog.parentId);
       if (!value.trim() || (dialog.parentId !== null && (!parent || parent.systemKey))) return;
+      const problem = topicNameError(topics, value, dialog.parentId);
+      if (problem) {
+        setDialogError(problem);
+        return;
+      }
       const id = `topic-${crypto.randomUUID()}`;
       setTopics((previous) => [...previous, { id, parentId: dialog.parentId, name: value.trim() }]);
       navigate(id);
     } else if (dialog.kind === 'rename') {
       if (!dialogTopic || dialogTopic.systemKey || !value.trim()) return;
+      const problem = topicNameError(topics, value, dialogTopic.parentId, dialog.id);
+      if (problem) {
+        setDialogError(problem);
+        return;
+      }
       setTopics((previous) =>
         previous.map((topic) =>
           topic.id === dialog.id ? { ...topic, name: value.trim() } : topic,
         ),
       );
     } else if (dialog.kind === 'move') {
-      if (!moveTopic(dialog.id, value || null)) {
-        setDialogError('Das gewählte Ziel ist nicht zulässig.');
-        return;
-      }
+      if (!moveTopic(dialog.id, value || null)) return;
       fallbackFocus.current = value || 'unassigned';
     } else {
       const reason = topicDeleteBlockReason(topics, documents, dialog.id);
@@ -332,7 +437,8 @@ export function App() {
       dialog={dialog}
       topics={topics}
       deleteReason={deleteReason}
-      error={dialogError}
+      error={persistent?.error || dialogError}
+      busy={persistent?.busy}
       onCancel={closeDialog}
       onSubmit={submit}
     />
@@ -345,15 +451,34 @@ export function App() {
       documents={documents}
       visibleIds={workspace.visible.map((doc) => doc.id)}
       onAssign={(ids, id, on) => workspace.setTag(ids, id, on)}
-      onSave={(tag) => {
+      onSave={(tag, mode, selected) => {
+        if (persistent) {
+          return persistent.saveTag(tag, mode, selected);
+        }
         setTags((previous) =>
           previous.some((item) => item.id === tag.id)
             ? previous.map((item) => (item.id === tag.id ? tag : item))
             : [...previous, tag],
         );
-        workspace.setMessage('Tag gespeichert.');
+        if (selected)
+          workspace.setTag(
+            selected.map(({ id }) => id),
+            tag.id,
+            true,
+          );
+        else workspace.setMessage('Tag gespeichert.');
       }}
-      onDelete={(id) => {
+      onDelete={(id, expectedEtag) => {
+        if (persistent) {
+          return persistent.deleteTag(id, expectedEtag).then((deleted) => {
+            if (deleted)
+              search.setCriteria((previous) => ({
+                ...previous,
+                tagIds: previous.tagIds.filter((item) => item !== id),
+              }));
+            return deleted;
+          });
+        }
         setTags((previous) => previous.filter((item) => item.id !== id));
         workspace.removeTag(id);
         search.setCriteria((previous) => ({
@@ -363,11 +488,17 @@ export function App() {
       }}
       onManage={() => setTagDialog({ kind: 'manage' })}
       onClose={closeTags}
+      mutationError={persistent?.error}
+      onReload={persistent?.reload}
     />
   );
+  const movedCount = workspace.undo?.size ?? 0;
+  const moveNotice =
+    movedCount === 1 ? '1 Dokument verschoben' : `${movedCount} Dokumente verschoben`;
   return (
     <AppShell
-      onImport={(files) => importRef.current(Array.from(files))}
+      onImport={persistent ? undefined : (files) => importRef.current(Array.from(files))}
+      accountActions={accountActions}
       tags={tags}
       onManageTags={() => openTags({ kind: 'manage' })}
       modal={
@@ -407,6 +538,7 @@ export function App() {
           unknownPageCount={documents.filter((document) => document.pages === null).length}
           onAdd={() => openDialog({ kind: 'new', parentId: null })}
           drag={drag}
+          persistent={!!persistent}
         >
           <TopicTree
             topics={topics}
@@ -473,17 +605,27 @@ export function App() {
         <span role="status" aria-label="Statusmeldung" className={styles.notice}>
           {workspace.message}
         </span>
-        {workspace.undo && (
-          <button
-            onClick={() => {
-              returnFocus.current = null;
-              fallbackFocus.current = selectedTopicId;
-              restoreFocus.current = true;
-              workspace.undoMove();
-            }}
-          >
-            Rückgängig
-          </button>
+        {persistent?.error && (
+          <p role="alert">
+            {persistent.error} <button onClick={() => void persistent.reload()}>Neu laden</button>
+          </p>
+        )}
+        {movedCount > 0 && (
+          <div className={styles.undoStatus}>
+            <span role="status">{workspace.message === moveNotice + '.' ? '' : moveNotice}</span>
+            <button
+              className={styles.undoButton}
+              type="button"
+              onClick={() => {
+                returnFocus.current = null;
+                fallbackFocus.current = selectedTopicId;
+                restoreFocus.current = true;
+                workspace.undoMove();
+              }}
+            >
+              Rückgängig
+            </button>
+          </div>
         )}
       </div>
       <Content>

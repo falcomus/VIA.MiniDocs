@@ -7,12 +7,14 @@ import type { Topic } from '../topics/topic.types';
 import type { DocumentSummary } from './document.types';
 import { documentReducer, sortDocuments } from './documentOperations';
 import type { DocumentSort } from './documentOperations';
+import type { PersistentWorkspace } from './usePersistentWorkspace';
 /** Keeps selection by stable ID; range selection uses the same sorted sequence as rendering. */
 export function useDocumentWorkspace(
   initial: readonly DocumentSummary[],
   topics: readonly Topic[],
   topicId: string,
   search: SearchControlsState,
+  persistent?: PersistentWorkspace,
 ) {
   const [state, dispatch] = useReducer(documentReducer, {
     documents: initial,
@@ -24,16 +26,17 @@ export function useDocumentWorkspace(
   const [sort, setSort] = useState<DocumentSort>('date-desc');
   const [searchSort, setSearchSort] = useState<DocumentSort | 'relevance'>('relevance');
   const [zoom, setZoom] = useState(190);
+  const documents = persistent?.documents ?? state.documents;
   const results = search.active
-    ? searchDocuments(state.documents, topics, {
+    ? searchDocuments(documents, topics, {
         ...search.criteria,
         scope: search.criteria.scope === 'topic' ? { kind: 'topic', topicId } : { kind: 'all' },
       })
     : [];
   const resultMap = new Map(results.map((result) => [result.documentId, result]));
   const base = search.active
-    ? state.documents.filter((doc) => resultMap.has(doc.id))
-    : state.documents.filter((doc) => doc.topicId === topicId);
+    ? documents.filter((doc) => resultMap.has(doc.id))
+    : documents.filter((doc) => doc.topicId === topicId);
   const effectiveSort =
     search.active && search.criteria.query.trim()
       ? searchSort
@@ -52,6 +55,8 @@ export function useDocumentWorkspace(
   const selected = state.selected.filter((id) => visibleIds.includes(id));
   return {
     ...state,
+    documents,
+    undo: persistent ? persistent.undo : state.undo,
     selected,
     visible,
     searchActive: search.active,
@@ -100,6 +105,9 @@ export function useDocumentWorkspace(
       }),
     setTag: (ids: readonly string[], tagId: string, on: boolean) => {
       const allowed = ids.filter((id) => visibleIds.includes(id));
+      if (persistent) {
+        return allowed.length ? persistent.setTag(allowed, tagId, on) : Promise.resolve(false);
+      }
       const changed = setDocumentTags(state.documents, allowed, tagId, on);
       const visibleAfter = search.active
         ? searchDocuments(changed, topics, {
@@ -119,9 +127,11 @@ export function useDocumentWorkspace(
       }),
     update: (update: (documents: readonly DocumentSummary[]) => readonly DocumentSummary[]) =>
       dispatch({ type: 'update', update }),
-    move: (ids: readonly string[], target: string) =>
-      dispatch({ type: 'move', ids, target, topics }),
-    undoMove: () => dispatch({ type: 'undo', topics }),
+    move: (ids: readonly string[], target: string, versions?: ReadonlyMap<string, string>) =>
+      persistent
+        ? persistent.move(ids, target, versions)
+        : dispatch({ type: 'move', ids, target, topics }),
+    undoMove: () => (persistent ? void persistent.undoMove() : dispatch({ type: 'undo', topics })),
   };
 }
 export type DocumentWorkspace = ReturnType<typeof useDocumentWorkspace>;

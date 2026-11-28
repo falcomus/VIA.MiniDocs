@@ -46,7 +46,10 @@ public sealed partial class PostgresFinalHardeningTests(PostgresTestDatabase fix
   [InlineData("ALTER TABLE minidocs.via_docs_accounts DROP CONSTRAINT ck_via_docs_credential_generation, ADD CONSTRAINT ck_via_docs_credential_generation CHECK (credential_generation >= 0)", "unexpected credential generation invariant")]
   [InlineData("GRANT UPDATE(credential_generation) ON minidocs.via_docs_accounts TO minidocs_runtime", "column privilege UPDATE")]
   [InlineData("GRANT EXECUTE ON FUNCTION minidocs.command_replace_technical_invitation(uuid,uuid,bigint,bytea) TO PUBLIC", "function")]
-  public async Task GateRejectsCatalogDrift(string change, string expected)
+  public Task GateRejectsCatalogDrift(string change, string expected) =>
+      AssertGateRejectsCatalogDriftAsync(change, expected);
+
+  private async Task AssertGateRejectsCatalogDriftAsync(string change, string expected)
   {
     await using var db = await OpenAsync();
     await using (var tx = await db.Database.BeginTransactionAsync())
@@ -61,6 +64,28 @@ public sealed partial class PostgresFinalHardeningTests(PostgresTestDatabase fix
     await PostgresTestDatabase.VerifyPermissionsAsync(db);
     await readOnly.CommitAsync();
   }
+
+  [Theory]
+  [Trait("Package", "D6-FIX03-C")]
+  [InlineData("ALTER TABLE minidocs.documents DROP CONSTRAINT \"FK_documents_topics_workspace_id_topic_id\"", "unexpected D2 foreign key FK_documents_topics_workspace_id_topic_id")]
+  [InlineData("ALTER TABLE minidocs.documents DROP CONSTRAINT \"FK_documents_topics_workspace_id_topic_id\", ADD CONSTRAINT \"FK_documents_topics_workspace_id_topic_id\" FOREIGN KEY (topic_id) REFERENCES minidocs.topics(id) ON DELETE RESTRICT", "unexpected D2 foreign key FK_documents_topics_workspace_id_topic_id")]
+  [InlineData("ALTER TABLE minidocs.document_tags DROP CONSTRAINT \"FK_document_tags_tags_workspace_id_tag_id\", ADD CONSTRAINT \"FK_document_tags_tags_workspace_id_tag_id\" FOREIGN KEY (workspace_id, tag_id) REFERENCES minidocs.tags(workspace_id, id) ON DELETE CASCADE", "unexpected D2 foreign key FK_document_tags_tags_workspace_id_tag_id")]
+  [InlineData("ALTER TABLE minidocs.topics DROP CONSTRAINT \"FK_topics_topics_workspace_id_parent_id\", ADD CONSTRAINT \"FK_topics_topics_workspace_id_parent_id\" FOREIGN KEY (workspace_id, parent_id) REFERENCES minidocs.topics(workspace_id, id) ON DELETE RESTRICT NOT VALID", "unexpected D2 foreign key FK_topics_topics_workspace_id_parent_id")]
+  [InlineData("ALTER TABLE minidocs.documents DROP CONSTRAINT \"AK_documents_workspace_id_id\" CASCADE", "unexpected D2 key AK_documents_workspace_id_id")]
+  [InlineData("ALTER TABLE minidocs.document_tags DROP CONSTRAINT \"PK_document_tags\", ADD CONSTRAINT \"PK_document_tags\" PRIMARY KEY (document_id, tag_id)", "unexpected D2 key PK_document_tags")]
+  [InlineData("DROP INDEX minidocs.\"IX_tags_workspace_id_name_key\"; CREATE INDEX \"IX_tags_workspace_id_name_key\" ON minidocs.tags(workspace_id, name_key)", "unexpected D2 unique index IX_tags_workspace_id_name_key")]
+  [InlineData("DROP INDEX minidocs.\"IX_tags_workspace_id_name_key\"; CREATE UNIQUE INDEX \"IX_tags_workspace_id_name_key\" ON minidocs.tags(workspace_id, name)", "unexpected D2 unique index IX_tags_workspace_id_name_key")]
+  [InlineData("DROP INDEX minidocs.ux_topics_sibling_name; CREATE UNIQUE INDEX ux_topics_sibling_name ON minidocs.topics(workspace_id, parent_id, name) NULLS NOT DISTINCT", "invalid topic sibling unique index")]
+  [InlineData("ALTER TABLE minidocs.topics DROP CONSTRAINT ck_topics_reserved_root_name, ADD CONSTRAINT ck_topics_reserved_root_name CHECK (true)", "invalid reserved root topic name check")]
+  [InlineData("DROP INDEX minidocs.\"IX_topics_workspace_id\"; CREATE UNIQUE INDEX \"IX_topics_workspace_id\" ON minidocs.topics(workspace_id) WHERE system_key IS NOT NULL", "unexpected D2 unique index IX_topics_workspace_id")]
+  public Task GateRejectsD2RelationalIntegrityDrift(string change, string expected) =>
+      AssertGateRejectsCatalogDriftAsync(change, expected);
+
+  [Fact]
+  [Trait("Package", "D6-FINAL-LOW")]
+  public Task GateRejectsNullableTagNameKey() =>
+      AssertGateRejectsCatalogDriftAsync("ALTER TABLE minidocs.tags ALTER COLUMN name_key DROP NOT NULL",
+          "unexpected D2 column tags.name_key");
 
   [Theory]
   [InlineData(false, false, IsolationLevel.ReadCommitted)]
@@ -164,8 +189,20 @@ public sealed partial class PostgresFinalHardeningTests(PostgresTestDatabase fix
         FROM pg_proc p
         WHERE p.pronamespace = 'minidocs'::regnamespace AND has_function_privilege('minidocs_runtime', p.oid, 'EXECUTE')
         """).ToListAsync();
-    Assert.Equal(45, calls.Count);
-    foreach (var call in calls)
+    Assert.Equal(49, calls.Count);
+    // D6 accepts nullable patch fields, but never missing required arguments.
+    const string id = "'11111111-1111-1111-1111-111111111111'::uuid";
+    var incompleteD6Calls = new[]
+    {
+      "SELECT minidocs.command_d6_lock('00000000-0000-0000-0000-000000000000'::uuid)",
+      $"SELECT minidocs.command_d6_topic({id}, NULL::uuid, NULL::bigint, 'Name', NULL::uuid, false)",
+      $"SELECT minidocs.command_d6_topic({id}, {id}, NULL::bigint, NULL::text, NULL::uuid, false)",
+      $"SELECT minidocs.command_d6_topic({id}, {id}, 1::bigint, NULL::text, NULL::uuid, NULL::boolean)",
+      $"SELECT minidocs.command_d6_tag({id}, {id}, NULL::bigint, 'Name', NULL::text, '#123456')",
+      $"SELECT minidocs.command_d6_document({id}, {id}, NULL::bigint, NULL::text, NULL::text, NULL::date, false)",
+      $"SELECT minidocs.command_d6_document({id}, {id}, 1::bigint, NULL::text, NULL::text, NULL::date, NULL::boolean)"
+    };
+    foreach (var call in calls.Concat(incompleteD6Calls))
     {
       var error = await Assert.ThrowsAsync<PostgresException>(() => runtime.Database.ExecuteSqlRawAsync(call));
       Assert.True(error.SqlState == PostgresErrorCodes.InvalidParameterValue &&

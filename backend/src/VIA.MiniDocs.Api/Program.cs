@@ -26,6 +26,7 @@ builder.Services.AddOpenApi(options =>
       schema.Required.Add("code");
       schema.Required.Add("traceId");
     }
+    WorkspaceMetadataSchemas.Configure(schema, context.JsonTypeInfo.Type);
     return Task.CompletedTask;
   });
   options.AddOperationTransformer(async (operation, context, token) =>
@@ -63,7 +64,8 @@ builder.Services.AddOpenApi(options =>
     }
     if (context.Description.ActionDescriptor.EndpointMetadata.OfType<ValidateSessionAntiforgery>().Any() &&
         (context.Description.RelativePath is "api/v1/registration" or "api/v1/session/login" or "api/v1/session" ||
-         context.Description.RelativePath?.StartsWith("api/v1/admin/", StringComparison.Ordinal) == true))
+         context.Description.RelativePath?.StartsWith("api/v1/admin/", StringComparison.Ordinal) == true ||
+         context.Description.ActionDescriptor.EndpointMetadata.OfType<WorkspaceMetadataRoute>().Any()))
     {
         operation.Parameters ??= [];
         operation.Parameters.Add(new OpenApiParameter { Name = SessionHttp.AntiforgeryHeader, In = ParameterLocation.Header,
@@ -89,6 +91,55 @@ builder.Services.AddOpenApi(options =>
             if (status == "429")
                 target.Headers["Retry-After"] = new OpenApiHeader { Required = true,
                     Schema = new OpenApiSchema { Type = JsonSchemaType.Integer } };
+        }
+    }
+    if (context.Description.ActionDescriptor.EndpointMetadata.OfType<WorkspaceMetadataRoute>().Any())
+    {
+        var path = context.Description.RelativePath;
+        var method = context.Description.HttpMethod;
+        if (method is "PATCH" or "PUT" or "DELETE")
+        {
+            operation.Parameters ??= [];
+            operation.Parameters.Add(new OpenApiParameter { Name = "If-Match", In = ParameterLocation.Header,
+                Required = true, Schema = new OpenApiSchema { Type = JsonSchemaType.String } });
+        }
+        if (method == "GET" && path is "api/v1/tags" or "api/v1/documents")
+        {
+            operation.Parameters ??= [];
+            operation.Parameters.Add(new OpenApiParameter { Name = "cursor", In = ParameterLocation.Query,
+                Schema = new OpenApiSchema { Type = JsonSchemaType.String, MaxLength = 2048 } });
+            operation.Parameters.Add(new OpenApiParameter { Name = "limit", In = ParameterLocation.Query,
+                Schema = new OpenApiSchema { Type = JsonSchemaType.Integer, Minimum = "1", Maximum = "100" } });
+            if (path == "api/v1/documents")
+            {
+                operation.Parameters.Add(new OpenApiParameter { Name = "sort", In = ParameterLocation.Query,
+                    Schema = new OpenApiSchema { Type = JsonSchemaType.String, Enum = ["date-desc", "date-asc", "title"] } });
+                operation.Parameters.Add(new OpenApiParameter { Name = "topicId", In = ParameterLocation.Query,
+                    Schema = new OpenApiSchema { Type = JsonSchemaType.String, Format = "uuid" } });
+                operation.Parameters.Add(new OpenApiParameter { Name = "tagIds", In = ParameterLocation.Query,
+                    Schema = new OpenApiSchema { Type = JsonSchemaType.Array, Items = new OpenApiSchema
+                    { Type = JsonSchemaType.String, Format = "uuid" }, MaxItems = 100 } });
+                foreach (var date in new[] { "from", "to" })
+                    operation.Parameters.Add(new OpenApiParameter { Name = date, In = ParameterLocation.Query,
+                        Schema = new OpenApiSchema { Type = JsonSchemaType.String, Format = "date" } });
+            }
+        }
+        if (operation.Responses?.TryGetValue("201", out var created) == true)
+        {
+            ((OpenApiResponse)created).Headers ??= new Dictionary<string, IOpenApiHeader>();
+            ((OpenApiResponse)created).Headers!["Location"] = new OpenApiHeader { Required = true,
+                Schema = new OpenApiSchema { Type = JsonSchemaType.String } };
+        }
+        if (operation.Responses is not null && (method == "PATCH" || method == "PUT" ||
+            (method is "GET" or "DELETE" && path?.Contains("{id:guid}", StringComparison.Ordinal) == true) ||
+            operation.Responses.ContainsKey("201")))
+        {
+            if (operation.Responses.TryGetValue("201", out var tagged) || operation.Responses.TryGetValue("200", out tagged))
+            {
+                ((OpenApiResponse)tagged).Headers ??= new Dictionary<string, IOpenApiHeader>();
+                ((OpenApiResponse)tagged).Headers!["ETag"] = new OpenApiHeader { Required = true,
+                    Schema = new OpenApiSchema { Type = JsonSchemaType.String } };
+            }
         }
     }
     if (context.Description.RelativePath == "api/v1/_contract-fixtures/nullable")
@@ -128,6 +179,7 @@ app.UseMiddleware<SessionAntiforgeryMiddleware>();
 app.MapMiniDocsSessions();
 app.MapD4B();
 app.MapD4C();
+app.MapD6();
 if (app.Environment.IsEnvironment("ContractTests"))
 {
     app.MapOpenApi();

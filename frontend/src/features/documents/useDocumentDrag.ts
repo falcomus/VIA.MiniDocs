@@ -10,8 +10,10 @@ export function useDocumentDrag(
   topics: readonly Topic[],
   cancelTopicDrag: () => void,
   onMoved: (id: string) => void,
+  navigationRevision?: { readonly current: number },
 ) {
   const session = useRef<readonly string[] | null>(null);
+  const versions = useRef<ReadonlyMap<string, string>>(new Map());
   const [target, setTarget] = useState<string | null>(null);
   useEffect(() => {
     const clear = () => {
@@ -44,6 +46,11 @@ export function useDocumentDrag(
       if (!workspace.visible.some((doc) => doc.id === id)) return;
       if (!workspace.selected.includes(id)) workspace.select(id, {});
       session.current = ids;
+      versions.current = new Map(
+        workspace.documents
+          .filter((doc) => ids.includes(doc.id))
+          .map((doc) => [doc.id, doc.etag ?? '']),
+      );
       setTarget(null);
       transfer.setData(mime, JSON.stringify(ids));
       transfer.effectAllowed = 'move';
@@ -80,8 +87,13 @@ export function useDocumentDrag(
       const changed = workspace.documents.some(
         (document) => ids.includes(document.id) && document.topicId !== id,
       );
-      workspace.move(ids, id);
-      if (changed) onMoved(id);
+      const revision = navigationRevision?.current;
+      const result = workspace.move(ids, id, versions.current);
+      if (result)
+        void result.then((moved) => {
+          if (moved && changed && revision === navigationRevision?.current) onMoved(id);
+        });
+      else if (changed) onMoved(id);
       return changed;
     },
   };

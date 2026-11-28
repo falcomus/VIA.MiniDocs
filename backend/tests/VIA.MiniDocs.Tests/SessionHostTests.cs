@@ -472,7 +472,7 @@ public sealed partial class SessionHostTests(PostgresTestDatabase fixture) : ICl
   }
 
   private static async Task<Guid> CreateUserAsync(MiniDocsDbContext db, string name, string password, bool admin = false,
-      int iterations = 100_000)
+      int iterations = 100_000, Guid? activeWorkspace = null)
   {
     var id = Guid.NewGuid();
     if (admin)
@@ -484,6 +484,8 @@ public sealed partial class SessionHostTests(PostgresTestDatabase fixture) : ICl
           INSERT INTO minidocs.identity_user_roles VALUES ({id}, {role})
           """);
     }
+    else if (activeWorkspace is { } workspace)
+      await PostgresSeed.InsertActiveWorkspaceAsync(db, id, workspace, name);
     else await PostgresSeed.InsertUserAndWorkspace(db, id, Guid.NewGuid(), name);
     await PostgresSessionTests.WriteStampsAsync(db, id);
     var hasher = new PasswordHasher<MiniDocsUser>(Options.Create(new PasswordHasherOptions { IterationCount = iterations }));

@@ -25,6 +25,9 @@ public sealed partial class SessionHostTests
     await using var runtime = fixture.CreateRuntimePeer(db);
     var password = Guid.NewGuid().ToString("N");
     await CreateUserAsync(db, "browser-admin", password, admin: true);
+    var workspace = Guid.NewGuid();
+    await CreateUserAsync(db, "browser-d6", password, activeWorkspace: workspace);
+    await InsertMetadataDocumentAsync(db, workspace, "Persistentes Testdokument");
     using var keys = new SessionKeyRingFixture();
     using var host = CreateHost(runtime, keys).WithWebHostBuilder(builder =>
     {

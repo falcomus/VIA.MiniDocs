@@ -3,10 +3,12 @@ import type { TopicId } from '../topics/topic.types';
 export type DocumentView = 'list' | 'grid';
 export interface DocumentSummary {
   readonly id: string;
+  readonly etag?: string;
   readonly title: string;
   readonly topicId: TopicId;
   readonly date: string | null;
   readonly pages: number | null;
+  readonly metadataOnly?: boolean;
   readonly demoUrl?: string;
   readonly sizeBytes?: number;
   readonly source?: { readonly kind: 'pdf'; readonly blob: Blob };

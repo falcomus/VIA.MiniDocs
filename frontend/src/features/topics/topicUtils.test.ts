@@ -6,6 +6,7 @@ import {
   descendantIds,
   topicDeleteBlockReason,
   topicPath,
+  topicNameError,
 } from './topicUtils';
 
 describe('Themenhierarchie', () => {
@@ -49,4 +50,13 @@ it('prüft bei Ausführung erneut und bewahrt Themen sowie Zuordnungen bei inzwi
   const deleted = deleteEmptyTopic(demoTopics, docs, 'alpha-steering');
   expect(deleted).toHaveLength(demoTopics.length - 1);
   expect(deleted.some((topic) => topic.id === 'alpha-steering')).toBe(false);
+});
+it('prüft Themenbezeichnungen nur innerhalb desselben Parents und erlaubt reine Schreibweisenänderungen', () => {
+  const topics = [{ id: 'root', parentId: null, name: 'Ärger' }];
+  expect(topicNameError(topics, '\uFEFFÄRGER ', null)).toContain('existiert bereits');
+  expect(topicNameError(topics, 'ÄRGER', null, 'root')).toBeUndefined();
+  expect(topicNameError(topics, 'ärger', 'root')).toBeUndefined();
+  expect(topicNameError(topics, 'Alle zugeordnet', 'root')).toBeUndefined();
+  expect(topicNameError(topics, '\u00A0ALLE ZUGEORDNET', null)).toContain('reserviert');
+  expect(topicNameError(topics, 'nicht ZUGEORDNET', null)).toContain('reserviert');
 });

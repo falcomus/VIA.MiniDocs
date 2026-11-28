@@ -26,6 +26,25 @@ function openPicker(id: string) {
   fireEvent.click(button);
 }
 
+it('legt im Zuweisungsdialog an, weist der ursprünglichen Mehrfachauswahl zu und verwirft Abbruch', () => {
+  render(<App />);
+  search('schritte');
+  fireEvent.click(screen.getByRole('button', { name: 'Alle auswählen' }));
+  fireEvent.click(
+    within(screen.getByLabelText('Dokumentauswahl')).getByRole('button', { name: 'Tags zuweisen' }),
+  );
+  fireEvent.click(modal().getByRole('button', { name: '+ Neuer Tag' }));
+  expect(screen.getByRole('dialog', { name: 'Neuer Tag' })).toBeInTheDocument();
+  fireEvent.change(modal().getByLabelText('Name'), { target: { value: 'Entwurf' } });
+  fireEvent.click(modal().getByRole('button', { name: 'Abbrechen' }));
+  expect(modal().queryByRole('checkbox', { name: 'Entwurf' })).not.toBeInTheDocument();
+  fireEvent.click(modal().getByRole('button', { name: '+ Neuer Tag' }));
+  fireEvent.change(modal().getByLabelText('Name'), { target: { value: 'Abnahme' } });
+  fireEvent.click(modal().getByRole('button', { name: 'Speichern' }));
+  expect(modal().getByRole('checkbox', { name: 'Abnahme' })).toBeChecked();
+  expect(modal().getByRole('status')).toHaveTextContent('Tag angelegt und zugewiesen.');
+});
+
 it('legt einen Tag an, validiert Namen und bearbeitet Name, Beschreibung und Farbe', () => {
   render(<App />);
   openManage();
@@ -41,6 +60,7 @@ it('legt einen Tag an, validiert Namen und bearbeitet Name, Beschreibung und Far
   fireEvent.click(modal().getByRole('button', { name: 'Speichern' }));
   expect(modal().getByText('Priorität')).toBeInTheDocument();
   fireEvent.click(modal().getByRole('button', { name: 'Wichtig bearbeiten' }));
+  expect(screen.getByRole('dialog', { name: 'Tag bearbeiten' })).toBeInTheDocument();
   fireEvent.change(modal().getByLabelText('Name'), { target: { value: 'Dringend' } });
   fireEvent.click(modal().getByRole('button', { name: 'Speichern' }));
   expect(modal().getByRole('button', { name: 'Dringend bearbeiten' })).toBeInTheDocument();

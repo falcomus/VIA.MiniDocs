@@ -1,5 +1,7 @@
 using System.Runtime.CompilerServices;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql;
 using VIA.MiniDocs.Domain;
 using VIA.MiniDocs.Infrastructure;
@@ -10,6 +12,40 @@ namespace VIA.MiniDocs.Tests;
 [Trait("Category", "PostgreSQL")]
 public sealed class PostgresRoleAndRestoreTests(PostgresTestDatabase fixture) : IClassFixture<PostgresTestDatabase>
 {
+  private static readonly string[] ExpectedMigrations =
+  [
+    "20261126134926_InitialD2Model",
+    "20261126170000_EnforceWriteBoundaries",
+    "20261126180000_FinalQualityHardening",
+    "20261127090000_SessionSecurity",
+    "20261127100000_TechnicalProvisioning",
+    "20261128100000_WorkspaceMetadata",
+    "20261128110000_TopicSiblingNames"
+  ];
+
+  [Theory]
+  [InlineData("  ÄRGER", "existing sibling names conflict")]
+  [InlineData("Alle Zugeordnet ", "existing root uses a reserved name")]
+  public async Task TopicSiblingNamesUpgradeRejectsInvalidExistingDataWithoutModifyingIt(string invalid, string diagnostic)
+  {
+    await using var database = await fixture.CreateDatabaseAsync();
+    await fixture.PrepareRuntimeAsync(database);
+    await using var migrator = fixture.CreateMigratorPeer(database);
+    await migrator.GetService<IMigrator>().MigrateAsync(ExpectedMigrations[^2]);
+    var workspace = Guid.NewGuid();
+    await PostgresSeed.InsertActiveWorkspaceAsync(database, Guid.NewGuid(), workspace, "invalid-topic-migration");
+    await database.Database.ExecuteSqlInterpolatedAsync($"""
+        INSERT INTO minidocs.topics(id, workspace_id, name)
+        VALUES ({Guid.NewGuid()}, {workspace}, 'Ärger'), ({Guid.NewGuid()}, {workspace}, {invalid});
+        """);
+    var before = await MetadataRestoreSnapshotAsync(database, workspace);
+    var failure = await Assert.ThrowsAsync<PostgresException>(() => migrator.Database.MigrateAsync());
+    Assert.Contains(diagnostic, failure.MessageText);
+    Assert.Equal(before, await MetadataRestoreSnapshotAsync(database, workspace));
+    Assert.Equal(ExpectedMigrations[..^1], (await migrator.Database.GetAppliedMigrationsAsync()).ToArray());
+    await PostgresTestDatabase.VerifyPermissionsAsync(database);
+  }
+
   [Fact]
   public async Task RestrictedRolesMigrateOperateAndRestoreWithoutGrantingDdlToRuntime()
   {
@@ -18,7 +54,7 @@ public sealed class PostgresRoleAndRestoreTests(PostgresTestDatabase fixture) : 
     await using (var migrator = fixture.CreateMigratorPeer(source))
     {
       await migrator.Database.MigrateAsync();
-      Assert.Equal(5, (await migrator.Database.GetAppliedMigrationsAsync()).Count());
+      Assert.Equal(ExpectedMigrations, (await migrator.Database.GetAppliedMigrationsAsync()).ToArray());
       await DeniedAsync(migrator, "CREATE SCHEMA forbidden_schema");
       await DeniedAsync(migrator, "CREATE ROLE forbidden_role");
     }
@@ -110,15 +146,149 @@ public sealed class PostgresRoleAndRestoreTests(PostgresTestDatabase fixture) : 
       Assert.Equal("Restored and writable", (await runtime.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync()).Title);
     }
     await using var restoredMigrator = fixture.CreateMigratorPeer(restored);
-    Assert.Equal(5, (await restoredMigrator.Database.GetAppliedMigrationsAsync()).Count());
+    Assert.Equal(ExpectedMigrations, (await restoredMigrator.Database.GetAppliedMigrationsAsync()).ToArray());
     Assert.Empty(await restoredMigrator.Database.GetPendingMigrationsAsync());
   }
+
+  [Fact]
+  [Trait("Package", "D6-FIX03-C")]
+  public async Task PopulatedD4UpgradeAndD6RestorePreserveMetadataVersionsAndWriteBoundary()
+  {
+    await using var source = await fixture.CreateDatabaseAsync();
+    await fixture.PrepareRuntimeAsync(source);
+    await using (var migrator = fixture.CreateMigratorPeer(source))
+      await migrator.GetService<IMigrator>().MigrateAsync("20261127100000_TechnicalProvisioning");
+    await PostgresTestDatabase.VerifyPermissionsAsync(source);
+    var workspace = Guid.NewGuid();
+    var root = Guid.NewGuid();
+    var child = Guid.NewGuid();
+    var tag = Guid.NewGuid();
+    var document = Guid.NewGuid();
+    var other = Guid.NewGuid();
+    var system = await PostgresSeed.InsertActiveWorkspaceAsync(source, Guid.NewGuid(), workspace, "metadata-restore");
+    await source.Database.ExecuteSqlInterpolatedAsync($"""
+        INSERT INTO minidocs.topics(id, workspace_id, name, version)
+        VALUES ({root}, {workspace}, 'Parent', 3);
+        INSERT INTO minidocs.topics(id, workspace_id, parent_id, name, version)
+        VALUES ({child}, {workspace}, {root}, 'Child', 4);
+        INSERT INTO minidocs.tags(id, workspace_id, name, name_key, description, color, version)
+        VALUES ({tag}, {workspace}, 'Ärger', 'ärger', 'Before', '#123456', 5);
+        INSERT INTO minidocs.documents(id, workspace_id, topic_id, via_file_id, title, kind,
+            document_date, availability, version)
+        VALUES ({document}, {workspace}, {child}, {Guid.NewGuid()}, 'Before', 'note', DATE '2026-01-02', 'available', 7),
+            ({other}, {workspace}, {system}, {Guid.NewGuid()}, 'Other', 'meeting', NULL, 'available', 2);
+        INSERT INTO minidocs.document_tags(workspace_id, document_id, tag_id)
+        VALUES ({workspace}, {document}, {tag});
+        """);
+    var before = await MetadataRestoreSnapshotAsync(source, workspace);
+
+    // Rehearse the documented rollback path without downgrading an existing schema.
+    await using var preMigrationRestore = await fixture.CreateDatabaseAsync();
+    await fixture.RestoreCopyAsync(source, preMigrationRestore);
+    await preMigrationRestore.Database.ExecuteSqlRawAsync(ReadRoleScript("RestoreDatabaseConnect.sql"));
+    await PostgresTestDatabase.VerifyPermissionsAsync(preMigrationRestore);
+    Assert.Equal(ExpectedMigrations[..^2], (await preMigrationRestore.Database.GetAppliedMigrationsAsync()).ToArray());
+    Assert.Equal(ExpectedMigrations[^2..], (await preMigrationRestore.Database.GetPendingMigrationsAsync()).ToArray());
+    await using (var runtime = fixture.CreateRuntimePeer(preMigrationRestore))
+    {
+      Assert.Equal(before, await MetadataRestoreSnapshotAsync(runtime, workspace));
+      await using var tx = await runtime.Database.BeginTransactionAsync();
+      Assert.True(await CommandAsync(runtime, $"SELECT minidocs.command_rename_document({workspace}, {document}, 7::bigint, 'Rollback writable')"));
+      await tx.CommitAsync();
+      Assert.Equal("Rollback writable", (await runtime.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync(d => d.Id == document)).Title);
+    }
+
+    await using (var migrator = fixture.CreateMigratorPeer(source))
+    {
+      await migrator.Database.MigrateAsync();
+      Assert.Equal(ExpectedMigrations, (await migrator.Database.GetAppliedMigrationsAsync()).ToArray());
+      Assert.Empty(await migrator.Database.GetPendingMigrationsAsync());
+    }
+    await PostgresTestDatabase.VerifyPermissionsAsync(source);
+    Assert.Equal(before, await MetadataRestoreSnapshotAsync(source, workspace));
+
+    await using (var runtime = fixture.CreateRuntimePeer(source))
+    {
+      await AssertRuntimePrivilegesAsync(runtime);
+      var change = await LocalWriteTransaction.ExecuteAsync(runtime, async ct =>
+      {
+        Assert.True(await WorkspaceMetadataPersistence.WriteTopicAsync(runtime, workspace, child, 4, "Child D6", null, false, ct));
+        Assert.True(await WorkspaceMetadataPersistence.WriteDocumentAsync(runtime, workspace, document, 7, "D6 title", "meeting", new DateOnly(2026, 11, 28), true, ct));
+        Assert.True(await WorkspaceMetadataPersistence.WriteTagAsync(runtime, workspace, tag, 5, "Grün", "After", "#654321", ct));
+        return true;
+      }, value => value);
+      Assert.Equal(LocalWriteStatus.Committed, change.Status);
+    }
+    var after = await MetadataRestoreSnapshotAsync(source, workspace);
+    Assert.NotEqual(before, after);
+    await using var restored = await fixture.CreateDatabaseAsync();
+    await fixture.RestoreCopyAsync(source, restored);
+    await restored.Database.ExecuteSqlRawAsync(ReadRoleScript("RestoreDatabaseConnect.sql"));
+    await PostgresTestDatabase.VerifyPermissionsAsync(restored);
+    await using (var runtime = fixture.CreateRuntimePeer(restored))
+    {
+      await AssertRuntimePrivilegesAsync(runtime);
+      Assert.Equal(after, await MetadataRestoreSnapshotAsync(runtime, workspace));
+      var restoredDocument = await runtime.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync(d => d.Id == document);
+      Assert.Equal("D6 title", restoredDocument.Title);
+      Assert.Equal(DocumentKind.Meeting, restoredDocument.Kind);
+      Assert.Equal(new DateOnly(2026, 11, 28), restoredDocument.DocumentDate);
+      Assert.Equal(child, restoredDocument.TopicId);
+      Assert.Equal(9L, restoredDocument.Version);
+      var restoredTopic = await runtime.Topics.ObserveAllWorkspaces().AsNoTracking().SingleAsync(t => t.Id == child);
+      Assert.Equal(root, restoredTopic.ParentId);
+      Assert.Equal("Child D6", restoredTopic.Name);
+      Assert.Equal(5L, restoredTopic.Version);
+      var restoredTag = await runtime.Tags.ObserveAllWorkspaces().AsNoTracking().SingleAsync(t => t.Id == tag);
+      Assert.Equal("Grün", restoredTag.Name);
+      Assert.Equal("grün", restoredTag.NameKey);
+      Assert.Equal("After", restoredTag.Description);
+      Assert.Equal("#654321", restoredTag.Color);
+      Assert.Equal(6L, restoredTag.Version);
+      Assert.Equal(2L, (await runtime.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync(d => d.Id == other)).Version);
+      var link = Assert.Single(await runtime.DocumentTags.ObserveAllWorkspaces().AsNoTracking().ToListAsync());
+      Assert.Equal(document, link.DocumentId);
+      Assert.Equal(tag, link.TagId);
+      var write = await LocalWriteTransaction.ExecuteAsync(runtime, async ct =>
+      {
+        Assert.False(await WorkspaceMetadataPersistence.WriteDocumentAsync(runtime, workspace, document, 7, "Stale", null, null, false, ct));
+        Assert.True(await WorkspaceMetadataPersistence.WriteDocumentAsync(runtime, workspace, document, 9, "Restored D6", null, null, false, ct));
+        Assert.True(await WorkspaceMetadataPersistence.WriteTopicAsync(runtime, workspace, child, 5, "Restored child", null, false, ct));
+        Assert.True(await WorkspaceMetadataPersistence.WriteTagAsync(runtime, workspace, tag, 6, "Restored tag", "After restore", "#654321", ct));
+        return true;
+      }, value => value);
+      Assert.Equal(LocalWriteStatus.Committed, write.Status);
+      var saved = await runtime.Documents.ObserveAllWorkspaces().AsNoTracking().SingleAsync(d => d.Id == document);
+      Assert.Equal("Restored D6", saved.Title);
+      Assert.Equal(11L, saved.Version);
+      var savedTopic = await runtime.Topics.ObserveAllWorkspaces().AsNoTracking().SingleAsync(t => t.Id == child);
+      Assert.Equal("Restored child", savedTopic.Name);
+      Assert.Equal(6L, savedTopic.Version);
+      var savedTag = await runtime.Tags.ObserveAllWorkspaces().AsNoTracking().SingleAsync(t => t.Id == tag);
+      Assert.Equal("Restored tag", savedTag.Name);
+      Assert.Equal(7L, savedTag.Version);
+    }
+    await using var restoredMigrator = fixture.CreateMigratorPeer(restored);
+    Assert.Empty(await restoredMigrator.Database.GetPendingMigrationsAsync());
+  }
+
+  // Compare complete rows, including IDs, timestamps, version/ETag sources and
+  // relationship rows, not just counts. Stable ordering survives pg_restore.
+  private static async Task<string> MetadataRestoreSnapshotAsync(MiniDocsDbContext db, Guid workspace) =>
+      (await db.Database.SqlQuery<string>($"""
+          SELECT jsonb_build_object(
+            'topics', (SELECT jsonb_agg(to_jsonb(t) ORDER BY t.id) FROM minidocs.topics t WHERE t.workspace_id = {workspace}),
+            'tags', (SELECT jsonb_agg(to_jsonb(t) ORDER BY t.id) FROM minidocs.tags t WHERE t.workspace_id = {workspace}),
+            'documents', (SELECT jsonb_agg(to_jsonb(d) ORDER BY d.id) FROM minidocs.documents d WHERE d.workspace_id = {workspace}),
+            'links', (SELECT jsonb_agg(to_jsonb(l) ORDER BY l.document_id, l.tag_id) FROM minidocs.document_tags l WHERE l.workspace_id = {workspace})
+          )::text AS "Value"
+          """).ToListAsync()).Single();
 
   private static async Task AssertRuntimePrivilegesAsync(MiniDocsDbContext db)
   {
     Assert.Equal("minidocs_runtime", await db.Database.SqlQueryRaw<string>(
         """SELECT current_user::text AS "Value" """).SingleAsync());
-    Assert.Equal(5, (await db.Database.GetAppliedMigrationsAsync()).Count());
+    Assert.Equal(ExpectedMigrations, (await db.Database.GetAppliedMigrationsAsync()).ToArray());
 
     await DeniedAsync(db, "CREATE TABLE minidocs.forbidden(id integer)");
     await DeniedAsync(db, "ALTER TABLE minidocs.documents ADD COLUMN forbidden integer");

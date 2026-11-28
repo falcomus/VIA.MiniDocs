@@ -24,8 +24,10 @@ export function AppShell({
   openingMode,
   onOpeningModeChange,
   onImport,
+  accountActions,
 }: {
-  readonly onImport: (files: FileList) => void;
+  readonly onImport?: (files: FileList) => void;
+  readonly accountActions?: ReactNode;
   readonly tags: readonly TagDefinition[];
   readonly onManageTags: () => void;
   readonly openingMode: OpeningMode;
@@ -47,6 +49,7 @@ export function AppShell({
           openingMode={openingMode}
           onOpeningModeChange={onOpeningModeChange}
           onImport={onImport}
+          accountActions={accountActions}
         />
         <div className={styles.layout}>
           <aside className={styles.sidebar}>{sidebar}</aside>
@@ -66,8 +69,10 @@ function Header({
   openingMode,
   onOpeningModeChange,
   onImport,
+  accountActions,
 }: {
-  readonly onImport: (files: FileList) => void;
+  readonly onImport?: (files: FileList) => void;
+  readonly accountActions?: ReactNode;
   readonly openingMode: OpeningMode;
   readonly onOpeningModeChange: (mode: OpeningMode) => void;
   readonly tags: readonly TagDefinition[];
@@ -77,7 +82,7 @@ function Header({
 }) {
   const fileInput = useRef<HTMLInputElement>(null);
   return (
-    <AppHeader subtitle="Prototyp · Notizen-Archiv">
+    <AppHeader subtitle={onImport ? 'Prototyp · Notizen-Archiv' : 'Notizen-Archiv'}>
       <SearchControls search={search} onChange={onSearchChange} tags={tags} />
       <div className={styles.actions}>
         <button className={styles.button} disabled>
@@ -87,6 +92,7 @@ function Header({
         <button
           type="button"
           className={`${styles.button} ${styles.primary}`}
+          disabled={!onImport}
           onClick={() => fileInput.current?.click()}
         >
           <Icon name="upload" />
@@ -100,7 +106,7 @@ function Header({
           aria-label="PDF-Dateien hochladen"
           hidden
           onChange={(event) => {
-            if (event.target.files?.length) onImport(event.target.files);
+            if (event.target.files?.length) onImport?.(event.target.files);
             event.target.value = '';
           }}
         />
@@ -109,6 +115,7 @@ function Header({
           openingMode={openingMode}
           onOpeningModeChange={onOpeningModeChange}
         />
+        {accountActions}
       </div>
     </AppHeader>
   );
@@ -121,7 +128,9 @@ export function Sidebar({
   unknownPageCount,
   onAdd,
   drag,
+  persistent,
 }: {
+  readonly persistent?: boolean;
   readonly children: ReactNode;
   readonly documentCount: number;
   readonly pageCount: number;
@@ -165,7 +174,7 @@ export function Sidebar({
         {unknownPageCount ? 'bekannte Seiten' : 'Seiten'}{' '}
         {unknownPageCount > 0 && <span>· {unknownPageCount} unbekannt</span>}
         <br />
-        <span>Prototyp – Daten nur im Browser, Reload setzt zurück</span>
+        {!persistent && <span>Prototyp – Daten nur im Browser, Reload setzt zurück</span>}
       </div>
     </>
   );

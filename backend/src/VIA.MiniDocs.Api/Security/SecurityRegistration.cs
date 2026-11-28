@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using VIA.MiniDocs.Application;
 using VIA.MiniDocs.Infrastructure;
 using VIA.MiniDocs.Infrastructure.Identity;
 
@@ -27,6 +28,9 @@ internal static class SecurityRegistration
     services.AddSingleton<InvitationIssueLimits>();
     services.AddSingleton<RecoveryRateLimits>();
     services.AddSingleton<AdministratorCursor>();
+    services.AddSingleton<DocumentCursor>();
+    services.AddScoped<IWorkspaceDocumentWriteStore, WorkspaceDocumentWriteStore>();
+    services.AddScoped<WorkspaceDocumentWrites>();
     // Database exceptions can contain input values supplied by the server.
     // HTTP reports a safe status and trace identifier after catching the failure.
     builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.None);

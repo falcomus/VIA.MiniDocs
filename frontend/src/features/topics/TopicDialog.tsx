@@ -13,6 +13,7 @@ interface TopicDialogProps {
   readonly topics: readonly Topic[];
   readonly deleteReason: string | null;
   readonly error: string;
+  readonly busy?: boolean;
   readonly onCancel: () => void;
   readonly onSubmit: (value: string) => void;
 }
@@ -22,6 +23,7 @@ export function TopicDialog({
   topics,
   deleteReason,
   error,
+  busy = false,
   onCancel,
   onSubmit,
 }: TopicDialogProps) {
@@ -45,6 +47,14 @@ export function TopicDialog({
     dialogRef.current?.querySelector<HTMLElement>('input, select, button:not(:disabled)')?.focus();
   }, []);
 
+  useEffect(() => {
+    if (busy) dialogRef.current?.focus();
+    else if (document.activeElement === dialogRef.current)
+      dialogRef.current
+        ?.querySelector<HTMLElement>('input, select, button:not(:disabled)')
+        ?.focus();
+  }, [busy]);
+
   const title =
     dialog.kind === 'documents'
       ? `${dialog.ids.length} ${dialog.ids.length === 1 ? 'Dokument' : 'Dokumente'} verschieben nach …`
@@ -61,7 +71,7 @@ export function TopicDialog({
     <div
       className={styles.backdrop}
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onCancel();
+        if (!busy && event.target === event.currentTarget) onCancel();
       }}
     >
       <div
@@ -70,12 +80,18 @@ export function TopicDialog({
         aria-modal="true"
         aria-labelledby="topic-dialog-title"
         ref={dialogRef}
+        tabIndex={-1}
+        aria-busy={busy}
         onKeyDown={(event) => {
           if (event.key === 'Escape') {
             event.stopPropagation();
-            onCancel();
+            if (!busy) onCancel();
           }
           if (event.key === 'Tab') {
+            if (busy) {
+              event.preventDefault();
+              return;
+            }
             const controls = Array.from(
               event.currentTarget.querySelectorAll<HTMLElement>(
                 'input:not(:disabled), select:not(:disabled), button:not(:disabled)',
@@ -99,7 +115,7 @@ export function TopicDialog({
             id="topic-form"
             onSubmit={(event) => {
               event.preventDefault();
-              onSubmit(value);
+              if (!busy) onSubmit(value);
             }}
           >
             {dialog.kind === 'move' || dialog.kind === 'documents' ? (
@@ -107,6 +123,7 @@ export function TopicDialog({
                 <label htmlFor="topic-target">Zielthema</label>
                 <select
                   id="topic-target"
+                  disabled={busy}
                   value={value}
                   onChange={(event) => setValue(event.target.value)}
                 >
@@ -125,6 +142,7 @@ export function TopicDialog({
                 <label htmlFor="topic-name">Name</label>
                 <input
                   id="topic-name"
+                  disabled={busy}
                   value={value}
                   onChange={(event) => setValue(event.target.value)}
                 />
@@ -134,7 +152,7 @@ export function TopicDialog({
         )}
         {error && <p role="alert">{error}</p>}
         <div className={styles.actions}>
-          <button type="button" onClick={onCancel}>
+          <button type="button" onClick={onCancel} disabled={busy}>
             Abbrechen
           </button>
           <button
@@ -142,6 +160,7 @@ export function TopicDialog({
             form={dialog.kind === 'delete' ? undefined : 'topic-form'}
             onClick={dialog.kind === 'delete' ? () => onSubmit(value) : undefined}
             disabled={
+              busy ||
               (dialog.kind === 'delete' && !!deleteReason) ||
               ((dialog.kind === 'new' || dialog.kind === 'rename') && !value.trim())
             }

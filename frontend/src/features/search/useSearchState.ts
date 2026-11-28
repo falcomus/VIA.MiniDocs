@@ -17,8 +17,11 @@ export const emptySearch: SearchState = {
   tagIds: [],
   scope: 'all',
 };
-export function useSearchState() {
-  const [criteria, setCriteria] = useState<SearchState>(emptySearch);
+export function useSearchState(validTagIds?: readonly TagId[]) {
+  const [stored, setCriteria] = useState<SearchState>(emptySearch);
+  const criteria = validTagIds
+    ? { ...stored, tagIds: stored.tagIds.filter((id) => validTagIds.includes(id)) }
+    : stored;
   const [filterOpen, setFilterOpen] = useState(false);
   const active = !!(
     criteria.query.trim() ||

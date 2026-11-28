@@ -19,6 +19,84 @@ function response(status: number, body: unknown = {}) {
 }
 afterEach(() => vi.unstubAllGlobals());
 
+it('behält bei Sichtbarkeitswechsel die Themenauswahl einer bestätigten Workspace-Sitzung', async () => {
+  const active = { ...session, workspaceStatus: 'active' };
+  let reads = 0;
+  let current = active;
+  let revoked = false;
+  let topicName = 'Gewähltes Thema';
+  let removed = false;
+  let parentId: string | null = null;
+  const visibility = vi.spyOn(document, 'visibilityState', 'get');
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (path: string) => {
+      if (path === '/api/v1/session') {
+        reads++;
+        return revoked
+          ? response(401, { code: 'authentication_required' })
+          : response(200, current);
+      }
+      if (path === '/api/v1/topics')
+        return response(200, [
+          {
+            topic: { id: 'inbox', name: 'Nicht zugeordnet', parentId: null, isSystem: true },
+            etag: '"1"',
+          },
+          {
+            topic: { id: 'parent', name: 'Zielordner', parentId: null, isSystem: false },
+            etag: '"1"',
+          },
+          ...(!removed && current.workspaceId === active.workspaceId
+            ? [
+                {
+                  topic: { id: 'selected', name: topicName, parentId, isSystem: false },
+                  etag: '"1"',
+                },
+              ]
+            : []),
+        ]);
+      return response(200, { items: [], nextCursor: null });
+    }),
+  );
+  try {
+    render(<AuthApp />);
+    fireEvent.click(await screen.findByRole('button', { name: /^Gewähltes Thema$/ }));
+    expect(screen.getByRole('heading', { name: 'Gewähltes Thema' })).toBeVisible();
+    function returnToTab() {
+      visibility.mockReturnValue('hidden');
+      fireEvent(document, new Event('visibilitychange'));
+      visibility.mockReturnValue('visible');
+      fireEvent(document, new Event('visibilitychange'));
+    }
+    returnToTab();
+    await waitFor(() => expect(reads).toBe(2));
+    await screen.findByRole('navigation', { name: 'Themen' });
+    expect(screen.getByRole('heading', { name: 'Gewähltes Thema' })).toBeVisible();
+    topicName = 'Umbenanntes Thema';
+    parentId = 'parent';
+    returnToTab();
+    expect(await screen.findByRole('heading', { name: 'Umbenanntes Thema' })).toBeVisible();
+    removed = true;
+    returnToTab();
+    expect(await screen.findByRole('heading', { name: 'Alle zugeordnet' })).toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: /^Zielordner$/ }));
+    expect(screen.getByRole('heading', { name: 'Zielordner' })).toBeVisible();
+    current = { ...active, workspaceId: 'workspace-2' };
+    returnToTab();
+    await waitFor(() => expect(reads).toBe(5));
+    await screen.findByRole('navigation', { name: 'Themen' });
+    expect(screen.getByRole('heading', { name: 'Alle zugeordnet' })).toBeVisible();
+    expect(screen.queryByRole('heading', { name: topicName })).not.toBeInTheDocument();
+    revoked = true;
+    returnToTab();
+    expect(await screen.findByRole('heading', { name: 'Anmelden' })).toBeVisible();
+    expect(screen.queryByRole('navigation', { name: 'Themen' })).not.toBeInTheDocument();
+  } finally {
+    visibility.mockRestore();
+  }
+});
+
 it('meldet mit CSRF an und meldet mit neuem Token ab', async () => {
   const fetcher = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const path = String(input);

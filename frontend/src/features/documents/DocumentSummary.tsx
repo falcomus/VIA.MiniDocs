@@ -63,6 +63,7 @@ export function DocumentActions({
 }
 /** Reale PDF-Quellen werden bedarfsgerecht als Miniatur dargestellt. */
 export function DemoPreview({ document }: { readonly document: DocumentSummary }) {
+  if (document.metadataOnly) return <Icon name="file" />;
   if (document.demoUrl) return <DemoPdfThumbnail url={document.demoUrl} />;
   if (document.source?.kind === 'pdf') {
     return <PdfThumbnail blob={document.source.blob} />;

@@ -71,3 +71,24 @@ export function deleteEmptyTopic(
     ? topics
     : topics.filter((topic) => topic.id !== id);
 }
+
+/** Checks the proposed final name in the demo's sibling scope. */
+export function topicNameError(
+  topics: readonly Topic[],
+  name: string,
+  parentId: TopicId | null,
+  id?: TopicId,
+): string | undefined {
+  const key = name.trim().toLocaleLowerCase('de-DE');
+  if (parentId === null && (key === 'nicht zugeordnet' || key === 'alle zugeordnet'))
+    return 'Dieser Themenname ist auf der Hauptebene reserviert.';
+  if (
+    topics.some(
+      (topic) =>
+        topic.id !== id &&
+        topic.parentId === parentId &&
+        topic.name.trim().toLocaleLowerCase('de-DE') === key,
+    )
+  )
+    return 'Ein Thema mit diesem Namen existiert bereits auf dieser Ebene.';
+}

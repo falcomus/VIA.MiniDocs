@@ -1,6 +1,7 @@
 export type TagId = string;
 export interface TagDefinition {
   readonly id: TagId;
+  readonly etag?: string;
   readonly name: string;
   readonly description: string;
   readonly color: string;

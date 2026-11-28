@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { useTheme } from '../settings/useTheme';
 import { AdminPanel } from './AdminPanel';
 import { ApiClient, ApiError, errorMessage } from './api';
@@ -9,16 +9,29 @@ import styles from './AuthApp.module.css';
 const signedInInviteNotice =
   'Du bist bereits angemeldet. Melde dich ab und öffne den Einladungslink erneut, um ein neues Konto zu erstellen.';
 
+const PersistentApp = lazy(() =>
+  import('../documents/PersistentApp').then(({ PersistentApp }) => ({ default: PersistentApp })),
+);
+
 export function AuthApp() {
   const [api] = useState(() => new ApiClient());
-  const [sessionView, setSession] = useState<{ session: Session; generation: number } | null>(null);
+  const [sessionView, updateSession] = useState<{ session: Session; generation: number } | null>(
+    null,
+  );
+  const confirmedSession = useRef<Session | null>(null);
+  const setSession = useCallback((view: { session: Session; generation: number } | null) => {
+    confirmedSession.current = view?.session ?? null;
+    updateSession(view);
+  }, []);
   const session = sessionView?.session;
   const [loading, setLoading] = useState(true);
+  const [workspaceRevalidation, setWorkspaceRevalidation] = useState(0);
   const [register, setRegister] = useState(false);
   const [linkToken, setLinkToken] = useState('');
   const inviteDuringSessionCheck = useRef(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [showAdministration, setShowAdministration] = useState(false);
   const [busy, setBusy] = useState(false);
   const [logoutUnknown, setLogoutUnknown] = useState(false);
   const epoch = useRef(0);
@@ -73,36 +86,61 @@ export function AuthApp() {
   const clear = useCallback(() => {
     invalidate();
     setSession(null);
+    setShowAdministration(false);
     setError('');
     setMessage('');
     setBusy(false);
     setLogoutUnknown(false);
-  }, [invalidate]);
+  }, [invalidate, setSession]);
 
-  const refresh = useCallback(async () => {
-    if (logoutLocked.current || submission.current) return;
-    const generation = epoch.current;
-    if (sessionRead.current === generation) return;
-    sessionRead.current = generation;
-    setLoading(true);
-    try {
-      const result = await api.request<Session>('/api/v1/session');
-      if (generation === epoch.current && !logoutLocked.current) {
-        if (inviteDuringSessionCheck.current) setMessage(signedInInviteNotice);
-        setLinkToken('');
-        setRegister(false);
-        setSession({ session: result.data, generation });
+  const refresh = useCallback(
+    async (preserveWorkspace = false) => {
+      if (logoutLocked.current || submission.current) return;
+      const generation = epoch.current;
+      if (sessionRead.current === generation) return;
+      sessionRead.current = generation;
+      setLoading(true);
+      try {
+        const result = await api.request<Session>('/api/v1/session');
+        if (generation === epoch.current && !logoutLocked.current) {
+          const previous = confirmedSession.current;
+          if (preserveWorkspace && previous) {
+            const sameWorkspace =
+              previous.userId === result.data.userId &&
+              previous.workspaceId === result.data.workspaceId &&
+              result.data.workspaceStatus === 'active';
+            if (sameWorkspace) setWorkspaceRevalidation((value) => value + 1);
+            else {
+              api.reset();
+              setShowAdministration(false);
+              setMessage('');
+              setError('');
+            }
+            if (!result.data.roles.includes('ADMINISTRATOR')) setShowAdministration(false);
+          }
+          if (inviteDuringSessionCheck.current) setMessage(signedInInviteNotice);
+          setLinkToken('');
+          setRegister(false);
+          setSession({ session: result.data, generation });
+        }
+      } catch (failure) {
+        if (generation !== epoch.current) return;
+        if (preserveWorkspace) {
+          api.reset();
+          setShowAdministration(false);
+          setMessage('');
+        }
+        if (!(failure instanceof ApiError && failure.status === 401))
+          setError(errorMessage(failure));
+        setSession(null);
+      } finally {
+        if (generation === epoch.current) inviteDuringSessionCheck.current = false;
+        if (sessionRead.current === generation) sessionRead.current = null;
+        if (generation === epoch.current) setLoading(false);
       }
-    } catch (failure) {
-      if (generation !== epoch.current) return;
-      if (!(failure instanceof ApiError && failure.status === 401)) setError(errorMessage(failure));
-      setSession(null);
-    } finally {
-      if (generation === epoch.current) inviteDuringSessionCheck.current = false;
-      if (sessionRead.current === generation) sessionRead.current = null;
-      if (generation === epoch.current) setLoading(false);
-    }
-  }, [api]);
+    },
+    [api, setSession],
+  );
 
   useEffect(() => {
     let disposed = false;
@@ -125,6 +163,10 @@ export function AuthApp() {
       if (logoutLocked.current) return;
       if (submission.current) {
         if (document.visibilityState === 'visible') deferredRefresh.current = epoch.current;
+        return;
+      }
+      if (confirmedSession.current?.workspaceStatus === 'active') {
+        if (document.visibilityState === 'visible') void refresh(true);
         return;
       }
       clear();
@@ -245,6 +287,48 @@ export function AuthApp() {
     void refresh();
   }, [clear, refresh]);
 
+  if (
+    sessionView &&
+    session?.workspaceStatus === 'active' &&
+    session.workspaceId &&
+    !showAdministration
+  ) {
+    const actions = (
+      <>
+        {session.roles.includes('ADMINISTRATOR') && (
+          <button type="button" onClick={() => setShowAdministration(true)}>
+            Administration
+          </button>
+        )}
+        <button type="button" disabled={busy} onClick={() => void logout()}>
+          Abmelden
+        </button>
+      </>
+    );
+    return (
+      <>
+        {loading && <p role="status">Sitzung wird geprüft …</p>}
+        {!loading && message && <p role="status">{message}</p>}
+        <div hidden={loading} style={loading ? undefined : { display: 'contents' }}>
+          <Suspense
+            fallback={
+              <p role="status">Dein Workspace ist aktiv. Die Dokumentübersicht wird geladen.</p>
+            }
+          >
+            <PersistentApp
+              key={`${session.userId}:${session.workspaceId}:${sessionView.generation}`}
+              api={api}
+              workspaceId={session.workspaceId}
+              revalidation={workspaceRevalidation}
+              onSessionChanged={forbidden}
+              actions={actions}
+            />
+          </Suspense>
+        </div>
+      </>
+    );
+  }
+
   return (
     <main className={styles.page}>
       <AppHeader subtitle="VIA.MiniDocs">
@@ -299,7 +383,9 @@ export function AuthApp() {
                 <p>Dein Workspace ist gesperrt. Bitte wende dich an die Administration.</p>
               )}
               {session.workspaceStatus === 'active' && (
-                <p>Dein Workspace ist aktiv. Die Dokumentfunktionen werden noch angebunden.</p>
+                <button type="button" onClick={() => setShowAdministration(false)}>
+                  Dokumentübersicht
+                </button>
               )}
               {session.workspaceId === null && (
                 <p>Dieses Administrationskonto hat keinen privaten Workspace.</p>

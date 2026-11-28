@@ -11,6 +11,8 @@ DECLARE
   readers oid[] := ARRAY[runtime, writer];
   d4 boolean;
   d4c boolean;
+  d6 boolean;
+  sibling_names boolean;
   expected record;
   item record;
   role_id oid;
@@ -27,6 +29,10 @@ BEGIN
     WHERE "MigrationId" = '20261127090000_SessionSecurity') INTO d4;
   SELECT EXISTS (SELECT 1 FROM public."__EFMigrationsHistory"
     WHERE "MigrationId" = '20261127100000_TechnicalProvisioning') INTO d4c;
+  SELECT EXISTS (SELECT 1 FROM public."__EFMigrationsHistory"
+    WHERE "MigrationId" = '20261128100000_WorkspaceMetadata') INTO d6;
+  SELECT EXISTS (SELECT 1 FROM public."__EFMigrationsHistory"
+    WHERE "MigrationId" = '20261128110000_TopicSiblingNames') INTO sibling_names;
   IF d4 AND bootstrap IS NULL THEN RAISE EXCEPTION 'MiniDocs gate: missing bootstrap principal'; END IF;
   IF bootstrap IS NOT NULL THEN
     protected_roles := array_append(protected_roles, bootstrap);
@@ -134,7 +140,8 @@ BEGIN
           ('identity_users', 'writer', 'INSERT', CASE WHEN d4 THEN
             'id account_kind is_disabled user_name normalized_user_name email_confirmed password_hash security_stamp concurrency_stamp phone_number_confirmed two_factor_enabled lockout_enabled access_failed_count' END),
           ('identity_sessions', 'writer', 'UPDATE', 'idle_until revoked_at'),
-          ('tags', 'writer', 'UPDATE', 'version'),
+          ('tags', 'writer', 'INSERT', CASE WHEN d6 THEN 'id workspace_id name name_key description color' END),
+          ('tags', 'writer', 'UPDATE', CASE WHEN d6 THEN 'version name name_key description color updated_at' ELSE 'version' END),
           ('pending_transcripts', 'writer', 'UPDATE', 'version status updated_at source_name meta_date meta_topic meta_title meta_tags')
         ) c(table_name, principal, privilege, rights)
         WHERE c.table_name = expected.table_name AND c.privilege = right_name
@@ -253,9 +260,14 @@ BEGIN
     ('minidocs.lock_admin_authority(uuid, text, bytea, uuid, uuid)', 'writer', 'boolean', 'plpgsql', 'v', true, true, false, '416a47cc4cae6e790d8561d4190f197809dd0bf420ddb730a9efd1200216951d'),
     ('minidocs.command_set_account_disabled(uuid, text, bytea, uuid, text, text[], boolean)', 'writer', 'smallint', 'plpgsql', 'v', true, true, false, CASE WHEN d4c THEN '518be3fb466b2c484a6807e2e6260f4b0f1a833ffd5a4aaa83fa30eaf619d957' ELSE '1336a5281d40789ff41f1eb8eda0f39113dec0f1c759000913e2e18a3142bb41' END),
     ('minidocs.command_bootstrap_administrator(uuid, text, text, text)', 'writer', 'boolean', 'plpgsql', 'v', true, false, false, 'ef251e5a94a5981f0bc0000c7121706cb6eadbf76f1bd913887689bd936377f5'),
-    ('minidocs.command_replace_technical_invitation(uuid, uuid, bigint, bytea)', 'writer', 'boolean', 'plpgsql', 'v', true, true, false, '43217b0459b1444ca36020179cccdde3254336c921151d658b5cb2885f6f7c61')
+    ('minidocs.command_replace_technical_invitation(uuid, uuid, bigint, bytea)', 'writer', 'boolean', 'plpgsql', 'v', true, true, false, '43217b0459b1444ca36020179cccdde3254336c921151d658b5cb2885f6f7c61'),
+    ('minidocs.command_d6_lock(uuid)', 'writer', 'boolean', 'plpgsql', 'v', true, true, false, 'e0d22e989a31bf7f55c72c320a1a4d0dc88b61f55a80c1b9ca66f9756fcab750'),
+    ('minidocs.command_d6_topic(uuid, uuid, bigint, text, uuid, boolean)', 'writer', 'boolean', 'plpgsql', 'v', true, true, false, CASE WHEN sibling_names THEN 'ca797bfd60fa7d7703916cf7de41d87a8135714063b4166098318fa29471b6e4' ELSE 'ab6927af2e79881ffd28edd70b25e2f0ad1cad44bf51c37d8ea18fcb47c37c08' END),
+    ('minidocs.command_d6_tag(uuid, uuid, bigint, text, text, text)', 'writer', 'boolean', 'plpgsql', 'v', true, true, false, 'c4c616d5a6b7b546b96216f8cfee2660ab253d8957eb20cf7af7eb9bb6e4f097'),
+    ('minidocs.command_d6_document(uuid, uuid, bigint, text, text, date, boolean)', 'writer', 'boolean', 'plpgsql', 'v', true, true, false, '160ee4bf1e19dc5736a5934b443e63e27d741b7c6014e4af462f503e0962d8ba')
   ) v(signature, owner_name, return_type, language_name, volatility, definer, runtime_execute, writer_grant, source_sha256)
-  WHERE (d4c OR signature NOT LIKE 'minidocs.command_replace_technical_invitation(%') AND
+  WHERE (d6 OR NOT starts_with(signature, 'minidocs.command_d6_')) AND
+    (d4c OR signature NOT LIKE 'minidocs.command_replace_technical_invitation(%') AND
     (d4 OR signature NOT LIKE 'minidocs.%session%' AND
     signature NOT LIKE 'minidocs.lock_admin_authority(%' AND
     signature NOT LIKE 'minidocs.command_set_account_disabled(%' AND
@@ -401,6 +413,142 @@ END)$expr$),
          AND pg_get_expr(c.conbin, c.conrelid) = replace(expected.check_expression, chr(13), ''))
     THEN RAISE EXCEPTION 'MiniDocs gate: unexpected D2 constraint %', expected.constraint_name; END IF;
   END LOOP;
+  -- The D2 migration fixes the identity, workspace and relation keys. A restored
+  -- schema must not silently replace a composite tenant FK with an ID-only FK.
+  FOR expected IN SELECT * FROM (VALUES
+    ('identity_users', 'PK_identity_users', 'p', ARRAY['id']),
+    ('user_invitations', 'PK_user_invitations', 'p', ARRAY['id']),
+    ('workspaces', 'PK_workspaces', 'p', ARRAY['id']),
+    ('file_operation_receipts', 'PK_file_operation_receipts', 'p', ARRAY['id']),
+    ('pending_transcripts', 'PK_pending_transcripts', 'p', ARRAY['id']),
+    ('pending_transcripts', 'AK_pending_transcripts_workspace_id_id', 'u', ARRAY['workspace_id','id']),
+    ('provisioning_operations', 'PK_provisioning_operations', 'p', ARRAY['id']),
+    ('tags', 'PK_tags', 'p', ARRAY['id']),
+    ('tags', 'AK_tags_workspace_id_id', 'u', ARRAY['workspace_id','id']),
+    ('topics', 'PK_topics', 'p', ARRAY['id']),
+    ('topics', 'AK_topics_workspace_id_id', 'u', ARRAY['workspace_id','id']),
+    ('upload_request_tombstones', 'PK_upload_request_tombstones', 'p', ARRAY['workspace_id','request_id']),
+    ('via_docs_accounts', 'PK_via_docs_accounts', 'p', ARRAY['id']),
+    ('pending_transcript_pages', 'PK_pending_transcript_pages', 'p', ARRAY['workspace_id','pending_id','page_no']),
+    ('documents', 'PK_documents', 'p', ARRAY['id']),
+    ('documents', 'AK_documents_workspace_id_id', 'u', ARRAY['workspace_id','id']),
+    ('document_tags', 'PK_document_tags', 'p', ARRAY['workspace_id','document_id','tag_id']),
+    ('file_operations', 'PK_file_operations', 'p', ARRAY['id']),
+    ('file_operations', 'AK_file_operations_workspace_id_id', 'u', ARRAY['workspace_id','id']),
+    ('transcript_pages', 'PK_transcript_pages', 'p', ARRAY['workspace_id','document_id','page_no'])
+  ) v(table_name, constraint_name, constraint_type, columns)
+  LOOP
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint c
+        JOIN pg_index i ON i.indexrelid = c.conindid
+        JOIN pg_class idx ON idx.oid = i.indexrelid
+        JOIN pg_am am ON am.oid = idx.relam
+        WHERE c.conrelid = to_regclass(format('minidocs.%I', expected.table_name))
+          AND c.conname = expected.constraint_name AND c.contype::text = expected.constraint_type
+          AND c.convalidated AND c.conenforced AND NOT c.condeferrable AND NOT c.condeferred
+          AND ARRAY(SELECT a.attname::text FROM unnest(c.conkey) WITH ORDINALITY AS k(attnum, position)
+              JOIN pg_attribute a ON a.attrelid = c.conrelid AND a.attnum = k.attnum
+              WHERE a.attnotnull AND NOT a.attisdropped ORDER BY k.position) = expected.columns
+          AND i.indrelid = c.conrelid AND i.indisunique AND i.indisvalid AND i.indisready AND i.indislive
+          AND i.indimmediate AND NOT i.indnullsnotdistinct
+          AND i.indisprimary = (expected.constraint_type = 'p') AND am.amname = 'btree'
+          AND i.indpred IS NULL AND i.indexprs IS NULL
+          AND i.indnatts = cardinality(expected.columns) AND i.indnkeyatts = i.indnatts
+          AND ARRAY(SELECT pg_get_indexdef(i.indexrelid, k, true)
+              FROM generate_series(1, i.indnkeyatts::integer) AS keys(k)) = expected.columns)
+    THEN RAISE EXCEPTION 'MiniDocs gate: unexpected D2 key %', expected.constraint_name; END IF;
+  END LOOP;
+
+  FOR expected IN SELECT * FROM (VALUES
+    ('user_invitations', 'FK_user_invitations_identity_users_created_by', ARRAY['created_by'], 'identity_users', ARRAY['id']),
+    ('user_invitations', 'FK_user_invitations_identity_users_redeemed_user_id', ARRAY['redeemed_user_id'], 'identity_users', ARRAY['id']),
+    ('workspaces', 'FK_workspaces_identity_users_owner_user_id', ARRAY['owner_user_id'], 'identity_users', ARRAY['id']),
+    ('file_operation_receipts', 'FK_file_operation_receipts_workspaces_workspace_id', ARRAY['workspace_id'], 'workspaces', ARRAY['id']),
+    ('pending_transcripts', 'FK_pending_transcripts_workspaces_workspace_id', ARRAY['workspace_id'], 'workspaces', ARRAY['id']),
+    ('provisioning_operations', 'FK_provisioning_operations_workspaces_workspace_id', ARRAY['workspace_id'], 'workspaces', ARRAY['id']),
+    ('tags', 'FK_tags_workspaces_workspace_id', ARRAY['workspace_id'], 'workspaces', ARRAY['id']),
+    ('topics', 'FK_topics_topics_workspace_id_parent_id', ARRAY['workspace_id','parent_id'], 'topics', ARRAY['workspace_id','id']),
+    ('topics', 'FK_topics_workspaces_workspace_id', ARRAY['workspace_id'], 'workspaces', ARRAY['id']),
+    ('upload_request_tombstones', 'FK_upload_request_tombstones_workspaces_workspace_id', ARRAY['workspace_id'], 'workspaces', ARRAY['id']),
+    ('via_docs_accounts', 'FK_via_docs_accounts_workspaces_workspace_id', ARRAY['workspace_id'], 'workspaces', ARRAY['id']),
+    ('pending_transcript_pages', 'FK_pending_transcript_pages_pending_transcripts_workspace_id_p~', ARRAY['workspace_id','pending_id'], 'pending_transcripts', ARRAY['workspace_id','id']),
+    ('pending_transcript_pages', 'FK_pending_transcript_pages_workspaces_workspace_id', ARRAY['workspace_id'], 'workspaces', ARRAY['id']),
+    ('documents', 'FK_documents_topics_workspace_id_topic_id', ARRAY['workspace_id','topic_id'], 'topics', ARRAY['workspace_id','id']),
+    ('documents', 'FK_documents_workspaces_workspace_id', ARRAY['workspace_id'], 'workspaces', ARRAY['id']),
+    ('document_tags', 'FK_document_tags_documents_workspace_id_document_id', ARRAY['workspace_id','document_id'], 'documents', ARRAY['workspace_id','id']),
+    ('document_tags', 'FK_document_tags_tags_workspace_id_tag_id', ARRAY['workspace_id','tag_id'], 'tags', ARRAY['workspace_id','id']),
+    ('document_tags', 'FK_document_tags_workspaces_workspace_id', ARRAY['workspace_id'], 'workspaces', ARRAY['id']),
+    ('file_operations', 'FK_file_operations_documents_workspace_id_document_id', ARRAY['workspace_id','document_id'], 'documents', ARRAY['workspace_id','id']),
+    ('file_operations', 'FK_file_operations_workspaces_workspace_id', ARRAY['workspace_id'], 'workspaces', ARRAY['id']),
+    ('transcript_pages', 'FK_transcript_pages_documents_workspace_id_document_id', ARRAY['workspace_id','document_id'], 'documents', ARRAY['workspace_id','id']),
+    ('transcript_pages', 'FK_transcript_pages_workspaces_workspace_id', ARRAY['workspace_id'], 'workspaces', ARRAY['id'])
+  ) v(table_name, constraint_name, columns, target_table, target_columns)
+  LOOP
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint c
+        WHERE c.conrelid = to_regclass(format('minidocs.%I', expected.table_name))
+          AND c.conname = expected.constraint_name AND c.contype = 'f'
+          AND c.convalidated AND c.conenforced AND NOT c.condeferrable AND NOT c.condeferred
+          AND c.confrelid = to_regclass(format('minidocs.%I', expected.target_table))
+          AND c.confmatchtype = 's' AND c.confupdtype = 'a' AND c.confdeltype = 'r'
+          AND ARRAY(SELECT a.attname::text FROM unnest(c.conkey) WITH ORDINALITY AS k(attnum, position)
+              JOIN pg_attribute a ON a.attrelid = c.conrelid AND a.attnum = k.attnum
+              WHERE NOT a.attisdropped AND a.atttypid = 'uuid'::regtype
+                AND a.attnotnull = (NOT ((expected.table_name = 'topics' AND a.attname = 'parent_id')
+                  OR (expected.table_name = 'user_invitations' AND a.attname = 'redeemed_user_id')))
+              ORDER BY k.position) = expected.columns
+          AND ARRAY(SELECT a.attname::text FROM unnest(c.confkey) WITH ORDINALITY AS k(attnum, position)
+              JOIN pg_attribute a ON a.attrelid = c.confrelid AND a.attnum = k.attnum
+              WHERE NOT a.attisdropped AND a.atttypid = 'uuid'::regtype AND a.attnotnull
+              ORDER BY k.position) = expected.target_columns
+          AND NOT EXISTS (SELECT 1 FROM pg_trigger t WHERE t.tgconstraint = c.oid
+              AND t.tgenabled NOT IN ('O', 'A')))
+    THEN RAISE EXCEPTION 'MiniDocs gate: unexpected D2 foreign key %', expected.constraint_name; END IF;
+  END LOOP;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_attribute a
+      WHERE a.attrelid = 'minidocs.tags'::regclass AND a.attname = 'name_key'
+        AND a.attnum > 0 AND NOT a.attisdropped AND a.atttypid = 'text'::regtype AND a.attnotnull)
+  THEN RAISE EXCEPTION 'MiniDocs gate: unexpected D2 column tags.name_key'; END IF;
+
+  -- Business uniqueness is just as important as existence of the named index.
+  FOR expected IN SELECT * FROM (VALUES
+    ('tags', 'IX_tags_workspace_id_name_key', ARRAY['workspace_id','name_key'], NULL::text),
+    ('topics', 'IX_topics_workspace_id', ARRAY['workspace_id'], '(system_key = ''UNASSIGNED''::text)'),
+    ('documents', 'IX_documents_workspace_id_via_file_id', ARRAY['workspace_id','via_file_id'], '(via_file_id IS NOT NULL)'),
+    ('workspaces', 'IX_workspaces_owner_user_id', ARRAY['owner_user_id'], NULL),
+    ('via_docs_accounts', 'IX_via_docs_accounts_workspace_id', ARRAY['workspace_id'], NULL)
+  ) v(table_name, index_name, columns, predicate)
+  LOOP
+    IF NOT EXISTS (SELECT 1 FROM pg_index i JOIN pg_class idx ON idx.oid = i.indexrelid
+        JOIN pg_am am ON am.oid = idx.relam
+        WHERE i.indexrelid = to_regclass(format('minidocs.%I', expected.index_name))
+          AND i.indrelid = to_regclass(format('minidocs.%I', expected.table_name))
+          AND i.indisunique AND i.indisvalid AND i.indisready AND i.indislive AND i.indimmediate
+          AND NOT i.indnullsnotdistinct AND NOT i.indisprimary AND am.amname = 'btree'
+          AND i.indexprs IS NULL AND i.indnatts = cardinality(expected.columns) AND i.indnkeyatts = i.indnatts
+          AND pg_get_expr(i.indpred, i.indrelid) IS NOT DISTINCT FROM expected.predicate
+          AND ARRAY(SELECT pg_get_indexdef(i.indexrelid, k, true)
+              FROM generate_series(1, i.indnkeyatts::integer) AS keys(k)) = expected.columns)
+    THEN RAISE EXCEPTION 'MiniDocs gate: unexpected D2 unique index %', expected.index_name; END IF;
+  END LOOP;
+  IF sibling_names THEN
+    IF NOT EXISTS (SELECT 1 FROM pg_index i JOIN pg_class idx ON idx.oid = i.indexrelid
+        JOIN pg_am am ON am.oid = idx.relam
+        WHERE i.indexrelid = to_regclass('minidocs.ux_topics_sibling_name')
+          AND i.indrelid = 'minidocs.topics'::regclass AND am.amname = 'btree'
+          AND i.indisunique AND i.indnullsnotdistinct AND i.indisvalid AND i.indisready
+          AND i.indislive AND i.indimmediate AND i.indnatts = 3 AND i.indnkeyatts = 3 AND i.indpred IS NULL
+          AND pg_get_indexdef(i.indexrelid, 1, true) = 'workspace_id'
+          AND pg_get_indexdef(i.indexrelid, 2, true) = 'parent_id'
+          AND encode(sha256(convert_to(pg_get_indexdef(i.indexrelid, 3, true), 'UTF8')), 'hex')
+            = 'c28f9496ad238d95a48622fc60ab41efc0ef930c523cac8ca459879716e116f0')
+    THEN RAISE EXCEPTION 'MiniDocs gate: invalid topic sibling unique index'; END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint c WHERE c.conrelid = 'minidocs.topics'::regclass
+        AND c.conname = 'ck_topics_reserved_root_name' AND c.contype = 'c'
+        AND c.convalidated AND c.conenforced
+        AND encode(sha256(convert_to(pg_get_expr(c.conbin, c.conrelid, true), 'UTF8')), 'hex')
+          = '9d2db2f714f6fb2a74546736deea9bc8b43b9819d9cda954b76b968f96bed3b5')
+    THEN RAISE EXCEPTION 'MiniDocs gate: invalid reserved root topic name check'; END IF;
+  END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_index i WHERE i.indexrelid = to_regclass('minidocs.ux_provisioning_active_workspace')
       AND i.indrelid = 'minidocs.provisioning_operations'::regclass AND i.indisunique AND i.indisvalid AND i.indisready
       AND i.indnatts = 1 AND pg_get_indexdef(i.indexrelid, 1, true) = 'workspace_id'

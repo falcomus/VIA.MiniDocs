@@ -77,5 +77,8 @@
   padding-top: 12px;
 }
 .add {
-  margin-top: 12px;
+  margin-bottom: 12px;
+}
+.addFirst {
+  margin-right: auto;
 }

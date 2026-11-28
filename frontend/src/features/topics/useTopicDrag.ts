@@ -7,10 +7,11 @@ const topicMimeType = 'application/x-minidoc-topic';
 /** Shared internal drag session for topic rows and the sidebar root; payload alone never authorizes a move. */
 export function useTopicDrag(
   topics: readonly Topic[],
-  onMove: (id: TopicId, parentId: TopicId | null) => void,
+  onMove: (id: TopicId, parentId: TopicId | null, expectedEtag?: string) => void,
   onReject: () => void,
 ) {
   const source = useRef<TopicId | null>(null);
+  const version = useRef<string | undefined>(undefined);
   const [dropTarget, setDropTarget] = useState<TopicId | null>(null);
 
   useEffect(() => {
@@ -47,6 +48,7 @@ export function useTopicDrag(
       transfer.setData(topicMimeType, id);
       transfer.effectAllowed = 'move';
       source.current = id;
+      version.current = topics.find((topic) => topic.id === id)?.etag;
       return true;
     },
     over(parentId: TopicId | null) {
@@ -70,7 +72,8 @@ export function useTopicDrag(
         onReject();
         return false;
       }
-      onMove(id, parentId);
+      if (version.current === undefined) onMove(id, parentId);
+      else onMove(id, parentId, version.current);
       return true;
     },
   };
